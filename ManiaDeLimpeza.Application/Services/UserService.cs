@@ -1,6 +1,7 @@
 ﻿using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using ManiaDeLimpeza.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Application.Services
 {
-    public class UserService : IUserService
+    public class UserService : IUserService, IScopedDependency
     {
         private readonly IUserRepository _userRepository;
 

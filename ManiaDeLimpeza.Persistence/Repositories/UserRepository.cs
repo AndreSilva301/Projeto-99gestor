@@ -1,5 +1,6 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
-    public class UserRepository : IUserRepository
+    public class UserRepository : IUserRepository, IScopedDependency
     {
         private readonly ApplicationDbContext _context;
 
