@@ -31,5 +31,31 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             var allUsers = await _context.Users.ToListAsync();
             return allUsers;
         }
+
+        public async Task<User?> GetByEmailAsync(string email)
+        {
+            var user = await _context.Users.SingleOrDefaultAsync(x => x.Email == email);
+            return user;
+        }
+
+        public async Task<User> UpdateAsync(User user)
+        {
+            var existingUser = await _context.Users.FindAsync(user.Id);
+            if (existingUser == null)
+                throw new InvalidOperationException("User not found");
+
+            // Update all properties from the passed-in object
+            _context.Entry(existingUser).CurrentValues.SetValues(user);
+
+            // Prevent password update if it’s null/empty
+            if (string.IsNullOrWhiteSpace(user.Password))
+            {
+                _context.Entry(existingUser).Property(u => u.Password).IsModified = false;
+            }
+
+            await _context.SaveChangesAsync();
+            return existingUser;
+        }
+
     }
 }

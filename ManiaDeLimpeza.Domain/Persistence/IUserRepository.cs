@@ -11,5 +11,7 @@ namespace ManiaDeLimpeza.Domain.Persistence
     {
         Task<User> AddAsync(User user);
         Task<IEnumerable<User>> GetAllAsync();
+        Task<User?> GetByEmailAsync(string email);
+        Task<User> UpdateAsync(User user);
     }
 }

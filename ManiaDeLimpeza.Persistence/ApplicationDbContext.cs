@@ -38,6 +38,9 @@ namespace ManiaDeLimpeza.Persistence
 
             modelBuilder.Entity<User>(entity =>
             {
+                entity.HasKey(u => u.Id);
+                entity.Property(u => u.Id).ValueGeneratedOnAdd();
+
                 entity.HasIndex(u => u.Email).IsUnique();
             });
         }
