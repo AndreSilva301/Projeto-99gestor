@@ -1,5 +1,4 @@
 using ManiaDeLimpeza.Domain.Entities;
-using ManiaDeLimpeza.Persistence;
 using ManiaDeLimpeza.Persistence.IntegrationTests.Tools;
 using ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.Data.SqlClient;
@@ -11,7 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace ManiaDeLimpeza.Persistence.IntegrationTests
+namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 {
     [TestClass]
     public class UserRepositoryIntegrationTests
@@ -58,7 +57,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests
 
             await repo.AddAsync(user1);
             await repo.AddAsync(user2); // should fail due to unique constraint
-        }                
+        }
 
 
     }
