@@ -45,6 +45,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests
             Assert.AreEqual(user1.Email, all.First().Email);
         }
 
+
         [TestMethod]
         [ExpectedException(typeof(DbUpdateException))]
         public async Task AddUser_WithDuplicateEmail_ShouldThrowException()
