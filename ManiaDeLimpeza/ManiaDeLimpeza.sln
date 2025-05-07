@@ -3,19 +3,21 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Api", "ManiaDeLimpeza.Api.csproj", "{14BB407E-4DC9-4024-9D97-A66ECCF0E9BF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Api", "ManiaDeLimpeza.Api.csproj", "{14BB407E-4DC9-4024-9D97-A66ECCF0E9BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Application", "..\ManiaDeLimpeza.Application\ManiaDeLimpeza.Application.csproj", "{F18CD58A-D051-447B-ABC5-06E10B07741A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Application", "..\ManiaDeLimpeza.Application\ManiaDeLimpeza.Application.csproj", "{F18CD58A-D051-447B-ABC5-06E10B07741A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Domain", "..\ManiaDeLimpeza.Domain\ManiaDeLimpeza.Domain.csproj", "{A05875DE-7ACD-40B0-BF9A-138E30CC61CB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Domain", "..\ManiaDeLimpeza.Domain\ManiaDeLimpeza.Domain.csproj", "{A05875DE-7ACD-40B0-BF9A-138E30CC61CB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Infrastructure", "..\ManiaDeLimpeza.Infrastructure\ManiaDeLimpeza.Infrastructure.csproj", "{AAC6DA26-4A5D-48D2-ABFF-6736E3E2528F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Infrastructure", "..\ManiaDeLimpeza.Infrastructure\ManiaDeLimpeza.Infrastructure.csproj", "{AAC6DA26-4A5D-48D2-ABFF-6736E3E2528F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Application.UnitTests", "..\ManiaDeLimpeza.Application.UnitTests\ManiaDeLimpeza.Application.UnitTests.csproj", "{311061EB-4612-4892-9362-2007075301B4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Application.UnitTests", "..\ManiaDeLimpeza.Application.UnitTests\ManiaDeLimpeza.Application.UnitTests.csproj", "{311061EB-4612-4892-9362-2007075301B4}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Persistence", "..\ManiaDeLimpeza.Persistence\ManiaDeLimpeza.Persistence.csproj", "{12A8CAB3-3506-49CE-A3F2-CE2A7E7D992F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Persistence", "..\ManiaDeLimpeza.Persistence\ManiaDeLimpeza.Persistence.csproj", "{12A8CAB3-3506-49CE-A3F2-CE2A7E7D992F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Persistence.IntegrationTests", "..\ManiaDeLimpeza.Persistence.IntegrationTests\ManiaDeLimpeza.Persistence.IntegrationTests.csproj", "{952AF777-D741-4003-9594-77C4BFC9A485}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Persistence.IntegrationTests", "..\ManiaDeLimpeza.Persistence.IntegrationTests\ManiaDeLimpeza.Persistence.IntegrationTests.csproj", "{952AF777-D741-4003-9594-77C4BFC9A485}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Api.IntegrationTests", "..\ManiaDeLimpeza.Api.IntegrationTests\ManiaDeLimpeza.Api.IntegrationTests.csproj", "{DAE895D7-06BD-4B00-937C-E49CBE5C9362}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,6 +53,10 @@ Global
 		{952AF777-D741-4003-9594-77C4BFC9A485}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{952AF777-D741-4003-9594-77C4BFC9A485}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{952AF777-D741-4003-9594-77C4BFC9A485}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
