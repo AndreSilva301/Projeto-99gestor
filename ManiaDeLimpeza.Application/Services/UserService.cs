@@ -49,7 +49,11 @@ namespace ManiaDeLimpeza.Application.Services
         public async Task<User?> GetByCredentialsAsync(string email, string password)
         {
             var user = await _userRepository.GetByEmailAsync(email);
+
             if (user == null)
+                return null;
+
+            if (!user.isActive)
                 return null;
 
             return PasswordHelper.Verify(user.Password, password, user) ? user : null;

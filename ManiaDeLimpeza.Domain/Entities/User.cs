@@ -25,5 +25,9 @@ namespace ManiaDeLimpeza.Domain.Entities
         [MaxLength(100)]
         public string Password { get; set; } = string.Empty;
 
+        /// <summary>
+        /// User is required to be active in order to login
+        /// </summary>
+        public bool isActive { get; set; } = false;
     }
 }

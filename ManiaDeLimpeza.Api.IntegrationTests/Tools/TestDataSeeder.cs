@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Infrastructure.Helpers;
 using ManiaDeLimpeza.Persistence;
 using System;
 using System.Collections.Generic;
@@ -20,13 +21,16 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
 
         public static User GetDefaultUser()
         {
-            return new User
+            var user =  new User
             {
                 Name = "Test User",
                 Email = "testuser@example.com",
-                //This is the equivalent to the default password encripted
-                Password = "AQAAAAIAAYagAAAAEJ9+gNnMeKheD20UwN5NjHTJr0pasHM1+m4Rc2XnczqpfkNlVHl+SHUt/99d2RpC8A=="
+                isActive = true,
             };
+
+            user.Password = PasswordHelper.Hash(DefaultPassword, user);
+
+            return user;
         }
     }
 }
