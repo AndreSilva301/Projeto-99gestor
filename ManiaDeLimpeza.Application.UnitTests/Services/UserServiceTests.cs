@@ -51,7 +51,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             // Arrange
             var password = "secret";
-            var user = new User { Email = "test@example.com", Password = PasswordHelper.Hash(password, new User()), isActive = true };
+            var user = new User { Email = "test@example.com", Password = PasswordHelper.Hash(password, new User()), IsActive = true };
 
             _userRepositoryMock.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync(user);
 
@@ -68,7 +68,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             // Arrange
             var password = "secret";
-            var user = new User { Email = "test@example.com", Password = PasswordHelper.Hash(password, new User()), isActive = false };
+            var user = new User { Email = "test@example.com", Password = PasswordHelper.Hash(password, new User()), IsActive = false };
 
             _userRepositoryMock.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync(user);
 

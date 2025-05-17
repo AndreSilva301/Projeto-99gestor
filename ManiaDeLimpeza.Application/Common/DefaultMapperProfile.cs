@@ -14,7 +14,8 @@ namespace ManiaDeLimpeza.Application.Common
         public DefaultMapperProfile() 
         {
             CreateMap<RegisterUserDto, User>();
-            CreateMap<User, AuthResponseDto>();
+            CreateMap<User, AuthResponseDto>()
+                .ForMember(dest => dest.BearerToken, opts => opts.Ignore());
         }
     }
 }

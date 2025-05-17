@@ -28,6 +28,6 @@ namespace ManiaDeLimpeza.Domain.Entities
         /// <summary>
         /// User is required to be active in order to login
         /// </summary>
-        public bool isActive { get; set; } = false;
+        public bool IsActive { get; set; } = false;
     }
 }

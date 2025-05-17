@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using AutoMapper;
 using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Api.Auth;
 
 namespace ManiaDeLimpeza;
 
@@ -30,6 +31,19 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+
+        //Add Authorization
+        builder.Services.Configure<AuthOptions>(
+            builder.Configuration.GetSection(AuthOptions.SECTION));
+
+        var authOptions = builder.Configuration
+            .GetSection(AuthOptions.SECTION)
+            .Get<AuthOptions>();
+
+        builder.Services.AddJwtAuthentication(authOptions.JwtSecret);
+        builder.Services.AddAuthorization();
+
+        //Build App
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.

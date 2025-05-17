@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Api.IntegrationTests.Tools;
+using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
@@ -71,6 +72,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             // Assert
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(body));
         }
 
 

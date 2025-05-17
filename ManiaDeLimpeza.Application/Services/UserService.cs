@@ -53,7 +53,7 @@ namespace ManiaDeLimpeza.Application.Services
             if (user == null)
                 return null;
 
-            if (!user.isActive)
+            if (!user.IsActive)
                 return null;
 
             return PasswordHelper.Verify(user.Password, password, user) ? user : null;

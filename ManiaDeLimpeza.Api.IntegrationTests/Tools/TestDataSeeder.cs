@@ -25,7 +25,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
             {
                 Name = "Test User",
                 Email = "testuser@example.com",
-                isActive = true,
+                IsActive = true,
             };
 
             user.Password = PasswordHelper.Hash(DefaultPassword, user);

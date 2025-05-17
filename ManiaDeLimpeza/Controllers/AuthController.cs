@@ -12,13 +12,16 @@ namespace ManiaDeLimpeza.Api.Controllers
     {
         private readonly IUserService _userService;
         private readonly IMapper _mapper;
+        private readonly ITokenService _tokenService;
 
         public AuthController(
             IUserService userService,
+            ITokenService tokenService,
             IMapper mapper)
         {
             _userService = userService;
             _mapper = mapper;
+            _tokenService = tokenService;
         }
 
         [HttpPost("register")]
@@ -40,8 +43,9 @@ namespace ManiaDeLimpeza.Api.Controllers
 
             if (user == null)
                 return Unauthorized("Invalid credentials");
-                        
+                                    
             var result = _mapper.Map<AuthResponseDto>(user);
+            result.BearerToken = _tokenService.GenerateToken(user.Id.ToString(), user.Email);
 
             return Ok(result);
         }
