@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using ManiaDeLimpeza.Infrastructure.Helpers;
 using System;
 using System.Collections.Generic;
@@ -53,8 +54,13 @@ namespace ManiaDeLimpeza.Application.Services
             if (user == null)
                 return null;
 
-            if (!user.IsActive)
+            if (!PasswordHelper.Verify(user.Password, password, user))
+            {
                 return null;
+            }
+
+            if (!user.IsActive)
+                throw new BusinessException("The user must be approved in order to login");
 
             return PasswordHelper.Verify(user.Password, password, user) ? user : null;
         }

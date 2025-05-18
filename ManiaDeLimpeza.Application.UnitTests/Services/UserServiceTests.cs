@@ -1,6 +1,7 @@
 ﻿using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using ManiaDeLimpeza.Infrastructure.Helpers;
 using Moq;
 using System;
@@ -72,11 +73,11 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
 
             _userRepositoryMock.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync(user);
 
-            // Act
-            var result = await _userService.GetByCredentialsAsync(user.Email, password);
-
-            // Assert
-            Assert.IsNull(result);
+            // Act & Assert
+            var ex = await Assert.ThrowsExceptionAsync<BusinessException>(async () =>
+            {
+                await _userService.GetByCredentialsAsync(user.Email, password);
+            });
         }
 
 

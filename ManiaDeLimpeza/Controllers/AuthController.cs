@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManiaDeLimpeza.Api.Controllers
@@ -39,7 +40,15 @@ namespace ManiaDeLimpeza.Api.Controllers
         [HttpPost("login")]
         public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
         {
-            var user = await _userService.GetByCredentialsAsync(dto.Email, dto.Password);
+            User user;
+            try
+            {
+                user = await _userService.GetByCredentialsAsync(dto.Email, dto.Password);
+            }
+            catch(BusinessException ex)
+            {
+                return Unauthorized(ex.Message);
+            }
 
             if (user == null)
                 return Unauthorized("Invalid credentials");
