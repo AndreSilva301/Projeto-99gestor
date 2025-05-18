@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence
 {
-    public class ApplicationDbContext :DbContext
+    public class ApplicationDbContext : DbContext
     {
         /* For my own reference:
          *   Whenever I modify the entities (e.g., add properties, constraints, new entities),
@@ -30,6 +30,7 @@ namespace ManiaDeLimpeza.Persistence
         : base(options) { }
 
         public DbSet<User> Users => Set<User>();
+        public DbSet<Client> Clients => Set<Client>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +44,16 @@ namespace ManiaDeLimpeza.Persistence
 
                 entity.HasIndex(u => u.Email).IsUnique();
             });
+
+            modelBuilder.Entity<Client>(entity =>
+            {
+                entity.HasKey(u => u.Id);
+                entity.Property(c => c.Id)
+                .ValueGeneratedOnAdd();
+            });
+
+            modelBuilder.Entity<Client>().OwnsOne(c => c.Address);
+            modelBuilder.Entity<Client>().OwnsOne(c => c.Phone);
         }
     }
 }

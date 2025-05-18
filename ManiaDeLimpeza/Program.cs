@@ -4,6 +4,8 @@ using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using AutoMapper;
 using ManiaDeLimpeza.Application.Common;
 using ManiaDeLimpeza.Api.Auth;
+using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Persistence.Repositories;
 
 namespace ManiaDeLimpeza;
 
@@ -16,6 +18,9 @@ public class Program
 
         // Register services (DI)
         builder.Services.AddMarkedDependencies();
+
+        // Manually registered dependencies (DI)
+        builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
         // Include Automapper
         builder.Services.AddAutoMapper(typeof(DefaultMapperProfile).Assembly);
