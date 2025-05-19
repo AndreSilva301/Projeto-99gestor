@@ -4,6 +4,7 @@ using ManiaDeLimpeza.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManiaDeLimpeza.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250519003712_Migration202505182136")]
+    partial class Migration202505182136
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -39,14 +42,12 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(450)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Observations")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("Name");
 
                     b.ToTable("Clients");
                 });
@@ -200,16 +201,12 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<string>("Landline")
-                                .HasColumnType("nvarchar(450)");
+                                .HasColumnType("nvarchar(max)");
 
                             b1.Property<string>("Mobile")
-                                .HasColumnType("nvarchar(450)");
+                                .HasColumnType("nvarchar(max)");
 
                             b1.HasKey("ClientId");
-
-                            b1.HasIndex("Landline");
-
-                            b1.HasIndex("Mobile");
 
                             b1.ToTable("Clients");
 

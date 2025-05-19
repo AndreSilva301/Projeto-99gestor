@@ -31,29 +31,73 @@ namespace ManiaDeLimpeza.Persistence
 
         public DbSet<User> Users => Set<User>();
         public DbSet<Client> Clients => Set<Client>();
+        public DbSet<Quote> Quotes => Set<Quote>();
+        public DbSet<LineItem> LineItems => Set<LineItem>();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             // Fluent API config if needed
 
+            //User
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
-                entity.Property(u => u.Id).ValueGeneratedOnAdd();
+                entity.Property(u => u.Id)
+                    .ValueGeneratedOnAdd();
 
-                entity.HasIndex(u => u.Email).IsUnique();
+                entity.HasIndex(u => u.Email)
+                    .IsUnique();
             });
 
+            //Client
             modelBuilder.Entity<Client>(entity =>
             {
                 entity.HasKey(u => u.Id);
                 entity.Property(c => c.Id)
-                .ValueGeneratedOnAdd();
+                    .ValueGeneratedOnAdd();
+
+                entity.OwnsOne(c => c.Address);
+                entity.OwnsOne(c => c.Phone, phone =>
+                {
+                    phone.Property(p => p.Mobile);
+                    phone.Property(p => p.Landline);
+
+                    phone.HasIndex(p => p.Mobile);
+                    phone.HasIndex(p => p.Landline);
+                });
+
+                entity.HasIndex(c => c.Name);
+
             });
 
-            modelBuilder.Entity<Client>().OwnsOne(c => c.Address);
-            modelBuilder.Entity<Client>().OwnsOne(c => c.Phone);
+            //Quote
+            modelBuilder.Entity<Quote>(entity =>
+            {
+                entity.HasKey(q => q.Id);
+                entity.Property(q => q.TotalPrice).HasColumnType("decimal(18,2)");
+                entity.Property(q => q.CashDiscount).HasColumnType("decimal(18,2)");
+                entity.HasOne(q => q.Client)
+                    .WithMany()
+                    .HasForeignKey(q => q.ClientId);
+
+                entity.HasOne(q => q.CreatedBy)
+                    .WithMany()
+                    .HasForeignKey(q => q.CreatedByUserId);
+
+                entity.HasMany(q => q.LineItems)
+                    .WithOne(li => li.Quote)
+                    .HasForeignKey(li => li.QuoteId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            //LineItem
+            modelBuilder.Entity<LineItem>(entity =>
+            {
+                entity.HasKey(li => li.Id);
+                entity.Property(li => li.UnitPrice).HasColumnType("decimal(18,2)");
+                entity.Property(li => li.Total).HasColumnType("decimal(18,2)");
+            });
         }
     }
 }
