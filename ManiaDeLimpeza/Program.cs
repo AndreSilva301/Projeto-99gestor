@@ -20,7 +20,7 @@ public class Program
         builder.Services.AddMarkedDependencies();
 
         // Manually registered dependencies (DI)
-        builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
+        //builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
 
         // Include Automapper
         builder.Services.AddAutoMapper(typeof(DefaultMapperProfile).Assembly);

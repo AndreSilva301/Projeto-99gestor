@@ -1,14 +1,7 @@
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Persistence.IntegrationTests.Tools;
 using ManiaDeLimpeza.Persistence.Repositories;
-using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 {

@@ -36,7 +36,13 @@ namespace ManiaDeLimpeza.Infrastructure.DependencyInjection
         private static void RegisterMatchingInterface(IServiceCollection services, Type implementation, ServiceLifetime lifetime)
         {
             var serviceInterface = implementation.GetInterfaces()
-                .FirstOrDefault(i =>
+                .Where(i =>
+                    i != typeof(IScopedDependency) &&
+                    i != typeof(ITransientDependency) &&
+                    i != typeof(ISingletonDependency) &&
+                    !i.IsGenericTypeDefinition)
+                .FirstOrDefault(i => i.Name == $"I{implementation.Name}") // 💡 match naming convention first
+                ?? implementation.GetInterfaces().FirstOrDefault(i =>
                     i != typeof(IScopedDependency) &&
                     i != typeof(ITransientDependency) &&
                     i != typeof(ISingletonDependency));
@@ -46,5 +52,6 @@ namespace ManiaDeLimpeza.Infrastructure.DependencyInjection
                 services.Add(new ServiceDescriptor(serviceInterface, implementation, lifetime));
             }
         }
+
     }
 }
