@@ -10,7 +10,6 @@ ManiaDeLimpeza is a clean architecture-based ASP.NET Core application for managi
 * **Client Management**:
 
   * Create, read, update, and delete clients.
-  * Support for nested Address and Phone (owned types).
   * Full-text search on name and phone fields.
 * **Quote Management** (in progress):
 
@@ -29,7 +28,7 @@ ManiaDeLimpeza is a clean architecture-based ASP.NET Core application for managi
 
 ## 🧱 Architecture
 
-* **Domain**: Core entities (`Client`, `User`, `Quote`, `LineItem`) and enums.
+* **Domain**: Core entities.
 * **Application**: DTOs and business services.
 * **Persistence**: EF Core `DbContext` and repositories.
 * **Infrastructure**: Dependency injection via marker interfaces.
