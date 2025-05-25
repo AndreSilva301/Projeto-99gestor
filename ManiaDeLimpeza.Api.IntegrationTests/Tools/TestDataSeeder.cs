@@ -11,12 +11,17 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
 {
     public static class TestDataSeeder
     {
+        private const string DefaultEmail = "testuser@example.com";
         public static string DefaultPassword = "Secure123";
 
         public static void SeedDefaultUser(ApplicationDbContext db)
         {
-            db.Users.Add(GetDefaultUser());
-            db.SaveChanges();
+            var defaultUser = db.Users.SingleOrDefault(u => u.Email == DefaultEmail);
+            if (defaultUser == null)
+            {
+                db.Users.Add(GetDefaultUser());
+                db.SaveChanges();
+            }
         }
 
         public static User GetDefaultUser()
@@ -24,7 +29,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
             var user =  new User
             {
                 Name = "Test User",
-                Email = "testuser@example.com",
+                Email = DefaultEmail,
                 IsActive = true,
             };
 

@@ -15,9 +15,6 @@ namespace ManiaDeLimpeza.Domain.Entities
         [Required]
         public int QuoteId { get; set; }
 
-        [ForeignKey(nameof(QuoteId))]
-        public Quote Quote { get; set; } = null!;
-
         [Required]
         [MaxLength(500)]
         public string Description { get; set; } = string.Empty;

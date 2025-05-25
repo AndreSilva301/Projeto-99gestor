@@ -86,7 +86,7 @@ namespace ManiaDeLimpeza.Persistence
                     .HasForeignKey(q => q.CreatedByUserId);
 
                 entity.HasMany(q => q.LineItems)
-                    .WithOne(li => li.Quote)
+                    .WithOne()
                     .HasForeignKey(li => li.QuoteId)
                     .OnDelete(DeleteBehavior.Cascade);
             });

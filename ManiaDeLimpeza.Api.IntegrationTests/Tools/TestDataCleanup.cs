@@ -21,5 +21,11 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
             db.SaveChanges();
         }
 
+        public static void ClearQuotes(ApplicationDbContext db)
+        {
+            db.Quotes.RemoveRange(db.Quotes);
+            db.SaveChanges();
+        }
+
     }
 }

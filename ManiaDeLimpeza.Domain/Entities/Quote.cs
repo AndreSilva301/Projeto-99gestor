@@ -33,5 +33,7 @@ namespace ManiaDeLimpeza.Domain.Entities
         public PaymentMethod PaymentMethod { get; set; }
 
         public decimal? CashDiscount { get; set; } // nullable to represent “no discount”
+
+        public bool IsArchived {  get; set; }
     }
 }
