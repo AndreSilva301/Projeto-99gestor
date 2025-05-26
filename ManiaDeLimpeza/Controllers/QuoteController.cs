@@ -52,6 +52,13 @@ namespace ManiaDeLimpeza.Api.Controllers
             if (!success) return NotFound();
             return NoContent();
         }
+
+        [HttpPost("search")]
+        public async Task<IActionResult> Search([FromBody] QuoteFilterDto filter)
+        {
+            var quotes = await _quoteService.GetPagedAsync(filter);
+            return Ok(quotes);
+        }
     }
 }
 

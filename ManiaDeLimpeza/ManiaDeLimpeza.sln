@@ -17,7 +17,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Persistence"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Persistence.IntegrationTests", "..\ManiaDeLimpeza.Persistence.IntegrationTests\ManiaDeLimpeza.Persistence.IntegrationTests.csproj", "{952AF777-D741-4003-9594-77C4BFC9A485}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ManiaDeLimpeza.Api.IntegrationTests", "..\ManiaDeLimpeza.Api.IntegrationTests\ManiaDeLimpeza.Api.IntegrationTests.csproj", "{DAE895D7-06BD-4B00-937C-E49CBE5C9362}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Api.IntegrationTests", "..\ManiaDeLimpeza.Api.IntegrationTests\ManiaDeLimpeza.Api.IntegrationTests.csproj", "{DAE895D7-06BD-4B00-937C-E49CBE5C9362}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

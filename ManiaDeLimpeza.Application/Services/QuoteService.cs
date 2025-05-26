@@ -1,14 +1,17 @@
 ﻿using AutoMapper;
 using ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers;
 using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Queries.Quotes;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ManiaDeLimpeza.Persistence.Extensions;
 
 namespace ManiaDeLimpeza.Application.Services
 {
@@ -20,7 +23,7 @@ namespace ManiaDeLimpeza.Application.Services
 
         public QuoteService(
             IQuoteRepository quoteRepository,
-            IClientRepository clientRepository, 
+            IClientRepository clientRepository,
             IMapper mapper)
         {
             _quoteRepository = quoteRepository;
@@ -58,7 +61,7 @@ namespace ManiaDeLimpeza.Application.Services
         public async Task<Quote?> GetByIdAsync(int id)
         {
             var quote = await _quoteRepository.GetByIdAsync(id);
-            if(quote == null || quote.IsArchived)
+            if (quote == null || quote.IsArchived)
             {
                 return null;
             }
@@ -102,5 +105,24 @@ namespace ManiaDeLimpeza.Application.Services
             return true;
         }
 
+        public async Task<PaginatedDto<Quote>> GetPagedAsync(QuoteFilterDto filter)
+        {
+            var query = _quoteRepository.Query()
+                .Include(q => q.Client)
+                .Where(q => !q.IsArchived);
+
+            query = QuoteFiltering.ApplyFilters(query, filter);
+            query = QuoteSorting.ApplySorting(query, filter.SortBy, filter.SortDescending);
+
+            var (totalItems, items) = await query.PaginateAsync(filter.Page, filter.PageSize);
+
+            return new PaginatedDto<Quote>()
+            {
+                TotalItems = totalItems,
+                Items = items,
+                PageSize = filter.PageSize,
+                Page = filter.Page,
+            };
+        }
     }
 }

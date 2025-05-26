@@ -27,5 +27,10 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                             .FirstOrDefaultAsync(x => x.Id == id);
             return result;
         }
+
+        public IQueryable<Quote> Query()
+        {
+            return _context.Quotes;
+        }
     }
 }

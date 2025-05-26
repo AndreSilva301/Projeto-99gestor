@@ -9,5 +9,6 @@ namespace ManiaDeLimpeza.Domain.Persistence
 {
     public interface IQuoteRepository : IBaseRepository<Quote>
     {
+        IQueryable<Quote> Query();
     }
 }
