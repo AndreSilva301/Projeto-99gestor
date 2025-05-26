@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Application.Dtos
 {
-    public class PaginatedDto<T>
+    public class PagedResult<T>
     {
         public int TotalItems { get; set; }
         public int Page { get; set; }

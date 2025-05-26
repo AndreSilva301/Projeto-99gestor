@@ -105,7 +105,7 @@ namespace ManiaDeLimpeza.Application.Services
             return true;
         }
 
-        public async Task<PaginatedDto<Quote>> GetPagedAsync(QuoteFilterDto filter)
+        public async Task<PagedResult<Quote>> GetPagedAsync(QuoteFilterDto filter)
         {
             var query = _quoteRepository.Query()
                 .Include(q => q.Client)
@@ -116,7 +116,7 @@ namespace ManiaDeLimpeza.Application.Services
 
             var (totalItems, items) = await query.PaginateAsync(filter.Page, filter.PageSize);
 
-            return new PaginatedDto<Quote>()
+            return new PagedResult<Quote>()
             {
                 TotalItems = totalItems,
                 Items = items,

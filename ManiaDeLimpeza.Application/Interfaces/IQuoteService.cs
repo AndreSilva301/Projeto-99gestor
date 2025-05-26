@@ -8,7 +8,7 @@ namespace ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers
         Task<bool> ArchiveAsync(int id);
         Task<Quote> CreateAsync(QuoteDto quote, User user);
         Task<Quote?> GetByIdAsync(int id);
-        Task<PaginatedDto<Quote>> GetPagedAsync(QuoteFilterDto filter);
+        Task<PagedResult<Quote>> GetPagedAsync(QuoteFilterDto filter);
         Task<Quote> UpdateAsync(QuoteDto quote);
     }
 }

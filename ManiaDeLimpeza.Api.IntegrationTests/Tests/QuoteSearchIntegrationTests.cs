@@ -110,12 +110,12 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             }
         }
 
-        private async Task<PaginatedDto<Quote>> PostSearchAsync(QuoteFilterDto filter)
+        private async Task<PagedResult<Quote>> PostSearchAsync(QuoteFilterDto filter)
         {
             var response = await _client.PostAsync("/api/quote/search",
                 new StringContent(JsonConvert.SerializeObject(filter), Encoding.UTF8, "application/json"));
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-            return JsonConvert.DeserializeObject<PaginatedDto<Quote>>(await response.Content.ReadAsStringAsync())!;
+            return JsonConvert.DeserializeObject<PagedResult<Quote>>(await response.Content.ReadAsStringAsync())!;
         }
         [TestMethod]
         public async Task SearchByClientName_ShouldReturnMatches()
