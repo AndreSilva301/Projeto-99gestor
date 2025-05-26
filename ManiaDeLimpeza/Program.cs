@@ -6,6 +6,7 @@ using ManiaDeLimpeza.Application.Common;
 using ManiaDeLimpeza.Api.Auth;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence.Repositories;
+using Microsoft.OpenApi.Models;
 
 namespace ManiaDeLimpeza;
 
@@ -29,7 +30,40 @@ public class Program
 
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.SwaggerDoc("v1", new OpenApiInfo { Title = "ManiaDeLimpeza API", Version = "v1" });
+
+            var securityScheme = new OpenApiSecurityScheme
+            {
+                Name = "Authorization",
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Description = "Enter 'Bearer' followed by a space and your JWT token."
+            };
+
+            options.AddSecurityDefinition("Bearer", securityScheme);
+
+            options.AddSecurityRequirement(new OpenApiSecurityRequirement
+            {
+                {
+                    new OpenApiSecurityScheme
+                    {
+                        Reference = new OpenApiReference
+                        {
+                            Type = ReferenceType.SecurityScheme,
+                            Id = "Bearer"
+                        },
+                        Scheme = "bearer",
+                        Name = "Bearer",
+                        In = ParameterLocation.Header
+                    },
+                    new List<string>()
+                }
+            });
+        });
 
         //Configure the database
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
