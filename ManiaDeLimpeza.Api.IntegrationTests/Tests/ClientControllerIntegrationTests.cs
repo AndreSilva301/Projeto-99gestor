@@ -152,10 +152,10 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json"));
 
             var search = await _client.GetAsync("/api/client/search?term=carlos 3333");
-            var result = JsonConvert.DeserializeObject<List<Client>>(await search.Content.ReadAsStringAsync());
+            var result = JsonConvert.DeserializeObject<PagedResult<Client>>(await search.Content.ReadAsStringAsync());
 
-            Assert.AreEqual(1, result!.Count);
-            Assert.AreEqual("Carlos Souza", result[0].Name);
+            Assert.AreEqual(1, result.Items!.Count);
+            Assert.AreEqual("Carlos Souza", result.Items[0].Name);
         }
 
     }

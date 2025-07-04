@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
@@ -21,17 +22,41 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
         public async Task<List<Client>> SearchAsync(string searchTerm)
         {
+            return await BuildScoredQuery(searchTerm)
+                .ToListAsync();
+        }
+
+        public async Task<PagedResult<Client>> SearchPagedAsync(string searchTerm, int page, int pageSize)
+        {
+            var scoredQuery = BuildScoredQuery(searchTerm);
+
+            var totalItems = await scoredQuery.CountAsync();
+
+            var items = await scoredQuery
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return new PagedResult<Client>
+            {
+                TotalItems = totalItems,
+                Page = page,
+                PageSize = pageSize,
+                Items = items
+            };
+        }
+
+        private IQueryable<Client> BuildScoredQuery(string searchTerm)
+        {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return new List<Client>();
+                return _context.Clients.AsQueryable();
 
             var words = searchTerm
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(w => w.ToLower())
                 .ToArray();
 
-            var query = _context.Clients.AsQueryable();
-
-            return await query
+            return _context.Clients
                 .Select(client => new
                 {
                     Client = client,
@@ -43,7 +68,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 .Where(x => x.MatchScore > 0)
                 .OrderByDescending(x => x.MatchScore)
                 .Select(x => x.Client)
-                .ToListAsync();
+                .AsQueryable();
         }
     }
 }

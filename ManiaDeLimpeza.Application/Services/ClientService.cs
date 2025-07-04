@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Application.Interfaces;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
@@ -47,6 +48,11 @@ namespace ManiaDeLimpeza.Application.Services
         public Task<List<Client>> SearchAsync(string searchTerm)
         {
             return _clientRepository.SearchAsync(searchTerm);
+        }
+
+        public Task<PagedResult<Client>> PaginatedSearchAsync(string searchTerm, int page, int pageSize)
+        {
+            return _clientRepository.SearchPagedAsync(searchTerm, page, pageSize);
         }
     }
 }

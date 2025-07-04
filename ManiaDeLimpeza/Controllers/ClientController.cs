@@ -63,9 +63,13 @@ namespace ManiaDeLimpeza.Api.Controllers
         }
 
         [HttpGet("search")]
-        public async Task<ActionResult<List<Client>>> Search([FromQuery] string term)
+        public async Task<ActionResult<List<Client>>> Search(
+            [FromQuery] string? term,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 10
+            )
         {
-            var results = await _clientService.SearchAsync(term);
+            var results = await _clientService.PaginatedSearchAsync(term, page, pageSize);
             return Ok(results);
         }
     }

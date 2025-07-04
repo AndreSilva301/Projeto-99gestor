@@ -141,7 +141,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         }
 
         [TestMethod]
-        public async Task SearchAsync_ShouldReturnEmptyWhenInputIsBlank()
+        public async Task SearchAsync_ShouldReturnAllWhenInputIsBlank()
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new ClientRepository(context);
@@ -150,7 +150,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             var result = await repo.SearchAsync("  ");
 
-            Assert.AreEqual(0, result.Count);
+            Assert.AreEqual(1, result.Count);
         }
 
         [TestMethod]

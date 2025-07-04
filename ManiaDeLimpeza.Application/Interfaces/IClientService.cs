@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,5 +16,6 @@ namespace ManiaDeLimpeza.Application.Interfaces
         Task UpdateAsync(Client client);
         Task DeleteAsync(Client client);
         Task<List<Client>> SearchAsync(string searchTerm);
+        Task<PagedResult<Client>> PaginatedSearchAsync(string searchTerm, int page, int pageSize);
     }
 }

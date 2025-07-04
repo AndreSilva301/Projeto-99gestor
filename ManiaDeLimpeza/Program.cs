@@ -7,6 +7,7 @@ using ManiaDeLimpeza.Api.Auth;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.OpenApi.Models;
+using ManiaDeLimpeza.Api.Extensions;
 
 namespace ManiaDeLimpeza;
 
@@ -19,11 +20,11 @@ public class Program
         // Register services (DI)
         builder.Services.AddMarkedDependencies();
 
-        // Manually registered dependencies (DI)
-        //builder.Services.AddScoped(typeof(IBaseRepository<>), typeof(BaseRepository<>));
-
         // Include Automapper
         builder.Services.AddAutoMapper(typeof(DefaultMapperProfile).Assembly);
+
+        // Add CORS using the extension
+        builder.Services.AddConfiguredCors(builder.Configuration);
 
         // Add services to the container.
         builder.Services.AddControllers();
@@ -83,6 +84,9 @@ public class Program
 
         //Build App
         var app = builder.Build();
+
+        // Use the named policy
+        app.UseCors("DefaultCorsPolicy");
 
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
