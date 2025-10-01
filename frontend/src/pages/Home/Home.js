@@ -37,7 +37,7 @@ const Home = () => {
             <div className="card h-100">
               <div className="card-body">
                 <div className="service-icon mb-3">
-                  �
+                  📈
                 </div>
                 <h5 className="card-title">Orçamentos Profissionais</h5>
                 <p className="card-text">
@@ -50,7 +50,7 @@ const Home = () => {
             <div className="card h-100">
               <div className="card-body">
                 <div className="service-icon mb-3">
-                  �
+                  📄
                 </div>
                 <h5 className="card-title">CRM Proativo</h5>
                 <p className="card-text">
