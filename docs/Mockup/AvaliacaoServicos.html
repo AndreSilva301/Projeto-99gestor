@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManiaDeLimpeza - Avaliação de Serviços</title>
+    
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.85);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 4px 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .header-card {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border: none;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        
+        .evaluation-card {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .evaluation-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+        
+        .star-rating {
+            color: #ffc107;
+            font-size: 1.2rem;
+        }
+        
+        .star-rating .bi-star {
+            color: #e9ecef;
+        }
+        
+        .star-rating .bi-star-fill {
+            color: #ffc107;
+        }
+        
+        .rating-summary {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            padding: 25px;
+        }
+        
+        .rating-bar {
+            height: 8px;
+            background: #e9ecef;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .rating-fill {
+            height: 100%;
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+            transition: width 0.3s ease;
+        }
+        
+        .category-rating {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+        }
+        
+        .evaluation-badge {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+        }
+        
+        .avg-rating {
+            font-size: 3rem;
+            font-weight: bold;
+            color: #ffc107;
+        }
+        
+        .client-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(45deg, var(--primary-color), #0a58ca);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        
+        .stats-widget {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+            text-align: center;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -250px;
+                width: 250px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
+                <div class="position-sticky pt-3">
+                    <!-- Logo/Brand -->
+                    <div class="text-center mb-4">
+                        <h4 class="text-white fw-bold">
+                            <i class="bi bi-clipboard-check-fill me-2"></i>
+                            ManiaDeLimpeza
+                        </h4>
+                        <small class="text-white-50">CRM para Prestadores de Serviços</small>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <div class="text-center mb-4 p-3 bg-white bg-opacity-10 rounded mx-3">
+                        <div class="mb-2">
+                            <i class="bi bi-person-circle text-white" style="font-size: 2rem;"></i>
+                        </div>
+                        <h6 class="text-white mb-1">Welber Reis</h6>
+                        <small class="text-white-50">Administrador</small>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="Dashboard.html">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#clientes">
+                                <i class="bi bi-people me-2"></i>
+                                Clientes
+                                <span class="badge bg-light text-dark ms-auto">47</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#orcamentos">
+                                <i class="bi bi-file-text me-2"></i>
+                                Orçamentos
+                                <span class="badge bg-warning text-dark ms-auto">12</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="AgendaServicos.html">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Agenda de Serviços
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="ServicosAndamento.html">
+                                <i class="bi bi-gear-wide-connected me-2"></i>
+                                Serviços em Andamento
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="AvaliacaoServicos.html">
+                                <i class="bi bi-star-fill me-2"></i>
+                                Avaliações
+                                <span class="badge bg-success ms-auto">23</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#colaboradores">
+                                <i class="bi bi-person-badge me-2"></i>
+                                Colaboradores
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#empresa">
+                                <i class="bi bi-building me-2"></i>
+                                Empresa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#configuracoes">
+                                <i class="bi bi-gear me-2"></i>
+                                Configurações
+                            </a>
+                        </li>
+                        <li class="nav-item mt-auto">
+                            <a class="nav-link" href="#sair">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Sair
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Mobile Menu Button -->
+                <div class="d-md-none p-3">
+                    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+                
+                <!-- Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                    <div class="card header-card w-100 p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1 class="h2 mb-1">
+                                    <i class="bi bi-star-fill text-warning me-2"></i>
+                                    Avaliação de Serviços
+                                </h1>
+                                <p class="text-muted mb-0">Dashboard de avaliações e feedback dos clientes</p>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-primary me-2">
+                                    <i class="bi bi-link-45deg me-1"></i>
+                                    Gerar Link de Avaliação
+                                </button>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-secondary active">Todas</button>
+                                    <button class="btn btn-outline-secondary">Recentes</button>
+                                    <button class="btn btn-outline-secondary">5 Estrelas</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Statistics Cards -->
+                <div class="row mb-4">
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-widget">
+                            <i class="bi bi-star-fill text-warning" style="font-size: 2.5rem;"></i>
+                            <h3 class="mt-2 mb-1">4.7</h3>
+                            <p class="text-muted mb-0">Média Geral</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-widget">
+                            <i class="bi bi-chat-square-text-fill text-primary" style="font-size: 2.5rem;"></i>
+                            <h3 class="mt-2 mb-1">23</h3>
+                            <p class="text-muted mb-0">Total de Avaliações</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-widget">
+                            <i class="bi bi-emoji-smile-fill text-success" style="font-size: 2.5rem;"></i>
+                            <h3 class="mt-2 mb-1">91%</h3>
+                            <p class="text-muted mb-0">Satisfação</p>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-6 mb-3">
+                        <div class="stats-widget">
+                            <i class="bi bi-arrow-up-circle-fill text-info" style="font-size: 2.5rem;"></i>
+                            <h3 class="mt-2 mb-1">+15%</h3>
+                            <p class="text-muted mb-0">vs. Mês Anterior</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Rating Summary and Recent Evaluations -->
+                <div class="row">
+                    <!-- Rating Summary -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="rating-summary">
+                            <div class="text-center mb-4">
+                                <div class="avg-rating">4.7</div>
+                                <div class="star-rating mb-2">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-half"></i>
+                                </div>
+                                <p class="text-muted">Baseado em 23 avaliações</p>
+                            </div>
+                            
+                            <!-- Rating Distribution -->
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>5 estrelas</span>
+                                    <span class="text-muted">15</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill" style="width: 65%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>4 estrelas</span>
+                                    <span class="text-muted">6</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill" style="width: 26%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>3 estrelas</span>
+                                    <span class="text-muted">2</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill" style="width: 9%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>2 estrelas</span>
+                                    <span class="text-muted">0</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <span>1 estrela</span>
+                                    <span class="text-muted">0</span>
+                                </div>
+                                <div class="rating-bar">
+                                    <div class="rating-fill" style="width: 0%;"></div>
+                                </div>
+                            </div>
+                            
+                            <!-- Category Ratings -->
+                            <hr class="my-4">
+                            <h6 class="mb-3">Avaliação por Categoria:</h6>
+                            
+                            <div class="category-rating">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold">Qualidade do Serviço</span>
+                                    <span class="badge bg-success">4.8</span>
+                                </div>
+                                <div class="star-rating small">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="category-rating">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold">Pontualidade</span>
+                                    <span class="badge bg-success">4.6</span>
+                                </div>
+                                <div class="star-rating small">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-half"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="category-rating">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold">Atendimento</span>
+                                    <span class="badge bg-success">4.9</span>
+                                </div>
+                                <div class="star-rating small">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                            </div>
+                            
+                            <div class="category-rating">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span class="fw-semibold">Custo-Benefício</span>
+                                    <span class="badge bg-warning">4.4</span>
+                                </div>
+                                <div class="star-rating small">
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star-fill"></i>
+                                    <i class="bi bi-star"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Recent Evaluations -->
+                    <div class="col-lg-8">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h5>Avaliações Recentes</h5>
+                            <div class="input-group" style="width: 300px;">
+                                <input type="text" class="form-control" placeholder="Buscar avaliações...">
+                                <button class="btn btn-outline-secondary">
+                                    <i class="bi bi-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Evaluation 1 -->
+                        <div class="card evaluation-card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="client-avatar me-3">MS</div>
+                                        <div>
+                                            <h6 class="mb-1">Maria Silva</h6>
+                                            <small class="text-muted">Limpeza Residencial • Orçamento #001</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="star-rating">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                        <small class="text-muted">2 dias atrás</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Qualidade do Serviço:</small>
+                                        <div class="star-rating small">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Pontualidade:</small>
+                                        <div class="star-rating small">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Pontos Positivos:</strong>
+                                    <p class="mb-2">"Serviço impecável! A equipe foi muito cuidadosa com os móveis e deixou tudo brilhando. Recomendo!"</p>
+                                    
+                                    <strong>Sugestões de Melhoria:</strong>
+                                    <p class="mb-0 text-muted">"Poderia ter um sistema de agendamento online."</p>
+                                </div>
+                                
+                                <span class="evaluation-badge bg-success text-white">Muito Satisfeito</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Evaluation 2 -->
+                        <div class="card evaluation-card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="client-avatar me-3" style="background: linear-gradient(45deg, #28a745, #20c997);">JS</div>
+                                        <div>
+                                            <h6 class="mb-1">João Santos</h6>
+                                            <small class="text-muted">Limpeza Comercial • Orçamento #002</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="star-rating">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star"></i>
+                                        </div>
+                                        <small class="text-muted">5 dias atrás</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Qualidade do Serviço:</small>
+                                        <div class="star-rating small">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Atendimento:</small>
+                                        <div class="star-rating small">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Pontos Positivos:</strong>
+                                    <p class="mb-2">"Ótimo atendimento e flexibilidade de horários. Conseguiram fazer a limpeza sem atrapalhar o funcionamento do escritório."</p>
+                                    
+                                    <strong>Sugestões de Melhoria:</strong>
+                                    <p class="mb-0 text-muted">"Alguns detalhes poderiam ter mais atenção, mas no geral foi bom."</p>
+                                </div>
+                                
+                                <span class="evaluation-badge bg-success text-white">Satisfeito</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Evaluation 3 -->
+                        <div class="card evaluation-card mb-3">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-3">
+                                    <div class="d-flex align-items-center">
+                                        <div class="client-avatar me-3" style="background: linear-gradient(45deg, #ffc107, #fd7e14);">AL</div>
+                                        <div>
+                                            <h6 class="mb-1">Ana Lima</h6>
+                                            <small class="text-muted">Limpeza Pós-Obra • Orçamento #003</small>
+                                        </div>
+                                    </div>
+                                    <div class="text-end">
+                                        <div class="star-rating">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                        <small class="text-muted">1 semana atrás</small>
+                                    </div>
+                                </div>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Qualidade do Serviço:</small>
+                                        <div class="star-rating small">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <small class="text-muted">Custo-Benefício:</small>
+                                        <div class="star-rating small">
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                            <i class="bi bi-star-fill"></i>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <strong>Pontos Positivos:</strong>
+                                    <p class="mb-2">"Trabalho excepcional! Transformaram minha casa após a reforma. Preço justo e resultado surpreendente!"</p>
+                                    
+                                    <strong>Sugestões de Melhoria:</strong>
+                                    <p class="mb-0 text-muted">"Nenhuma sugestão, está perfeito!"</p>
+                                </div>
+                                
+                                <span class="evaluation-badge bg-success text-white">Muito Satisfeito</span>
+                            </div>
+                        </div>
+                        
+                        <!-- Load More Button -->
+                        <div class="text-center mt-4">
+                            <button class="btn btn-outline-primary">
+                                <i class="bi bi-arrow-down-circle me-1"></i>
+                                Carregar Mais Avaliações
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.querySelector('[data-bs-toggle="collapse"]');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Generate evaluation link simulation
+            document.querySelector('.btn-primary').addEventListener('click', function() {
+                const link = 'https://manialimpeza.com/avaliar/abc123';
+                navigator.clipboard.writeText(link);
+                alert('Link de avaliação copiado para a área de transferência!');
+            });
+        });
+    </script>
+</body>
+</html>

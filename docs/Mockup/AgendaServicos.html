@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ManiaDeLimpeza - Agenda de Serviços</title>
+    
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary-color: #0d6efd;
+            --secondary-color: #6c757d;
+            --success-color: #198754;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+        }
+        
+        .sidebar {
+            min-height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+            box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255,255,255,0.85);
+            padding: 12px 20px;
+            border-radius: 8px;
+            margin: 4px 12px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar .nav-link:hover,
+        .sidebar .nav-link.active {
+            background: rgba(255,255,255,0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .main-content {
+            background-color: #f8f9fa;
+            min-height: 100vh;
+        }
+        
+        .header-card {
+            background: linear-gradient(135deg, #ffffff, #f8f9fa);
+            border: none;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        
+        .calendar-card {
+            background: white;
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.08);
+        }
+        
+        .calendar-header {
+            background: linear-gradient(135deg, var(--primary-color), #0a58ca);
+            color: white;
+            border-radius: 15px 15px 0 0;
+        }
+        
+        .calendar-day {
+            height: 120px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        
+        .calendar-day:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .calendar-day.today {
+            background-color: rgba(13, 110, 253, 0.1);
+            border-color: var(--primary-color);
+        }
+        
+        .service-event {
+            background: linear-gradient(45deg, #28a745, #20c997);
+            color: white;
+            border-radius: 6px;
+            padding: 4px 8px;
+            margin: 2px 0;
+            font-size: 11px;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .service-event:hover {
+            transform: scale(1.05);
+        }
+        
+        .service-event.pending {
+            background: linear-gradient(45deg, #ffc107, #fd7e14);
+        }
+        
+        .service-event.completed {
+            background: linear-gradient(45deg, #6c757d, #495057);
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
+        
+        .upcoming-services {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                top: 0;
+                left: -250px;
+                width: 250px;
+                z-index: 1000;
+                transition: left 0.3s ease;
+            }
+            
+            .sidebar.show {
+                left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+            }
+            
+            .calendar-day {
+                height: 80px;
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <nav class="col-md-3 col-lg-2 d-md-block sidebar collapse" id="sidebar">
+                <div class="position-sticky pt-3">
+                    <!-- Logo/Brand -->
+                    <div class="text-center mb-4">
+                        <h4 class="text-white fw-bold">
+                            <i class="bi bi-clipboard-check-fill me-2"></i>
+                            ManiaDeLimpeza
+                        </h4>
+                        <small class="text-white-50">CRM para Prestadores de Serviços</small>
+                    </div>
+                    
+                    <!-- User Info -->
+                    <div class="text-center mb-4 p-3 bg-white bg-opacity-10 rounded mx-3">
+                        <div class="mb-2">
+                            <i class="bi bi-person-circle text-white" style="font-size: 2rem;"></i>
+                        </div>
+                        <h6 class="text-white mb-1">Welber Reis</h6>
+                        <small class="text-white-50">Administrador</small>
+                    </div>
+                    
+                    <!-- Navigation -->
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="Dashboard.html">
+                                <i class="bi bi-speedometer2 me-2"></i>
+                                Dashboard
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#clientes">
+                                <i class="bi bi-people me-2"></i>
+                                Clientes
+                                <span class="badge bg-light text-dark ms-auto">47</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#orcamentos">
+                                <i class="bi bi-file-text me-2"></i>
+                                Orçamentos
+                                <span class="badge bg-warning text-dark ms-auto">12</span>
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="AgendaServicos.html">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Agenda de Serviços
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="ServicosAndamento.html">
+                                <i class="bi bi-gear-wide-connected me-2"></i>
+                                Serviços em Andamento
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#colaboradores">
+                                <i class="bi bi-person-badge me-2"></i>
+                                Colaboradores
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#empresa">
+                                <i class="bi bi-building me-2"></i>
+                                Empresa
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="#configuracoes">
+                                <i class="bi bi-gear me-2"></i>
+                                Configurações
+                            </a>
+                        </li>
+                        <li class="nav-item mt-auto">
+                            <a class="nav-link" href="#sair">
+                                <i class="bi bi-box-arrow-right me-2"></i>
+                                Sair
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+            
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4 main-content">
+                <!-- Mobile Menu Button -->
+                <div class="d-md-none p-3">
+                    <button class="btn btn-primary" type="button" data-bs-toggle="collapse" data-bs-target="#sidebar">
+                        <i class="bi bi-list"></i>
+                    </button>
+                </div>
+                
+                <!-- Header -->
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3">
+                    <div class="card header-card w-100 p-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h1 class="h2 mb-1">
+                                    <i class="bi bi-calendar-check-fill text-primary me-2"></i>
+                                    Agenda de Serviços
+                                </h1>
+                                <p class="text-muted mb-0">Gerencie e acompanhe seus serviços agendados</p>
+                            </div>
+                            <div class="text-end">
+                                <button class="btn btn-primary me-2">
+                                    <i class="bi bi-plus-circle me-1"></i>
+                                    Agendar Serviço
+                                </button>
+                                <div class="btn-group">
+                                    <button class="btn btn-outline-secondary active">Mês</button>
+                                    <button class="btn btn-outline-secondary">Semana</button>
+                                    <button class="btn btn-outline-secondary">Dia</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Calendar and Sidebar -->
+                <div class="row">
+                    <!-- Calendar -->
+                    <div class="col-lg-8 mb-4">
+                        <div class="card calendar-card">
+                            <div class="calendar-header p-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <h4 class="mb-0">Outubro 2025</h4>
+                                        <small>Visualização mensal</small>
+                                    </div>
+                                    <div>
+                                        <button class="btn btn-link text-white me-2">
+                                            <i class="bi bi-chevron-left"></i>
+                                        </button>
+                                        <button class="btn btn-link text-white">
+                                            <i class="bi bi-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <!-- Calendar Grid -->
+                                <div class="table-responsive">
+                                    <table class="table table-bordered mb-0">
+                                        <thead class="table-light">
+                                            <tr>
+                                                <th class="text-center">DOM</th>
+                                                <th class="text-center">SEG</th>
+                                                <th class="text-center">TER</th>
+                                                <th class="text-center">QUA</th>
+                                                <th class="text-center">QUI</th>
+                                                <th class="text-center">SEX</th>
+                                                <th class="text-center">SÁB</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">29</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">30</div>
+                                                </td>
+                                                <td class="calendar-day today p-2">
+                                                    <div class="fw-bold">1</div>
+                                                    <div class="service-event">
+                                                        09:00 - Maria Silva
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">2</div>
+                                                    <div class="service-event pending">
+                                                        14:00 - João Santos
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">3</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">4</div>
+                                                    <div class="service-event">
+                                                        10:00 - Ana Lima
+                                                    </div>
+                                                    <div class="service-event">
+                                                        15:30 - Carlos Pereira
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">5</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">6</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">7</div>
+                                                    <div class="service-event">
+                                                        08:00 - Empresa ABC
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">8</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">9</div>
+                                                    <div class="service-event pending">
+                                                        13:00 - Escritório XYZ
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">10</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">11</div>
+                                                    <div class="service-event completed">
+                                                        16:00 - Loja 123
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">12</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">13</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">14</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">15</div>
+                                                    <div class="service-event">
+                                                        11:00 - Residência Silva
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">16</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">17</div>
+                                                    <div class="service-event pending">
+                                                        09:30 - Clínica Saúde
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">18</div>
+                                                    <div class="service-event">
+                                                        14:00 - Hotel Central
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">19</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">20</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">21</div>
+                                                    <div class="service-event">
+                                                        10:30 - Escritório Norte
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">22</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">23</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">24</div>
+                                                    <div class="service-event pending">
+                                                        15:00 - Casa Santos
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">25</div>
+                                                    <div class="service-event">
+                                                        08:30 - Loja Fashion
+                                                    </div>
+                                                    <div class="service-event">
+                                                        16:00 - Restaurante Bom
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">26</div>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">27</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">28</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">29</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">30</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">31</div>
+                                                    <div class="service-event">
+                                                        12:00 - Fim de Mês
+                                                    </div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">1</div>
+                                                </td>
+                                                <td class="calendar-day p-2">
+                                                    <div class="fw-bold">2</div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Sidebar Info -->
+                    <div class="col-lg-4">
+                        <!-- Legend -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-info-circle me-2"></i>
+                                    Legenda
+                                </h6>
+                            </div>
+                            <div class="card-body">
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: linear-gradient(45deg, #28a745, #20c997);"></div>
+                                    <span>Serviços Confirmados</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: linear-gradient(45deg, #ffc107, #fd7e14);"></div>
+                                    <span>Aguardando Confirmação</span>
+                                </div>
+                                <div class="legend-item">
+                                    <div class="legend-color" style="background: linear-gradient(45deg, #6c757d, #495057);"></div>
+                                    <span>Serviços Concluídos</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Upcoming Services -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h6 class="mb-0">
+                                    <i class="bi bi-clock me-2"></i>
+                                    Próximos Serviços
+                                </h6>
+                            </div>
+                            <div class="card-body upcoming-services">
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3">
+                                    <div>
+                                        <h6 class="mb-1">Maria Silva</h6>
+                                        <small class="text-muted">Limpeza Residencial</small>
+                                        <div class="text-success">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Hoje, 09:00
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success">Confirmado</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3">
+                                    <div>
+                                        <h6 class="mb-1">João Santos</h6>
+                                        <small class="text-muted">Limpeza Comercial</small>
+                                        <div class="text-warning">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Amanhã, 14:00
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-warning">Pendente</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3">
+                                    <div>
+                                        <h6 class="mb-1">Ana Lima</h6>
+                                        <small class="text-muted">Limpeza Pós-Obra</small>
+                                        <div class="text-primary">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Sex, 10:00
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success">Confirmado</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded mb-3">
+                                    <div>
+                                        <h6 class="mb-1">Carlos Pereira</h6>
+                                        <small class="text-muted">Manutenção</small>
+                                        <div class="text-primary">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Sex, 15:30
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success">Confirmado</span>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between align-items-center p-3 border rounded">
+                                    <div>
+                                        <h6 class="mb-1">Empresa ABC</h6>
+                                        <small class="text-muted">Limpeza Corporativa</small>
+                                        <div class="text-primary">
+                                            <i class="bi bi-calendar me-1"></i>
+                                            Seg, 08:00
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-success">Confirmado</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Bootstrap 5.3 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        // Mobile sidebar toggle
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebarToggle = document.querySelector('[data-bs-toggle="collapse"]');
+            const sidebar = document.getElementById('sidebar');
+            
+            if (sidebarToggle && sidebar) {
+                sidebarToggle.addEventListener('click', function() {
+                    sidebar.classList.toggle('show');
+                });
+            }
+            
+            // Close sidebar when clicking outside on mobile
+            document.addEventListener('click', function(e) {
+                if (window.innerWidth <= 768) {
+                    if (!sidebar.contains(e.target) && !sidebarToggle.contains(e.target)) {
+                        sidebar.classList.remove('show');
+                    }
+                }
+            });
+            
+            // Calendar day click handler
+            document.querySelectorAll('.calendar-day').forEach(day => {
+                day.addEventListener('click', function() {
+                    const dayNumber = this.querySelector('.fw-bold').textContent;
+                    alert(`Agendar serviço para o dia ${dayNumber}`);
+                });
+            });
+            
+            // Service event click handler
+            document.querySelectorAll('.service-event').forEach(event => {
+                event.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    alert(`Detalhes do serviço: ${this.textContent}`);
+                });
+            });
+        });
+    </script>
+</body>
+</html>
