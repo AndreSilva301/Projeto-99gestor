@@ -1,5 +1,6 @@
 import React from 'react';
 import './Home.css';
+import { Link } from 'react-router-dom';
 
 const Home = () => {
   return (
@@ -13,9 +14,9 @@ const Home = () => {
           <p className="lead mb-4">
             CRM especializado para prestadores de serviços em geral
           </p>
-          <button className="btn btn-success btn-lg">
+          <Link to="/register" className="btn btn-success btn-lg">
             Comece Gratuitamente
-          </button>
+          </Link>
         </div>
 
         {/* Services Preview */}
