@@ -1,0 +1,182 @@
+.register-page {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  background-color: #f8f9fa;
+  padding: 2rem 0;
+}
+
+.register-card {
+  background: white;
+  padding: 2rem;
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: none;
+}
+
+.password-input-wrapper {
+  position: relative;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 1.2rem;
+}
+
+.password-toggle:hover {
+  opacity: 1;
+}
+
+.form-control {
+  border-radius: 8px;
+  border: 1px solid #ced4da;
+  padding: 12px 15px;
+  font-size: 1rem;
+}
+
+.form-control:focus {
+  border-color: #28a745;
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.btn-success {
+  background-color: #28a745;
+  border-color: #28a745;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+  background-color: #218838;
+  border-color: #1e7e34;
+  transform: translateY(-1px);
+}
+
+.form-check-input:checked {
+  background-color: #28a745;
+  border-color: #28a745;
+}
+
+.form-check-label {
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+/* Progress Steps */
+.progress-steps {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin: 2rem 0;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+}
+
+.step:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 100%;
+  width: 30px;
+  height: 2px;
+  background-color: #dee2e6;
+  transition: background-color 0.3s ease;
+}
+
+.step.completed:not(:last-child)::after {
+  background-color: #28a745;
+}
+
+.step-number {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #dee2e6;
+  color: #6c757d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+}
+
+.step.active .step-number {
+  background-color: #28a745;
+  color: white;
+}
+
+.step.completed .step-number {
+  background-color: #28a745;
+  color: white;
+}
+
+.step.completed .step-number::before {
+  content: '✓';
+}
+
+.step-label {
+  font-size: 0.8rem;
+  color: #6c757d;
+  font-weight: 500;
+}
+
+.step.active .step-label {
+  color: #28a745;
+  font-weight: 600;
+}
+
+.step-content h5 {
+  color: #28a745;
+}
+
+.form-text {
+  font-size: 0.8rem;
+  color: #6c757d;
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .register-card {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .register-page {
+    padding: 1rem 0;
+  }
+  
+  .progress-steps {
+    gap: 0.5rem;
+  }
+  
+  .step:not(:last-child)::after {
+    width: 20px;
+  }
+  
+  .step-number {
+    width: 25px;
+    height: 25px;
+    font-size: 0.8rem;
+  }
+  
+  .step-label {
+    font-size: 0.7rem;
+  }
+}

@@ -21,7 +21,7 @@ const Navbar = () => {
           <span className="navbar-toggler-icon"></span>
         </button>
         <div className="collapse navbar-collapse" id="navbarNav">
-          <div className="navbar-nav ms-auto">
+          <div className="navbar-nav me-auto">
             <Link className="nav-link" to="/">
               Início
             </Link>
@@ -30,6 +30,11 @@ const Navbar = () => {
             </Link>
             <Link className="nav-link" to="/contact">
               Contato
+            </Link>
+          </div>
+          <div className="navbar-nav ms-auto">
+            <Link className="btn btn-success" to="/login">
+              Entrar
             </Link>
           </div>
         </div>
