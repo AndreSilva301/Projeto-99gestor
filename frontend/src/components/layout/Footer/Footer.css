@@ -1,0 +1,15 @@
+.footer {
+  margin-top: auto;
+}
+
+.footer h5, .footer h6 {
+  color: #28a745;
+}
+
+.footer p {
+  font-size: 0.9rem;
+}
+
+.footer hr {
+  border-color: #495057;
+}
