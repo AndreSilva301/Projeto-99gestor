@@ -4,7 +4,20 @@ import React from 'react';
  * Centralized Icon component for consistent icon rendering across the app
  * Uses CSS classes for Font Awesome icons to avoid React compatibility issues
  */
-const Icon = ({ name, size = 20, className = '', style = {}, ...props }) => {
+const Icon = ({ name, size = 'md', className = '', style = {}, ...props }) => {
+  // Convert size to appropriate values
+  const getSizeValue = (size) => {
+    if (typeof size === 'number') return `${size}px`;
+    
+    const sizeMap = {
+      'sm': '14px',
+      'md': '16px', 
+      'lg': '20px',
+      '3x': '48px'
+    };
+    
+    return sizeMap[size] || size;
+  };
   // Map our custom icon names to Font Awesome CSS classes
   const iconMap = {
     // Dashboard and navigation icons
@@ -39,12 +52,32 @@ const Icon = ({ name, size = 20, className = '', style = {}, ...props }) => {
     'calendar-event': 'fas fa-calendar-alt',
     'gear-fill': 'fas fa-cog',
     
+    // Customer and User Management Icons
+    'users': 'fas fa-users',
+    'user': 'fas fa-user',
+    'user-plus': 'fas fa-user-plus',
+    'user-check': 'fas fa-user-check',
+    'user-xmark': 'fas fa-user-times',
+    'user-edit': 'fas fa-user-edit',
+    'plus': 'fas fa-plus',
+    'eye': 'fas fa-eye',
+    'trash': 'fas fa-trash',
+    'times': 'fas fa-times',
+    'save': 'fas fa-save',
+    'envelope': 'fas fa-envelope',
+    'location-dot': 'fas fa-map-marker-alt',
+    'triangle-exclamation': 'fas fa-exclamation-triangle',
+    'chevron-left': 'fas fa-chevron-left',
+    'chevron-right': 'fas fa-chevron-right',
+    'inbox': 'fas fa-inbox',
+    'comments': 'fas fa-comments',
+    'arrow-left': 'fas fa-arrow-left',
+    
     // Additional common icons
     'home': 'fas fa-home',
     'search': 'fas fa-search',
     'edit': 'fas fa-edit',
     'delete': 'fas fa-trash',
-    'save': 'fas fa-save',
     'cancel': 'fas fa-times',
     'info': 'fas fa-info-circle',
     'warning': 'fas fa-exclamation-triangle',
@@ -87,7 +120,7 @@ const Icon = ({ name, size = 20, className = '', style = {}, ...props }) => {
       <i 
         className={`fas fa-question-circle icon ${className}`}
         style={{ 
-          fontSize: `${size}px`,
+          fontSize: getSizeValue(size),
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -104,7 +137,7 @@ const Icon = ({ name, size = 20, className = '', style = {}, ...props }) => {
     <i 
       className={`${iconClass} icon ${className}`}
       style={{ 
-        fontSize: `${size}px`,
+        fontSize: getSizeValue(size),
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',

@@ -398,6 +398,159 @@
   
   .portal-quick-actions-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Customer Pages Styles */
+.customers-page {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.customer-form {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+.customer-view-page {
+  animation: fadeInUp 0.4s ease-out;
+}
+
+/* Data Table Styles */
+.data-table {
+  animation: fadeIn 0.3s ease-out;
+}
+
+.data-table .table th {
+  background-color: #f8f9fa;
+  color: var(--portal-dark);
+  font-weight: 600;
+  border-bottom: 2px solid #dee2e6;
+  padding: 12px;
+  white-space: nowrap;
+}
+
+.data-table .table td {
+  padding: 12px;
+  vertical-align: middle;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.data-table .table tbody tr:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.data-table .btn-group .btn {
+  margin: 0 2px;
+}
+
+.data-table .pagination .btn {
+  margin: 0 2px;
+}
+
+.data-table .pagination .btn.btn-primary {
+  background-color: var(--portal-primary);
+  border-color: var(--portal-primary);
+}
+
+/* Customer Form Validation */
+.customer-form .form-control.is-valid {
+  border-color: var(--portal-success);
+  background-image: none;
+}
+
+.customer-form .form-control.is-invalid {
+  border-color: var(--portal-danger);
+  background-image: none;
+}
+
+.customer-form .invalid-feedback {
+  color: var(--portal-danger);
+  font-size: 0.875rem;
+  margin-top: 4px;
+}
+
+/* Relationships Section */
+.relationships-list .card {
+  border: 1px solid #e9ecef;
+  transition: var(--portal-transition);
+}
+
+.relationships-list .card:hover {
+  border-color: var(--portal-primary);
+  box-shadow: var(--portal-shadow-sm);
+}
+
+/* Stats Cards Colors */
+.border-primary .card-title {
+  color: var(--portal-primary) !important;
+}
+
+.border-success .card-title {
+  color: var(--portal-success) !important;
+}
+
+.border-secondary .card-title {
+  color: var(--portal-secondary) !important;
+}
+
+.border-info .card-title {
+  color: var(--portal-info) !important;
+}
+
+/* Badge Styles */
+.badge.bg-success {
+  background-color: var(--portal-success) !important;
+}
+
+.badge.bg-secondary {
+  background-color: var(--portal-secondary) !important;
+}
+
+/* Animation Classes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Mobile Responsive for Customer Pages */
+@media (max-width: 768px) {
+  .data-table .table-responsive {
+    border: none;
+  }
+  
+  .data-table .table td {
+    padding: 8px;
+    font-size: 0.875rem;
+  }
+  
+  .data-table .btn-group .btn {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+  }
+  
+  .customer-form .row > .col-md-6 {
+    margin-bottom: 1rem;
+  }
+  
+  .customers-page .card-body {
+    padding: 1rem;
+  }
+  
+  .relationships-list .card {
+    margin-bottom: 1rem;
+  }
+  
+  .portal-quick-actions-grid {
     gap: 12px;
   }
   
