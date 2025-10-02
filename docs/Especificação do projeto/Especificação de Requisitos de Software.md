@@ -1,8 +1,8 @@
 # 📑 Especificação de Requisitos de Software (ERS)  
 **Projeto:** *ManiaDeLimpezaApp* (nome temporário)  
 **Versão:** 1.0  
-**Data:** _(preencher)_  
-**Autor:** _(preencher)_  
+**Data:** 01/10/2025
+**Autor:** Welber Reis
 
 ---
 

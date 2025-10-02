@@ -6,8 +6,8 @@
 | Field       | Type          | Key   | Notes |
 |-------------|--------------|-------|------------|
 | Id   | INT PK       | PK    | Unique identifier |
-| Name        | VARCHAR(150) |       | Company name |
-| CNPJ        | VARCHAR(20)  |       | Optional |
+| Name        | VARCHAR(MAX) |       | Company name |
+| CNPJ        | VARCHAR(MAX)  |       | Optional |
 | CreatedDate | DATETIME     |       | |
 
 ---
@@ -17,8 +17,8 @@
 |-------------|--------------|-------|------------|
 | Id   | INT PK       | PK    | Unique identifier |
 | CompanyId   | INT FK       | FK → Company.Id |
-| Name        | VARCHAR(150) |       | User name |
-| Email       | VARCHAR(150) | UQ    | Login |
+| Name        | VARCHAR(MAX) |       | User name |
+| Email       | VARCHAR(MAX) | UQ    | Login |
 | PasswordHash| VARBINARY    |       | Encrypted password |
 | Profile     | ENUM(Admin, Employee) | | Defines role |
 | CreatedDate | DATETIME     |       | |
@@ -30,10 +30,10 @@
 |--------------|--------------|-------|------------|
 | Id    | INT PK       | PK    | Unique identifier |
 | CompanyId    | INT FK       | FK → Company.Id |
-| Name         | VARCHAR(150) |       | |
-| Phone        | VARCHAR(20)  |       | |
-| Email        | VARCHAR(150) |       | |
-| Address      | VARCHAR(255) |       | |
+| Name         | VARCHAR(MAX) |       | |
+| Phone        | VARCHAR(MAX)  |       | |
+| Email        | VARCHAR(MAX) |       | |
+| Address      | VARCHAR(MAX) |       | |
 | RegistrationDate | DATETIME     |       | |
 
 ---
@@ -43,7 +43,7 @@
 |------------------|--------------|-------|------------|
 | Id | INT PK       | PK    | |
 | CustomerId       | INT FK       | FK → Customer.Id |
-| Description      | VARCHAR(255) |       | Relevant information (e.g.: "has 2 children") |
+| Description      | VARCHAR(MAX) |       | Relevant information (e.g.: "has 2 children") |
 | RegistrationDate | DATETIME     |       | |
 
 ---
@@ -66,7 +66,7 @@
 |---------------|--------------|-------|------------|
 | Id        | INT PK       | PK    | |
 | QuoteId       | INT FK       | FK → Quote.Id |
-| Description   | VARCHAR(255) |       | |
+| Description   | VARCHAR(MAX) |       | |
 | Quantity      | DECIMAL(10,2)| NULL  | Optional |
 | UnitPrice     | DECIMAL(12,2)| NULL  | Optional |
 | TotalValue    | DECIMAL(12,2)| NOT NULL | Always required |
