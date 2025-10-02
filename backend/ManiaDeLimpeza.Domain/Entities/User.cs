@@ -24,10 +24,6 @@ namespace ManiaDeLimpeza.Domain.Entities
         [Required(ErrorMessage = "Password is required")]
         [MaxLength(100)]
         public string Password { get; set; } = string.Empty;
-
-        /// <summary>
-        /// User is required to be active in order to login
-        /// </summary>
-        public bool IsActive { get; set; } = false;
+ 
     }
 }
