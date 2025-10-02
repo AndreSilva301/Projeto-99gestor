@@ -1,91 +1,91 @@
-# 📊 Esquema Relacional – MVP do ManiaDeLimpezaApp
+# 📊 Relational Schema – ManiaDeLimpezaApp MVP
 
-## 🔹 Tabelas principais
+## 🔹 Main Tables
 
-### **Empresa**
-| Campo       | Tipo          | Chave | Observação |
+### **Company**
+| Field       | Type          | Key   | Notes |
 |-------------|--------------|-------|------------|
-| EmpresaId   | INT PK       | PK    | Identificador único |
-| Nome        | VARCHAR(150) |       | Nome da empresa |
-| CNPJ        | VARCHAR(20)  |       | Opcional |
-| DataCriacao | DATETIME     |       | |
+| Id   | INT PK       | PK    | Unique identifier |
+| Name        | VARCHAR(150) |       | Company name |
+| CNPJ        | VARCHAR(20)  |       | Optional |
+| CreatedDate | DATETIME     |       | |
 
 ---
 
-### **Usuario**
-| Campo       | Tipo          | Chave | Observação |
+### **User**
+| Field       | Type          | Key   | Notes |
 |-------------|--------------|-------|------------|
-| UsuarioId   | INT PK       | PK    | Identificador único |
-| EmpresaId   | INT FK       | FK → Empresa.EmpresaId |
-| Nome        | VARCHAR(150) |       | Nome do usuário |
+| Id   | INT PK       | PK    | Unique identifier |
+| CompanyId   | INT FK       | FK → Company.Id |
+| Name        | VARCHAR(150) |       | User name |
 | Email       | VARCHAR(150) | UQ    | Login |
-| SenhaHash   | VARBINARY    |       | Senha criptografada |
-| Perfil      | ENUM(Admin, Colaborador) | | Define papel |
-| DataCriacao | DATETIME     |       | |
+| PasswordHash| VARBINARY    |       | Encrypted password |
+| Profile     | ENUM(Admin, Employee) | | Defines role |
+| CreatedDate | DATETIME     |       | |
 
 ---
 
-### **Cliente**
-| Campo        | Tipo          | Chave | Observação |
+### **Customer**
+| Field        | Type          | Key   | Notes |
 |--------------|--------------|-------|------------|
-| ClienteId    | INT PK       | PK    | Identificador único |
-| EmpresaId    | INT FK       | FK → Empresa.EmpresaId |
-| Nome         | VARCHAR(150) |       | |
-| Telefone     | VARCHAR(20)  |       | |
+| Id    | INT PK       | PK    | Unique identifier |
+| CompanyId    | INT FK       | FK → Company.Id |
+| Name         | VARCHAR(150) |       | |
+| Phone        | VARCHAR(20)  |       | |
 | Email        | VARCHAR(150) |       | |
-| Endereco     | VARCHAR(255) |       | |
-| DataCadastro | DATETIME     |       | |
+| Address      | VARCHAR(255) |       | |
+| RegistrationDate | DATETIME     |       | |
 
 ---
 
-### **ClienteRelacionamento**
-| Campo            | Tipo          | Chave | Observação |
+### **CustomerRelationship**
+| Field            | Type          | Key   | Notes |
 |------------------|--------------|-------|------------|
-| RelacionamentoId | INT PK       | PK    | |
-| ClienteId        | INT FK       | FK → Cliente.ClienteId |
-| Descricao        | VARCHAR(255) |       | Informação relevante (ex: "tem 2 filhos") |
-| DataCadastro     | DATETIME     |       | |
+| Id | INT PK       | PK    | |
+| CustomerId       | INT FK       | FK → Customer.Id |
+| Description      | VARCHAR(255) |       | Relevant information (e.g.: "has 2 children") |
+| RegistrationDate | DATETIME     |       | |
 
 ---
 
-### **Orcamento**
-| Campo              | Tipo          | Chave | Observação |
+### **Quote**
+| Field              | Type          | Key   | Notes |
 |--------------------|--------------|-------|------------|
-| OrcamentoId        | INT PK       | PK    | |
-| ClienteId          | INT FK       | FK → Cliente.ClienteId |
-| UsuarioId          | INT FK       | FK → Usuario.UsuarioId (quem criou) |
-| ValorTotal         | DECIMAL(12,2)|       | Soma dos itens |
-| CondicoesPagamento | TEXT         |       | |
-| DescontoAVista     | DECIMAL(12,2)|       | |
-| DataCriacao        | DATETIME     |       | |
+| Id        | INT PK       | PK    | |
+| CustomerId         | INT FK       | FK → Customer.Id |
+| UserId             | INT FK       | FK → User.Id (who created) |
+| TotalValue         | DECIMAL(12,2)|       | Sum of items |
+| PaymentConditions  | TEXT         |       | |
+| CashDiscount       | DECIMAL(12,2)|       | |
+| CreatedDate        | DATETIME     |       | |
 
 ---
 
-### **OrcamentoItem**
-| Campo         | Tipo          | Chave | Observação |
+### **QuoteItem**
+| Field         | Type          | Key   | Notes |
 |---------------|--------------|-------|------------|
-| ItemId        | INT PK       | PK    | |
-| OrcamentoId   | INT FK       | FK → Orcamento.OrcamentoId |
-| Descricao     | VARCHAR(255) |       | |
-| Quantidade    | DECIMAL(10,2)| NULL  | Opcional |
-| ValorUnitario | DECIMAL(12,2)| NULL  | Opcional |
-| ValorTotal    | DECIMAL(12,2)| NOT NULL | Sempre obrigatório |
-| CamposExtras  | JSON         |       | Permite flexibilidade futura |
+| Id        | INT PK       | PK    | |
+| QuoteId       | INT FK       | FK → Quote.Id |
+| Description   | VARCHAR(255) |       | |
+| Quantity      | DECIMAL(10,2)| NULL  | Optional |
+| UnitPrice     | DECIMAL(12,2)| NULL  | Optional |
+| TotalValue    | DECIMAL(12,2)| NOT NULL | Always required |
+| ExtraFields   | JSON         |       | Allows future flexibility |
 
 ---
 
-## 🔹 Relacionamentos
-- **Empresa → Usuario** = 1:N  
-- **Empresa → Cliente** = 1:N  
-- **Cliente → ClienteRelacionamento** = 1:N  
-- **Cliente → Orcamento** = 1:N  
-- **Orcamento → OrcamentoItem** = 1:N  
+## 🔹 Relationships
+- **Company → User** = 1:N  
+- **Company → Customer** = 1:N  
+- **Customer → CustomerRelationship** = 1:N  
+- **Customer → Quote** = 1:N  
+- **Quote → QuoteItem** = 1:N  
 
 ---
 
-## 📐 Modelo ER (Entidade-Relacionamento) – descrição textual
+## 📐 ER Model (Entity-Relationship) – textual description
 ```
-Empresa (1) —— (N) Usuario
-Empresa (1) —— (N) Cliente —— (N) ClienteRelacionamento
-Cliente (1) —— (N) Orcamento —— (N) OrcamentoItem
+Company (1) —— (N) User
+Company (1) —— (N) Customer —— (N) CustomerRelationship
+Customer (1) —— (N) Quote —— (N) QuoteItem
 ```

@@ -229,13 +229,11 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.LineItem", b =>
                 {
-                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", "Quote")
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", null)
                         .WithMany("LineItems")
                         .HasForeignKey("QuoteId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Quote");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>

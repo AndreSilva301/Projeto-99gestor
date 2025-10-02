@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManiaDeLimpeza.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20250518182131_Init")]
-    partial class Init
+    [Migration("20251002000208_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -42,14 +42,86 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Observations")
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Name");
+
                     b.ToTable("Clients");
+                });
+
+            modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.LineItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<int>("QuoteId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Total")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("QuoteId");
+
+                    b.ToTable("LineItems");
+                });
+
+            modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<decimal?>("CashDiscount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int>("ClientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("CreatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("PaymentMethod")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("TotalPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ClientId");
+
+                    b.HasIndex("CreatedByUserId");
+
+                    b.ToTable("Quotes");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.User", b =>
@@ -134,12 +206,16 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                                 .HasColumnType("int");
 
                             b1.Property<string>("Landline")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(450)");
 
                             b1.Property<string>("Mobile")
-                                .HasColumnType("nvarchar(max)");
+                                .HasColumnType("nvarchar(450)");
 
                             b1.HasKey("ClientId");
+
+                            b1.HasIndex("Landline");
+
+                            b1.HasIndex("Mobile");
 
                             b1.ToTable("Clients");
 
@@ -152,6 +228,39 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.Navigation("Phone")
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.LineItem", b =>
+                {
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", null)
+                        .WithMany("LineItems")
+                        .HasForeignKey("QuoteId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>
+                {
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Client", "Client")
+                        .WithMany()
+                        .HasForeignKey("ClientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.User", "CreatedBy")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Client");
+
+                    b.Navigation("CreatedBy");
+                });
+
+            modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>
+                {
+                    b.Navigation("LineItems");
                 });
 #pragma warning restore 612, 618
         }

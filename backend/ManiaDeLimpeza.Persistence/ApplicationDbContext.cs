@@ -15,8 +15,8 @@ namespace ManiaDeLimpeza.Persistence
          *   I need to create a new migration and apply it to the database.
          *   These are the commands to do so (run from the solution root):
          *
-         *   1. Create a new migration (replace 'MigrationName' with a meaningful name):
-         *      dotnet ef migrations add MigrationName --project ManiaDeLimpeza.Persistence --startup-project ManiaDeLimpeza
+         *   1. Create a new migration (replace '{MigrationName}' with a meaningful name):
+         *      dotnet ef migrations add {MigrationName} --project ManiaDeLimpeza.Persistence --startup-project ManiaDeLimpeza
          *
          *   2. Apply the migration to the database:
          *      dotnet ef database update --project ManiaDeLimpeza.Persistence --startup-project ManiaDeLimpeza
