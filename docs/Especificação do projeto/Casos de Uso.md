@@ -1,4 +1,4 @@
-# 📑 Casos de Uso – ManiaDeLimpezaApp
+# 📑 Casos de Uso – 99Gestor
 
 ## 🎭 Atores
 - **Administrador da Empresa** → cria a empresa, gerencia colaboradores, configurações e tem acesso a tudo.  
