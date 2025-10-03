@@ -40,12 +40,12 @@ namespace ManiaDeLimpeza.Application.Services
         {
             var quote = _mapper.Map<Quote>(quoteDto);
             quote.CreatedAt = DateTime.UtcNow;
-            quote.CreatedByUserId = user.Id;
-            quote.TotalPrice = quote.LineItems.Sum(li => li.Total);
+            quote.UserId = user.Id;
+            quote.TotalPrice = quote.QuoteItems.Sum(li => li.TotalValue);
             if (quote.CashDiscount.HasValue)
                 quote.TotalPrice -= quote.CashDiscount.Value;
 
-            var client = await _clientRepository.GetByIdAsync(quote.ClientId);
+            var client = await _clientRepository.GetByIdAsync(quote.CostumerId);
             if (client == null)
             {
                 throw new ArgumentException("Client not found");
@@ -60,12 +60,13 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<Quote?> GetByIdAsync(int id)
         {
-            var quote = await _quoteRepository.GetByIdAsync(id);
-            if (quote == null || quote.IsArchived)
-            {
-                return null;
-            }
-            return quote;
+            throw new NotImplementedException();    
+            //    var quote = await _quoteRepository.GetByIdAsync(id);
+            //    if (quote == null || quote.IsArchived)
+            //    {
+            //        return null;
+            //    }
+            //    return quote;
         }
 
         /// <summary>
@@ -84,7 +85,7 @@ namespace ManiaDeLimpeza.Application.Services
             _mapper.Map(quoteDto, existing);
 
             // Recalculate total
-            existing.TotalPrice = existing.LineItems.Sum(li => li.Total);
+            existing.TotalPrice = existing.QuoteItems.Sum(li => li.TotalValue);
             if (existing.CashDiscount.HasValue)
                 existing.TotalPrice -= existing.CashDiscount.Value;
 
@@ -97,32 +98,34 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<bool> ArchiveAsync(int id)
         {
-            var quote = await _quoteRepository.GetByIdAsync(id);
-            if (quote == null) return false;
+            throw new NotImplementedException();
+            //var quote = await _quoteRepository.GetByIdAsync(id);
+            //if (quote == null) return false;
 
-            quote.IsArchived = true;
-            await _quoteRepository.UpdateAsync(quote);
-            return true;
+            //quote.IsArchived = true;
+            //await _quoteRepository.UpdateAsync(quote);
+            //return true;
         }
 
         public async Task<PagedResult<Quote>> GetPagedAsync(QuoteFilterDto filter)
         {
-            var query = _quoteRepository.Query()
-                .Include(q => q.Client)
-                .Where(q => !q.IsArchived);
+            throw new NotImplementedException();
+            //var query = _quoteRepository.Query()
+            //    .Include(q => q.Customer)
+            //    .Where(q => !q.IsArchived);
 
-            query = QuoteFiltering.ApplyFilters(query, filter);
-            query = QuoteSorting.ApplySorting(query, filter.SortBy, filter.SortDescending);
+            //query = QuoteFiltering.ApplyFilters(query, filter);
+            //query = QuoteSorting.ApplySorting(query, filter.SortBy, filter.SortDescending);
 
-            var (totalItems, items) = await query.PaginateAsync(filter.Page, filter.PageSize);
+            //var (totalItems, items) = await query.PaginateAsync(filter.Page, filter.PageSize);
 
-            return new PagedResult<Quote>()
-            {
-                TotalItems = totalItems,
-                Items = items,
-                PageSize = filter.PageSize,
-                Page = filter.Page,
-            };
+            //return new PagedResult<Quote>()
+            //{
+            //    TotalItems = totalItems,
+            //    Items = items,
+            //    PageSize = filter.PageSize,
+            //    Page = filter.Page,
+            //};
         }
     }
 }

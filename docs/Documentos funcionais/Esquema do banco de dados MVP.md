@@ -35,6 +35,7 @@
 | Email        | VARCHAR(150) |       | |
 | Address      | VARCHAR(255) |       | |
 | RegistrationDate | DATETIME     |       | |
+| Observations | VARCHAR(400) |
 
 ---
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,6 +12,11 @@ namespace ManiaDeLimpeza.Domain.Entities
     {
         [Key]
         public int Id { get; set; }
+
+        [Required(ErrorMessage = "CompanyId is required")]
+        [ForeignKey("Company")]
+        public int CompanyId { get; set; }
+        public Company Company { get; set; } = null!;
 
         [Required(ErrorMessage = "Name is required")]
         [MaxLength(100)]
@@ -23,7 +29,12 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         [Required(ErrorMessage = "Password is required")]
         [MaxLength(100)]
-        public string Password { get; set; } = string.Empty;
- 
+        public string PasswordHash { get; set; } = string.Empty;
+
+        [Required(ErrorMessage = "Profile is required")]
+        public UserProfile Profile { get; set; }
+
+        public DateTime DateTime { get; set; } = DateTime.UtcNow;
+
     }
 }

@@ -17,7 +17,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
 
         public static void ClearClients(ApplicationDbContext db)
         {
-            db.Clients.RemoveRange(db.Clients);
+            db.Customer.RemoveRange(db.Customer);
             db.SaveChanges();
         }
 

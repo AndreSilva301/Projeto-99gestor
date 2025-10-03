@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
-    public class LineItem
+    public class QuoteItem
     {
         public int Id { get; set; }
 
@@ -23,6 +23,8 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public decimal UnitPrice { get; set; }
 
-        public decimal Total { get; set; }
+        public decimal TotalValue { get; set; }
+
+        public string ExtraFields { get; set; } = string.Empty;
     }
 }

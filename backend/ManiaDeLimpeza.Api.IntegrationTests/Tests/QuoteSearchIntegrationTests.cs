@@ -63,7 +63,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         {
             for (int i = 1; i <= 10; i++)
             {
-                var client = new Client
+                var client = new Customer
                 {
                     Name = i switch
                     {
@@ -84,14 +84,14 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
                 var clientResponse = await _client.PostAsync("/api/client",
                     new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json"));
-                var createdClient = JsonConvert.DeserializeObject<Client>(await clientResponse.Content.ReadAsStringAsync());
+                var createdClient = JsonConvert.DeserializeObject<Customer>(await clientResponse.Content.ReadAsStringAsync());
 
                 for (int j = 0; j < (i <= 5 ? 3 : 2); j++) // total 25 quotes
                 {
                     var quote = new QuoteDto
                     {
                         ClientId = createdClient!.Id,
-                        PaymentMethod = PaymentMethod.Pix,
+                        PaymentMethod = PaymentConditions.Pix,
                         CashDiscount = 0,
                         LineItems = new List<LineItemDto>
                         {
@@ -121,14 +121,14 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task SearchByClientName_ShouldReturnMatches()
         {
             var result = await PostSearchAsync(new() { ClientName = "maria" });
-            Assert.IsTrue(result.Items.All(q => q.Client.Name.Contains("Maria")), "Expected all results to contain 'Maria' in client name");
+            Assert.IsTrue(result.Items.All(q => q.Customer.Name.Contains("Maria")), "Expected all results to contain 'Maria' in client name");
         }
 
         [TestMethod]
         public async Task SearchByClientPhone_ShouldReturnMatches()
         {
             var result = await PostSearchAsync(new() { ClientPhone = "001" });
-            Assert.IsTrue(result.Items.All(q => q.Client.Phone.Mobile.Contains("001")), "Expected all results to contain '001' in mobile phone");
+            Assert.IsTrue(result.Items.All(q => q.Customer.Phone.Mobile.Contains("001")), "Expected all results to contain '001' in mobile phone");
         }
 
         [TestMethod]
@@ -136,7 +136,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         {
             var result = await PostSearchAsync(new() { ClientName = "João", ClientPhone = "002" });
             Assert.IsTrue(result.Items.All(q =>
-                q.Client.Name.Contains("João") && q.Client.Phone.Mobile.Contains("002")),
+                q.Customer.Name.Contains("João") && q.Customer.Phone.Mobile.Contains("002")),
                 "Expected all results to match both name 'João' and phone '002'");
         }
 
@@ -165,7 +165,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task SortByClientNameAscending_ShouldWork()
         {
             var result = await PostSearchAsync(new() { SortBy = "ClientName", SortDescending = false });
-            var expectedOrder = result.Items.Select(x => x).OrderBy(q => q.Client.Name).ToList();
+            var expectedOrder = result.Items.Select(x => x).OrderBy(q => q.Customer.Name).ToList();
             CollectionAssert.AreEqual(expectedOrder, result.Items.ToList(), "Expected items to be sorted by ClientName ascending");
         }
 
@@ -173,7 +173,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task SortByClientNameDescending_ShouldWork()
         {
             var result = await PostSearchAsync(new() { SortBy = "ClientName", SortDescending = true });
-            var expectedOrder = result.Items.OrderByDescending(q => q.Client.Name).ToList();
+            var expectedOrder = result.Items.OrderByDescending(q => q.Customer.Name).ToList();
             CollectionAssert.AreEqual(expectedOrder, result.Items.ToList(), "Expected items to be sorted by ClientName descending");
         }
 
@@ -196,7 +196,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task AccentInsensitiveSearch_ShouldReturnMatches()
         {
             var result = await PostSearchAsync(new() { ClientName = "jose" });
-            Assert.IsTrue(result.Items.Any(q => q.Client.Name.Contains("José")),
+            Assert.IsTrue(result.Items.Any(q => q.Customer.Name.Contains("José")),
                 "Expected at least one result to match 'José' when searching for 'jose'");
         }
 

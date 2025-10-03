@@ -45,24 +45,24 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 {
                     new() { Description = "Item A", Quantity = 2, UnitPrice = 10, Total = 18 }
                 },
-                PaymentMethod = PaymentMethod.Cash,
+                PaymentMethod = PaymentConditions.Cash,
                 CashDiscount = 5
             };
 
             var user = new User { Id = 2, Name = "Tester" };
 
-            _clientRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Client { Id = 1 });
+            _clientRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(new Customer { Id = 1 });
 
             var result = await _service.CreateAsync(quoteDto, user);
 
             _quoteRepositoryMock.Verify(r => r.AddAsync(It.Is<Quote>(q =>
                 q.TotalPrice == 13 &&
-                q.CreatedByUserId == user.Id &&
+                q.UserId == user.Id &&
                 q.CreatedAt != default
             )), Times.Once);
 
             Assert.AreEqual(13, result.TotalPrice);
-            Assert.AreEqual(user.Id, result.CreatedByUserId);
+            Assert.AreEqual(user.Id, result.UserId);
         }
 
         [TestMethod]
@@ -80,24 +80,12 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
 
             var user = new User { Id = 1 };
 
-            _clientRepositoryMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Client?)null);
+            _clientRepositoryMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Customer?)null);
 
             await _service.CreateAsync(quoteDto, user);
         }
 
-        [TestMethod]
-        public async Task ArchiveAsync_ShouldSetIsArchived()
-        {
-            var quote = new Quote { Id = 1, IsArchived = false };
-            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(quote);
-
-            var result = await _service.ArchiveAsync(1);
-
-            Assert.IsTrue(result);
-            Assert.IsTrue(quote.IsArchived);
-            _quoteRepositoryMock.Verify(r => r.UpdateAsync(quote), Times.Once);
-        }
-
+        
         [TestMethod]
         public async Task ArchiveAsync_WithInvalidId_ShouldReturnFalse()
         {
@@ -122,14 +110,14 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var existingQuote = new Quote
             {
                 Id = 1,
-                ClientId = 1,
-                LineItems = new List<LineItem>
+                UserId = 1,
+                QuoteItems = new List<QuoteItem>
                 {
-                    new() { Description = "Old Item", Quantity = 2, UnitPrice = 20, Total = 40 }
+                    new() { Description = "Old Item", Quantity = 2, UnitPrice = 20, TotalValue = 40 }
                 },
                 CashDiscount = null,
                 TotalPrice = 40,
-                PaymentMethod = PaymentMethod.Cash
+                PaymentConditions = PaymentConditions.Cash
             };
 
             _quoteRepositoryMock
@@ -158,22 +146,21 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                     new() { Description = "Updated Item", Quantity = 1, UnitPrice = 100, Total = 95 }
                 },
                 CashDiscount = 5,
-                PaymentMethod = PaymentMethod.CreditCard,
+                PaymentMethod = PaymentConditions.CreditCard,
             };
 
             var existingQuote = new Quote
             {
                 Id = 1,
-                ClientId = 1,
                 CreatedAt = originalCreatedAt,
-                CreatedByUserId = originalCreatedByUserId,
-                LineItems = new List<LineItem>
+                UserId = originalCreatedByUserId,
+                QuoteItems = new List<QuoteItem>
                 {
-                    new() { Description = "Old Item", Quantity = 2, UnitPrice = 20, Total = 40 }
+                    new() { Description = "Old Item", Quantity = 2, UnitPrice = 20, TotalValue = 40 }
                 },
                 CashDiscount = null,
                 TotalPrice = 40,
-                PaymentMethod = PaymentMethod.Cash
+                PaymentConditions = PaymentConditions.Cash
             };
 
             _quoteRepositoryMock
@@ -186,7 +173,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 {
                     // Assert inside the callback to verify the fields are preserved
                     Assert.AreEqual(originalCreatedAt, quote.CreatedAt, "CreatedAt should not be changed.");
-                    Assert.AreEqual(originalCreatedByUserId, quote.CreatedByUserId, "CreatedByUserId should not be changed.");
+                    Assert.AreEqual(originalCreatedByUserId, quote.UserId, "CreatedByUserId should not be changed.");
                 });
 
             // Act

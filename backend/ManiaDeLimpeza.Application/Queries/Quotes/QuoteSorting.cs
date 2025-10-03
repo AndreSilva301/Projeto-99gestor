@@ -13,8 +13,8 @@ namespace ManiaDeLimpeza.Application.Queries.Quotes
         {
             return (sortBy?.ToLower(), descending) switch
             {
-                ("clientname", true) => query.OrderByDescending(q => q.Client.Name),
-                ("clientname", false) => query.OrderBy(q => q.Client.Name),
+                ("clientname", true) => query.OrderByDescending(q => q.Customer.Name),
+                ("clientname", false) => query.OrderBy(q => q.Customer.Name),
                 ("createdat", true) => query.OrderByDescending(q => q.CreatedAt),
                 _ => query.OrderBy(q => q.CreatedAt),
             };

@@ -49,9 +49,9 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             _context.Entry(existingUser).CurrentValues.SetValues(user);
 
             // Prevent password update if it’s null/empty
-            if (string.IsNullOrWhiteSpace(user.Password))
+            if (string.IsNullOrWhiteSpace(user.PasswordHash))
             {
-                _context.Entry(existingUser).Property(u => u.Password).IsModified = false;
+                _context.Entry(existingUser).Property(u => u.PasswordHash).IsModified = false;
             }
 
             await _context.SaveChangesAsync();

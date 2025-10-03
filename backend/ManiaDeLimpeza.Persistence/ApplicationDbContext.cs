@@ -29,10 +29,13 @@ namespace ManiaDeLimpeza.Persistence
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
 
+        public DbSet<Company> Company => Set<Company>();
         public DbSet<User> Users => Set<User>();
-        public DbSet<Client> Clients => Set<Client>();
+        public DbSet<Customer> Customer => Set<Customer>();
+        public DbSet<CustumerRelationship> CostumerRelationship => Set<CustumerRelationship>();
         public DbSet<Quote> Quotes => Set<Quote>();
-        public DbSet<LineItem> LineItems => Set<LineItem>();
+        public DbSet<QuoteItem> QuoteItem => Set<QuoteItem>();
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -51,7 +54,7 @@ namespace ManiaDeLimpeza.Persistence
             });
 
             //Client
-            modelBuilder.Entity<Client>(entity =>
+            modelBuilder.Entity<Customer>(entity =>
             {
                 entity.HasKey(u => u.Id);
                 entity.Property(c => c.Id)
@@ -77,26 +80,26 @@ namespace ManiaDeLimpeza.Persistence
                 entity.HasKey(q => q.Id);
                 entity.Property(q => q.TotalPrice).HasColumnType("decimal(18,2)");
                 entity.Property(q => q.CashDiscount).HasColumnType("decimal(18,2)");
-                entity.HasOne(q => q.Client)
+                entity.HasOne(q => q.Customer)
                     .WithMany()
-                    .HasForeignKey(q => q.ClientId);
+                    .HasForeignKey(q => q.CostumerId);
 
-                entity.HasOne(q => q.CreatedBy)
+                entity.HasOne(q => q.User)
                     .WithMany()
-                    .HasForeignKey(q => q.CreatedByUserId);
+                    .HasForeignKey(q => q.UserId);
 
-                entity.HasMany(q => q.LineItems)
+                entity.HasMany(q => q.QuoteItems)
                     .WithOne()
                     .HasForeignKey(li => li.QuoteId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
-            //LineItem
-            modelBuilder.Entity<LineItem>(entity =>
+            //QuoteItem
+            modelBuilder.Entity<QuoteItem>(entity =>
             {
                 entity.HasKey(li => li.Id);
                 entity.Property(li => li.UnitPrice).HasColumnType("decimal(18,2)");
-                entity.Property(li => li.Total).HasColumnType("decimal(18,2)");
+                entity.Property(li => li.TotalValue).HasColumnType("decimal(18,2)");
             });
         }
     }

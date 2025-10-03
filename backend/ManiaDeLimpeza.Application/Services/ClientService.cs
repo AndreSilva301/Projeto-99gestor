@@ -20,37 +20,37 @@ namespace ManiaDeLimpeza.Application.Services
             _clientRepository = clientRepository;
         }
 
-        public Task<Client?> GetByIdAsync(int id)
+        public Task<Customer?> GetByIdAsync(int id)
         {
             return _clientRepository.GetByIdAsync(id);
         }
 
-        public Task<IEnumerable<Client>> GetAllAsync()
+        public Task<IEnumerable<Customer>> GetAllAsync()
         {
             return _clientRepository.GetAllAsync();
         }
 
-        public Task AddAsync(Client client)
+        public Task AddAsync(Customer client)
         {
             return _clientRepository.AddAsync(client);
         }
 
-        public Task UpdateAsync(Client client)
+        public Task UpdateAsync(Customer client)
         {
             return _clientRepository.UpdateAsync(client);
         }
 
-        public Task DeleteAsync(Client client)
+        public Task DeleteAsync(Customer client)
         {
             return _clientRepository.DeleteAsync(client);
         }
 
-        public Task<List<Client>> SearchAsync(string searchTerm)
+        public Task<List<Customer>> SearchAsync(string searchTerm)
         {
             return _clientRepository.SearchAsync(searchTerm);
         }
 
-        public Task<PagedResult<Client>> PaginatedSearchAsync(string searchTerm, int page, int pageSize)
+        public Task<PagedResult<Customer>> PaginatedSearchAsync(string searchTerm, int page, int pageSize)
         {
             return _clientRepository.SearchPagedAsync(searchTerm, page, pageSize);
         }

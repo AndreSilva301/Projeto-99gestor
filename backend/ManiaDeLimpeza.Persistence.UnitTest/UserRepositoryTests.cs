@@ -32,7 +32,7 @@ namespace ManiaDeLimpeza.Persistence.UnitTest
             {
                 Name = "Test User",
                 Email = "test@example.com",
-                Password = "123456"
+                PasswordHash = "123456"
             };
 
             // Act
@@ -56,7 +56,7 @@ namespace ManiaDeLimpeza.Persistence.UnitTest
             {
                 Name = "Test User A",
                 Email = "test@example.com",
-                Password = "123456"
+                PasswordHash = "123456"
             };
 
 
@@ -64,7 +64,7 @@ namespace ManiaDeLimpeza.Persistence.UnitTest
             {
                 Name = "Test User B",
                 Email = "test@example.com",
-                Password = "12345678"
+                PasswordHash = "12345678"
             };
 
             // Act

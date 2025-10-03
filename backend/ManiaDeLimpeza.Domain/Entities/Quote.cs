@@ -8,32 +8,30 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
-    public class Quote
+    public class Quote // Orçamento
     {
         public int Id { get; set; }
 
         [Required]
-        public int ClientId { get; set; }
+        public int CostumerId { get; set; }
+        [ForeignKey(nameof(CostumerId))]
+        public Customer Customer { get; set; } = null!;
 
-        [ForeignKey(nameof(ClientId))]
-        public Client Client { get; set; } = null!;
+        [Required]
+        public int UserId { get; set; }
 
-        public List<LineItem> LineItems { get; set; } = new();
+        [ForeignKey(nameof(UserId))]
+        public User User { get; set; } = null!;
+
+        public List<QuoteItem> QuoteItems { get; set; } = new();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
-        [Required]
-        public int CreatedByUserId { get; set; }
-
-        [ForeignKey(nameof(CreatedByUserId))]
-        public User CreatedBy { get; set; } = null!;
-
         public decimal TotalPrice { get; set; }
 
-        public PaymentMethod PaymentMethod { get; set; }
+        public PaymentConditions PaymentConditions { get; set; }
 
         public decimal? CashDiscount { get; set; } // nullable to represent “no discount”
 
-        public bool IsArchived {  get; set; }
     }
 }

@@ -69,7 +69,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = client.Id,
                 CashDiscount = 10,
-                PaymentMethod = PaymentMethod.Pix,
+                PaymentMethod = PaymentConditions.Pix,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Cleaning", Quantity = 1, UnitPrice = 100, Total = 100 }
@@ -133,7 +133,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = client!.Id,
                 CashDiscount = 0,
-                PaymentMethod = PaymentMethod.DebitCard,
+                PaymentMethod = PaymentConditions.DebitCard,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Item 1", Quantity = 1, UnitPrice = 30, Total = 30 },
@@ -189,7 +189,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = client!.Id,
                 CashDiscount = 0,
-                PaymentMethod = PaymentMethod.CreditCard,
+                PaymentMethod = PaymentConditions.CreditCard,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Item A", Quantity = 1, UnitPrice = 50, Total = 50 },
@@ -212,23 +212,23 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             var fetched = JsonConvert.DeserializeObject<Quote>(await getResponse.Content.ReadAsStringAsync())!;
 
             // Assert: line items e client estão preenchidos
-            Assert.AreEqual(2, fetched.LineItems.Count, "Expected 2 line items");
-            Assert.IsTrue(fetched.LineItems.Any(li => li.Description == "Item A"));
-            Assert.IsTrue(fetched.LineItems.Any(li => li.Description == "Item B"));
-            Assert.AreEqual(client.Name, fetched.Client?.Name);
-            Assert.AreEqual(client.Email, fetched.Client?.Email);
+            Assert.AreEqual(2, fetched.QuoteItems.Count, "Expected 2 line items");
+            Assert.IsTrue(fetched.QuoteItems.Any(li => li.Description == "Item A"));
+            Assert.IsTrue(fetched.QuoteItems.Any(li => li.Description == "Item B"));
+            Assert.AreEqual(client.Name, fetched.Customer?.Name);
+            Assert.AreEqual(client.Email, fetched.Customer?.Email);
         }
 
 
         private async Task<QuoteDto> CreateTestQuote()
         {
-            Client? createdClient = await CreateTestClient();
+            Customer? createdClient = await CreateTestClient();
 
             var quote = new QuoteDto
             {
                 ClientId = createdClient!.Id,
                 CashDiscount = 0,
-                PaymentMethod = PaymentMethod.CreditCard,
+                PaymentMethod = PaymentConditions.CreditCard,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Test Service", Quantity = 2, UnitPrice = 50, Total = 100 }
@@ -242,9 +242,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             return JsonConvert.DeserializeObject<QuoteDto>(await response.Content.ReadAsStringAsync())!;
         }
 
-        private static async Task<Client?> CreateTestClient()
+        private static async Task<Customer?> CreateTestClient()
         {
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Quote Client",
                 Email = "quoteclient@example.com"
@@ -255,7 +255,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             Assert.AreEqual(HttpStatusCode.Created, clientResponse.StatusCode);
 
-            var createdClient = JsonConvert.DeserializeObject<Client>(await clientResponse.Content.ReadAsStringAsync());
+            var createdClient = JsonConvert.DeserializeObject<Customer>(await clientResponse.Content.ReadAsStringAsync());
             return createdClient;
         }
     }

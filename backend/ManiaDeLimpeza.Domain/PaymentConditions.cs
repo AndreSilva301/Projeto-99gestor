@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain
 {
-    public enum PaymentMethod
+    public enum PaymentConditions
     {
         Cash = 1,
         CreditCard = 2,

@@ -26,9 +26,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             await context.Database.ExecuteSqlRawAsync("DELETE FROM [Clients]");
         }
 
-        private static Client CreateClient(string name, string mobile = "", string landline = "")
+        private static Customer CreateClient(string name, string mobile = "", string landline = "")
         {
-            return new Client
+            return new Customer
             {
                 Name = name,
                 Email = $"{name.Replace(" ", "").ToLower()}@example.com",
