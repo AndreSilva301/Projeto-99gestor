@@ -23,23 +23,25 @@ namespace ManiaDeLimpeza.Application.Services
 
         public async Task<User> CreateUserAsync(User user)
         {
-            // hash password before saving
-            user.Password = PasswordHelper.Hash(user.Password, user);
+            throw new NotImplementedException();
+            //// hash password before saving
+            //user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
 
-            await _userRepository.AddAsync(user);
-            return user;
+            //await _userRepository.AddAsync(user);
+            //return user;
         }
 
         public async Task<User> UpdateUserAsync(User user)
         {
-            // If password was changed, re-hash it (example check)
-            if (!string.IsNullOrWhiteSpace(user.Password))
-            {
-                user.Password = PasswordHelper.Hash(user.Password, user);
-            }
+            throw new NotImplementedException();
+            //// If password was changed, re-hash it (example check)
+            //if (!string.IsNullOrWhiteSpace(user.Password))
+            //{
+            //    user.Password = PasswordHelper.Hash(user.Password, user);
+            //}
 
-            // Assuming the repo has an UpdateAsync method (add it if needed)
-            return await _userRepository.UpdateAsync(user);
+            //// Assuming the repo has an UpdateAsync method (add it if needed)
+            //return await _userRepository.UpdateAsync(user);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
@@ -49,20 +51,21 @@ namespace ManiaDeLimpeza.Application.Services
 
         public async Task<User?> GetByCredentialsAsync(string email, string password)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
+            throw new NotImplementedException();    
+            //var user = await _userRepository.GetByEmailAsync(email);
 
-            if (user == null)
-                return null;
+            //if (user == null)
+            //    return null;
 
-            if (!PasswordHelper.Verify(user.Password, password, user))
-            {
-                return null;
-            }
+            //if (!PasswordHelper.Verify(user.PasswordHash, password, user))
+            //{
+            //    return null;
+            //}
 
-            if (!user.IsActive)
-                throw new BusinessException("The user must be approved in order to login");
+            //if (!user.IsActive)
+            //    throw new BusinessException("The user must be approved in order to login");
 
-            return PasswordHelper.Verify(user.Password, password, user) ? user : null;
+            //return PasswordHelper.Verify(user.PasswordHash, password, user) ? user : null;
         }
     }
 }

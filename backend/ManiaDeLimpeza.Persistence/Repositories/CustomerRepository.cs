@@ -11,22 +11,22 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
-    public class ClientRepository : BaseRepository<Client>, IClientRepository, IScopedDependency
+    public class CustomerRepository : BaseRepository<Customer>, ICustomerRepository, IScopedDependency
     {
         protected readonly ApplicationDbContext _context;
 
-        public ClientRepository(ApplicationDbContext context) : base(context)
+        public CustomerRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }
 
-        public async Task<List<Client>> SearchAsync(string searchTerm)
+        public async Task<List<Customer>> SearchAsync(string searchTerm)
         {
             return await BuildScoredQuery(searchTerm)
                 .ToListAsync();
         }
 
-        public async Task<PagedResult<Client>> SearchPagedAsync(string searchTerm, int page, int pageSize)
+        public async Task<PagedResult<Customer>> SearchPagedAsync(string searchTerm, int page, int pageSize)
         {
             var scoredQuery = BuildScoredQuery(searchTerm);
 
@@ -37,7 +37,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<Client>
+            return new PagedResult<Customer>
             {
                 TotalItems = totalItems,
                 Page = page,
@@ -46,17 +46,17 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             };
         }
 
-        private IQueryable<Client> BuildScoredQuery(string searchTerm)
+        private IQueryable<Customer> BuildScoredQuery(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return _context.Clients.AsQueryable();
+                return _context.Customers.AsQueryable();
 
             var words = searchTerm
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(w => w.ToLower())
                 .ToArray();
 
-            return _context.Clients
+            return _context.Customers
                 .Select(client => new
                 {
                     Client = client,

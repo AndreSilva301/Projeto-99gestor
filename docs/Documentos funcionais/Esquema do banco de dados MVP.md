@@ -35,6 +35,7 @@
 | Email        | VARCHAR(MAX) |       | |
 | Address      | VARCHAR(MAX) |       | |
 | RegistrationDate | DATETIME     |       | |
+| Observations | VARCHAR(400) |
 
 ---
 
@@ -55,10 +56,10 @@
 | CustomerId         | INT FK       | FK → Customer.Id |
 | UserId             | INT FK       | FK → User.Id (who created) |
 | TotalValue         | DECIMAL(12,2)|       | Sum of items |
-| PaymentConditions  | TEXT         |       | |
+| PaymentConditions     | STRING          |       |  |
 | CashDiscount       | DECIMAL(12,2)|       | |
 | CreatedDate        | DATETIME     |       | |
-
+| PaymentMethod      | INT          |       | ENUM  |
 ---
 
 ### **QuoteItem**
@@ -71,7 +72,6 @@
 | UnitPrice     | DECIMAL(12,2)| NULL  | Optional |
 | TotalValue    | DECIMAL(12,2)| NOT NULL | Always required |
 | ExtraFields   | JSON         |       | Allows future flexibility |
-
 ---
 
 ## 🔹 Relationships

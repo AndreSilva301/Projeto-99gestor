@@ -29,7 +29,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
 
-            var user1 = new User { Name = "Test A", Email = "a@example.com", Password = "123" };
+            var user1 = new User { Name = "Test A", Email = "a@example.com", PasswordHash = "123" };
 
             await repo.AddAsync(user1);
 
@@ -47,8 +47,8 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
 
-            var user1 = new User { Name = "Test A", Email = "a@example.com", Password = "123" };
-            var user2 = new User { Name = "Test B", Email = "a@example.com", Password = "456" };
+            var user1 = new User { Name = "Test A", Email = "a@example.com", PasswordHash = "123" };
+            var user2 = new User { Name = "Test B", Email = "a@example.com", PasswordHash = "456" };
 
             await repo.AddAsync(user1);
             await repo.AddAsync(user2); // should fail due to unique constraint
@@ -64,7 +64,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Auto-ID Test",
                 Email = "autogen@example.com",
-                Password = "secret"
+                PasswordHash = "secret"
             };
 
             await repo.AddAsync(user);
@@ -82,7 +82,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Auto-ID Test",
                 Email = SampleEmail,
-                Password = "secret"
+                PasswordHash = "secret"
             };
 
             await repo.AddAsync(user);
@@ -92,7 +92,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.IsNotNull(repoUser);
             Assert.AreEqual(user.Name, repoUser.Name);
             Assert.AreEqual(user.Email, repoUser.Email);
-            Assert.AreEqual(user.Password, repoUser.Password);
+            Assert.AreEqual(user.PasswordHash, repoUser.PasswordHash);
 
         }
 
@@ -107,7 +107,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Auto-ID Test",
                 Email = SampleEmail,
-                Password = "secret"
+                PasswordHash = "secret"
             };
 
             await repo.AddAsync(user);
@@ -129,7 +129,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Auto-ID Test",
                 Email = SampleEmail,
-                Password = "secret"
+                PasswordHash = "secret"
             };
 
             await repo.AddAsync(user);
@@ -144,7 +144,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.IsNotNull(repoUser);
             Assert.AreEqual(differentName, repoUser.Name);
             Assert.AreEqual(user.Email, repoUser.Email);
-            Assert.AreEqual(user.Password, repoUser.Password);
+            Assert.AreEqual(user.PasswordHash, repoUser.PasswordHash);
 
         }
 
@@ -158,11 +158,11 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Original",
                 Email = "nopass@example.com",
-                Password = "original123"
+                PasswordHash = "original123"
             };
 
             await repo.AddAsync(originalUser);
-            var originalPassword = originalUser.Password;
+            var originalPassword = originalUser.PasswordHash;
 
             // Simulate update without password
             var updateUser = new User
@@ -170,7 +170,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 Id = originalUser.Id,
                 Name = "Updated Name",
                 Email = "updated@example.com",
-                Password = "" // should NOT overwrite password
+                PasswordHash = "" // should NOT overwrite password
             };
 
             await repo.UpdateAsync(updateUser);
@@ -179,7 +179,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             Assert.IsNotNull(updatedUser);
             Assert.AreEqual("Updated Name", updatedUser!.Name);
-            Assert.AreEqual(originalPassword, updatedUser.Password, "Password should not be updated");
+            Assert.AreEqual(originalPassword, updatedUser.PasswordHash, "Password should not be updated");
         }
 
         [TestMethod]
@@ -192,7 +192,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Original",
                 Email = "withpass@example.com",
-                Password = "original123"
+                PasswordHash = "original123"
             };
 
             await repo.AddAsync(originalUser);
@@ -203,7 +203,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 Id = originalUser.Id,
                 Name = "Updated Name",
                 Email = "withpass@example.com",
-                Password = newPassword // should overwrite password
+                PasswordHash = newPassword // should overwrite password
             };
 
             await repo.UpdateAsync(updateUser);
@@ -212,7 +212,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             Assert.IsNotNull(updatedUser);
             Assert.AreEqual("Updated Name", updatedUser!.Name);
-            Assert.AreEqual(newPassword, updatedUser.Password, "Password should be updated");
+            Assert.AreEqual(newPassword, updatedUser.PasswordHash, "Password should be updated");
         }
 
 

@@ -53,8 +53,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 Name = "Test User",
                 Email = "testuser@example.com",
-                IsActive = true,
-                Password = Infrastructure.Helpers.PasswordHelper.Hash("Secure123", new User { Email = "testuser@example.com" })
+                PasswordHash = Infrastructure.Helpers.PasswordHelper.Hash("Secure123", new User { Email = "testuser@example.com" })
             };
 
             db.Users.Add(user);
@@ -73,7 +72,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task CreateAndGetClient_ShouldSucceed()
         {
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Ana Silva",
                 Email = "ana@example.com",
@@ -87,12 +86,12 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
 
             var json = await response.Content.ReadAsStringAsync();
-            var created = JsonConvert.DeserializeObject<Client>(json);
+            var created = JsonConvert.DeserializeObject<Customer>(json);
 
             var getResponse = await _client.GetAsync($"/api/client/{created!.Id}");
             Assert.AreEqual(HttpStatusCode.OK, getResponse.StatusCode);
 
-            var fetched = JsonConvert.DeserializeObject<Client>(await getResponse.Content.ReadAsStringAsync());
+            var fetched = JsonConvert.DeserializeObject<Customer>(await getResponse.Content.ReadAsStringAsync());
             Assert.AreEqual("Ana Silva", fetched!.Name);
         }
 
@@ -100,7 +99,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task UpdateClient_ShouldSucceed()
         {
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Ana",
                 Email = "ana@update.com",
@@ -110,7 +109,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             var post = await _client.PostAsync("/api/client",
                 new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json"));
-            var created = JsonConvert.DeserializeObject<Client>(await post.Content.ReadAsStringAsync());
+            var created = JsonConvert.DeserializeObject<Customer>(await post.Content.ReadAsStringAsync());
 
             created!.Name = "Ana Updated";
             var put = await _client.PutAsync($"/api/client/{created.Id}",
@@ -119,17 +118,17 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.AreEqual(HttpStatusCode.NoContent, put.StatusCode);
 
             var check = await _client.GetAsync($"/api/client/{created.Id}");
-            var fetched = JsonConvert.DeserializeObject<Client>(await check.Content.ReadAsStringAsync());
+            var fetched = JsonConvert.DeserializeObject<Customer>(await check.Content.ReadAsStringAsync());
             Assert.AreEqual("Ana Updated", fetched!.Name);
         }
 
         [TestMethod]
         public async Task DeleteClient_ShouldSucceed()
         {
-            var client = new Client { Name = "Delete Me", Email = "delete@example.com" };
+            var client = new Customer { Name = "Delete Me", Email = "delete@example.com" };
             var post = await _client.PostAsync("/api/client",
                 new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json"));
-            var created = JsonConvert.DeserializeObject<Client>(await post.Content.ReadAsStringAsync());
+            var created = JsonConvert.DeserializeObject<Customer>(await post.Content.ReadAsStringAsync());
 
             var delete = await _client.DeleteAsync($"/api/client/{created!.Id}");
             Assert.AreEqual(HttpStatusCode.NoContent, delete.StatusCode);
@@ -141,7 +140,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task SearchClient_ShouldReturnMatch()
         {
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Carlos Souza",
                 Email = "carlos@example.com",
@@ -152,7 +151,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 new StringContent(JsonConvert.SerializeObject(client), Encoding.UTF8, "application/json"));
 
             var search = await _client.GetAsync("/api/client/search?term=carlos 3333");
-            var result = JsonConvert.DeserializeObject<PagedResult<Client>>(await search.Content.ReadAsStringAsync());
+            var result = JsonConvert.DeserializeObject<PagedResult<Customer>>(await search.Content.ReadAsStringAsync());
 
             Assert.AreEqual(1, result.Items!.Count);
             Assert.AreEqual("Carlos Souza", result.Items[0].Name);

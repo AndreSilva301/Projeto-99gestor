@@ -30,10 +30,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
             {
                 Name = "Test User",
                 Email = DefaultEmail,
-                IsActive = true,
             };
 
-            user.Password = PasswordHelper.Hash(DefaultPassword, user);
+            user.PasswordHash = PasswordHelper.Hash(DefaultPassword, user);
 
             return user;
         }

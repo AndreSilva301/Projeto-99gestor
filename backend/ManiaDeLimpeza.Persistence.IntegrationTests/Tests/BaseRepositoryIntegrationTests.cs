@@ -30,9 +30,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task Add_ShouldGenerateId()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new BaseRepositoryImpl<Client>(context);
+            var repo = new BaseRepositoryImpl<Customer>(context);
 
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Maria",
                 Email = "maria@example.com"
@@ -47,9 +47,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task GetById_ShouldReturnClient()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new BaseRepositoryImpl<Client>(context);
+            var repo = new BaseRepositoryImpl<Customer>(context);
 
-            var client = new Client
+            var client = new Customer
             {
                 Name = "João",
                 Email = "joao@example.com"
@@ -66,10 +66,10 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task GetAll_ShouldReturnAllClients()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new BaseRepositoryImpl<Client>(context);
+            var repo = new BaseRepositoryImpl<Customer>(context);
 
-            await repo.AddAsync(new Client { Name = "A", Email = "a@example.com" });
-            await repo.AddAsync(new Client { Name = "B", Email = "b@example.com" });
+            await repo.AddAsync(new Customer { Name = "A", Email = "a@example.com" });
+            await repo.AddAsync(new Customer { Name = "B", Email = "b@example.com" });
 
             var all = await repo.GetAllAsync();
 
@@ -80,9 +80,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task Update_ShouldPersistChanges()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new BaseRepositoryImpl<Client>(context);
+            var repo = new BaseRepositoryImpl<Customer>(context);
 
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Lucas",
                 Email = "lucas@example.com"
@@ -101,9 +101,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task Delete_ShouldRemoveClient()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new BaseRepositoryImpl<Client>(context);
+            var repo = new BaseRepositoryImpl<Customer>(context);
 
-            var client = new Client
+            var client = new Customer
             {
                 Name = "To Remove",
                 Email = "remove@example.com"
@@ -121,14 +121,14 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task Client_FullLifecycle_WithOwnedAddressAndPhone_ShouldSucceed()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var clientRepo = new BaseRepositoryImpl<Client>(context);
+            var clientRepo = new BaseRepositoryImpl<Customer>(context);
 
             // 1. Add client with full data
-            var client = new Client
+            var client = new Customer
             {
                 Name = "Ana Silva",
                 Email = "ana@example.com",
-                Birthday = new DateTime(1990, 5, 21),
+                DateTime = new DateTime(1990, 5, 21),
                 Observations = "VIP client",
                 Address = new Address
                 {
