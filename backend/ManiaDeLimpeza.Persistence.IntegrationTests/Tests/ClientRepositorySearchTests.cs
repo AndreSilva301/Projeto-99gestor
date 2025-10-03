@@ -53,7 +53,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldMatchByName()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             var client = CreateClient("Ana Maria");
             await repo.AddAsync(client);
@@ -68,7 +68,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldMatchByMobile()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             var client = CreateClient("Test User", mobile: "99999-0000");
             await repo.AddAsync(client);
@@ -83,7 +83,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldMatchByLandline()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             var client = CreateClient("Test User", landline: "2222-3333");
             await repo.AddAsync(client);
@@ -98,7 +98,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldMatchMultipleFieldsAndRankHigher()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             var client = CreateClient("Ana Silva", mobile: "99999-1234");
             await repo.AddAsync(client);
@@ -113,7 +113,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldReturnBestMatchFirst()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             var best = CreateClient("João Pedro", landline: "4321");
             var weaker = CreateClient("Maria João");
@@ -131,7 +131,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldReturnEmptyWhenNoMatch()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             await repo.AddAsync(CreateClient("Someone"));
 
@@ -144,7 +144,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldReturnAllWhenInputIsBlank()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             await repo.AddAsync(CreateClient("Blank Test"));
 
@@ -157,7 +157,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task SearchAsync_ShouldBeCaseInsensitive()
         {
             using var context = TestDbContextFactory.CreateContext();
-            var repo = new ClientRepository(context);
+            var repo = new CustomerRepository(context);
 
             await repo.AddAsync(CreateClient("ana silva"));
 

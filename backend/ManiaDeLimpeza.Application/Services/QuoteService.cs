@@ -18,16 +18,16 @@ namespace ManiaDeLimpeza.Application.Services
     public class QuoteService : IQuoteService, IScopedDependency
     {
         private readonly IQuoteRepository _quoteRepository;
-        private readonly ICustomerRepository _clientRepository;
+        private readonly ICustomerRepository _customerRepository;
         private readonly IMapper _mapper;
 
         public QuoteService(
             IQuoteRepository quoteRepository,
-            ICustomerRepository clientRepository,
+            ICustomerRepository customerRepository,
             IMapper mapper)
         {
             _quoteRepository = quoteRepository;
-            _clientRepository = clientRepository;
+            _customerRepository = customerRepository;
             _mapper = mapper;
         }
 
@@ -45,7 +45,7 @@ namespace ManiaDeLimpeza.Application.Services
             if (quote.CashDiscount.HasValue)
                 quote.TotalPrice -= quote.CashDiscount.Value;
 
-            var client = await _clientRepository.GetByIdAsync(quote.CostumerId);
+            var client = await _customerRepository.GetByIdAsync(quote.CostumerId);
             if (client == null)
             {
                 throw new ArgumentException("Client not found");
@@ -92,17 +92,7 @@ namespace ManiaDeLimpeza.Application.Services
         /// <summary>
         /// Archives a quote by setting IsArchived to true.
         /// </summary>
-        public async Task<bool> ArchiveAsync(int id)
-        {
-            throw new NotImplementedException();
-            //var quote = await _quoteRepository.GetByIdAsync(id);
-            //if (quote == null) return false;
-
-            //quote.IsArchived = true;
-            //await _quoteRepository.UpdateAsync(quote);
-            //return true;
-        }
-
+        
         public async Task<PagedResult<Quote>> GetPagedAsync(QuoteFilterDto filter)
         {
             throw new NotImplementedException();

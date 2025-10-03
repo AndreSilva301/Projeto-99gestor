@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
-    public class ClientRepository : BaseRepository<Customer>, ICustomerRepository, IScopedDependency
+    public class CustomerRepository : BaseRepository<Customer>, ICustomerRepository, IScopedDependency
     {
         protected readonly ApplicationDbContext _context;
 
-        public ClientRepository(ApplicationDbContext context) : base(context)
+        public CustomerRepository(ApplicationDbContext context) : base(context)
         {
             _context = context;
         }
@@ -49,14 +49,14 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         private IQueryable<Customer> BuildScoredQuery(string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return _context.Customer.AsQueryable();
+                return _context.Customers.AsQueryable();
 
             var words = searchTerm
                 .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(w => w.ToLower())
                 .ToArray();
 
-            return _context.Customer
+            return _context.Customers
                 .Select(client => new
                 {
                     Client = client,

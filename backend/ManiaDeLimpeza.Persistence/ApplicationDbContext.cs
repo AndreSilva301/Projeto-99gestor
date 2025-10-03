@@ -29,12 +29,12 @@ namespace ManiaDeLimpeza.Persistence
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
         : base(options) { }
 
-        public DbSet<Company> Company => Set<Company>();
-        public DbSet<User> User => Set<User>();
-        public DbSet<Customer> Custome => Set<Customer>();
-        public DbSet<CustumerRelationship> CostumerRelationship => Set<CustumerRelationship>();
-        public DbSet<Quote> Quote => Set<Quote>();
-        public DbSet<QuoteItem> QuoteItem => Set<QuoteItem>();
+        public DbSet<Company> Companies => Set<Company>();
+        public DbSet<User> Users => Set<User>();
+        public DbSet<Customer> Customers => Set<Customer>();
+        public DbSet<CustumerRelationship> CostumerRelationships => Set<CustumerRelationship>();
+        public DbSet<Quote> Quotes => Set<Quote>();
+        public DbSet<QuoteItem> QuoteItems => Set<QuoteItem>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

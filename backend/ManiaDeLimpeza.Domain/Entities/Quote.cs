@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
-    public class Quote // Orçamento
+    public class Quote
     {
         public int Id { get; set; }
 

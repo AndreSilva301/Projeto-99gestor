@@ -74,18 +74,6 @@
 | ExtraFields   | JSON         |       | Allows future flexibility |
 ---
 
-### **PaymentMethod**
-| Field         | Type          |   Key     |   Notes              |
-|---------------|---------------|-----------|----------------------|
-| PaymentMethod | INT           |           |      ENUM            |
-|Cash           | INT           |    1      |                      |
-|CreditCard     | INT           |    2      |                      |
-|DebitCard      | INT           |    3      |                      |
-|Pix            | INT           |    4      |                      |
-|BankTransfer   | INT           |    5      |                      |
-
----
-
 ## 🔹 Relationships
 - **Company → User** = 1:N  
 - **Company → Customer** = 1:N  
