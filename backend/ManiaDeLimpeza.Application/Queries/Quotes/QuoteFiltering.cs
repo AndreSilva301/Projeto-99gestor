@@ -16,14 +16,14 @@ namespace ManiaDeLimpeza.Application.Queries.Quotes
             if (!string.IsNullOrWhiteSpace(filter.ClientName))
             {
                 query = query.Where(q =>
-                    EF.Functions.Collate(q.Client.Name, "Latin1_General_CI_AI")
+                    EF.Functions.Collate(q.Customer.Name, "Latin1_General_CI_AI")
                         .Contains(filter.ClientName));
             }
 
             if (!string.IsNullOrWhiteSpace(filter.ClientPhone))
             {
-                query = query.Where(q => q.Client.Phone.Mobile.Contains(filter.ClientPhone) ||
-                                         q.Client.Phone.Landline.Contains(filter.ClientPhone));
+                query = query.Where(q => q.Customer.Phone.Mobile.Contains(filter.ClientPhone) ||
+                                         q.Customer.Phone.Landline.Contains(filter.ClientPhone));
             }
 
             if (filter.CreatedAtStart.HasValue)

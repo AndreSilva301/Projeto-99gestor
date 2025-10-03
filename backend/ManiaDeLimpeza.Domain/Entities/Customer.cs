@@ -3,12 +3,14 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
+using System.Net;
+using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
-    public class User
+    public class Customer 
     {
         [Key]
         public int Id { get; set; }
@@ -19,22 +21,18 @@ namespace ManiaDeLimpeza.Domain.Entities
         public Company Company { get; set; } = null!;
 
         [Required(ErrorMessage = "Name is required")]
-        [MaxLength(100)]
         public string Name { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Email is required")]
-        [MaxLength(150)]
-        [EmailAddress]
+        public Address Address { get; set; } = new Address();
+
+        public Phone Phone { get; set; } = new Phone();
+
         public string Email { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Password is required")]
-        [MaxLength(100)]
-        public string PasswordHash { get; set; } = string.Empty;
+        public string? Observations { get; set; }
 
-        [Required(ErrorMessage = "Profile is required")]
-        public UserProfile Profile { get; set; }
-
-        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
-
+        public List<CustumerRelationship> CostumerRelationships { get; set; } = new();
+        public List<Quote> Quotes { get; set; } = new();
+        public DateTime? DateTime { get; set; }
     }
 }

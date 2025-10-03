@@ -24,7 +24,7 @@ namespace ManiaDeLimpeza.Api.Controllers.Base
             {
                 Id = userId,
                 Email = emailClaim?.Value ?? string.Empty,
-                IsActive = true,
+               
             };
         }
     }

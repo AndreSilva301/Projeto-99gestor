@@ -22,8 +22,8 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         public override async Task<Quote?> GetByIdAsync(int id)
         {
             var result = await _context.Quotes
-                            .Include(x => x.LineItems)
-                            .Include(x => x.Client)
+                            .Include(x => x.QuoteItems)
+                            .Include(x => x.Customer)
                             .FirstOrDefaultAsync(x => x.Id == id);
             return result;
         }
