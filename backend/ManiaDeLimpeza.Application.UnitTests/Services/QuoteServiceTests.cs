@@ -87,16 +87,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
 
         
         [TestMethod]
-        public async Task ArchiveAsync_WithInvalidId_ShouldReturnFalse()
-        {
-            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(42)).ReturnsAsync((Quote?)null);
-
-            var result = await _service.ArchiveAsync(42);
-
-            Assert.IsFalse(result);
-        }
-
-        [TestMethod]
         public async Task UpdateAsync_ShouldRecalculateTotal()
         {
             var quoteDto = new QuoteDto

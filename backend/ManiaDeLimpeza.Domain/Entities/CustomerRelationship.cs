@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ManiaDeLimpeza.Domain.Entities;
-public class CustumerRelationship
+public class CustomerRelationship
 {
     [Key]
     public int Id { get; set; }

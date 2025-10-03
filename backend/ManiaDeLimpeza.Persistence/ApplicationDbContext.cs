@@ -32,7 +32,7 @@ namespace ManiaDeLimpeza.Persistence
         public DbSet<Company> Companies => Set<Company>();
         public DbSet<User> Users => Set<User>();
         public DbSet<Customer> Customers => Set<Customer>();
-        public DbSet<CustumerRelationship> CostumerRelationships => Set<CustumerRelationship>();
+        public DbSet<CustomerRelationship> CustomerRelationships => Set<CustomerRelationship>();
         public DbSet<Quote> Quotes => Set<Quote>();
         public DbSet<QuoteItem> QuoteItems => Set<QuoteItem>();
 
@@ -41,6 +41,26 @@ namespace ManiaDeLimpeza.Persistence
         {
             base.OnModelCreating(modelBuilder);
             // Fluent API config if needed
+
+            //Company
+            modelBuilder.Entity<Company>(entity =>
+            {
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.Id)
+                    .ValueGeneratedOnAdd();
+
+                // Company (1) -> (N) User
+                entity.HasMany(c => c.Users)
+                    .WithOne(u => u.Company)
+                    .HasForeignKey(u => u.CompanyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                // Company (1) -> (N) Customer
+                entity.HasMany(c => c.Costumers)
+                    .WithOne(cu => cu.Company)
+                    .HasForeignKey(cu => cu.CompanyId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             //User
             modelBuilder.Entity<User>(entity =>
@@ -53,10 +73,10 @@ namespace ManiaDeLimpeza.Persistence
                     .IsUnique();
             });
 
-            //Client
+            //Customer
             modelBuilder.Entity<Customer>(entity =>
             {
-                entity.HasKey(u => u.Id);
+                entity.HasKey(c => c.Id);
                 entity.Property(c => c.Id)
                     .ValueGeneratedOnAdd();
 
@@ -72,34 +92,59 @@ namespace ManiaDeLimpeza.Persistence
 
                 entity.HasIndex(c => c.Name);
 
+                // Customer (1) -> (N) CustomerRelationship
+                entity.HasMany(c => c.CostumerRelationships)
+                    .WithOne(cr => cr.Costumer)
+                    .HasForeignKey(cr => cr.CostumerId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                // Customer (1) -> (N) Quote
+                entity.HasMany(c => c.Quotes)
+                    .WithOne(q => q.Customer)
+                    .HasForeignKey(q => q.CostumerId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            //CustomerRelationship
+            modelBuilder.Entity<CustomerRelationship>(entity =>
+            {
+                entity.HasKey(cr => cr.Id);
+                entity.Property(cr => cr.Id)
+                    .ValueGeneratedOnAdd();
             });
 
             //Quote
             modelBuilder.Entity<Quote>(entity =>
             {
                 entity.HasKey(q => q.Id);
+                entity.Property(q => q.Id)
+                    .ValueGeneratedOnAdd();
+
                 entity.Property(q => q.TotalPrice).HasColumnType("decimal(18,2)");
                 entity.Property(q => q.CashDiscount).HasColumnType("decimal(18,2)");
-                entity.HasOne(q => q.Customer)
-                    .WithMany()
-                    .HasForeignKey(q => q.CostumerId);
 
+                // Quote (N) -> (1) User
                 entity.HasOne(q => q.User)
                     .WithMany()
-                    .HasForeignKey(q => q.UserId);
+                    .HasForeignKey(q => q.UserId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
+                // Quote (1) -> (N) QuoteItem
                 entity.HasMany(q => q.QuoteItems)
                     .WithOne()
-                    .HasForeignKey(li => li.QuoteId)
+                    .HasForeignKey(qi => qi.QuoteId)
                     .OnDelete(DeleteBehavior.Cascade);
             });
 
             //QuoteItem
             modelBuilder.Entity<QuoteItem>(entity =>
             {
-                entity.HasKey(li => li.Id);
-                entity.Property(li => li.UnitPrice).HasColumnType("decimal(18,2)");
-                entity.Property(li => li.TotalValue).HasColumnType("decimal(18,2)");
+                entity.HasKey(qi => qi.Id);
+                entity.Property(qi => qi.Id)
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(qi => qi.UnitPrice).HasColumnType("decimal(18,2)");
+                entity.Property(qi => qi.TotalValue).HasColumnType("decimal(18,2)");
             });
         }
     }

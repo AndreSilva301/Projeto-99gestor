@@ -31,7 +31,7 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public string? Observations { get; set; }
 
-        public List<CustumerRelationship> CostumerRelationships { get; set; } = new();
+        public List<CustomerRelationship> CostumerRelationships { get; set; } = new();
         public List<Quote> Quotes { get; set; } = new();
         public DateTime? DateTime { get; set; }
     }

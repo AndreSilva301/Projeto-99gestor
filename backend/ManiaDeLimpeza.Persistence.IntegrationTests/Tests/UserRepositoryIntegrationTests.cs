@@ -115,7 +115,6 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             var repoUser = await repo.GetByEmailAsync("non-existent-email@email.com");
 
             Assert.IsNull(repoUser);
-
         }
 
 

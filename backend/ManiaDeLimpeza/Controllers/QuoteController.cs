@@ -45,14 +45,6 @@ namespace ManiaDeLimpeza.Api.Controllers
             return Ok(quote);
         }
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Archive(int id)
-        {
-            var success = await _quoteService.ArchiveAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
-        }
-
         [HttpPost("search")]
         public async Task<IActionResult> Search([FromBody] QuoteFilterDto filter)
         {
