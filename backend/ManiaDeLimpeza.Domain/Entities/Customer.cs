@@ -14,7 +14,8 @@ namespace ManiaDeLimpeza.Domain.Entities
     {
         [Key]
         public int Id { get; set; }
-        
+
+        [Required(ErrorMessage = "CompanyId is required")]
         [ForeignKey("Company")]
         public int CompanyId { get; set; }
         public Company Company { get; set; } = null!;
