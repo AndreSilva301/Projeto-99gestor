@@ -18,7 +18,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
     public class QuoteServiceTests: TestsBase
     {
         private Mock<IQuoteRepository> _quoteRepositoryMock = null!;
-        private Mock<IClientRepository> _clientRepositoryMock = null!;
+        private Mock<ICustomerRepository> _clientRepositoryMock = null!;
         private QuoteService _service = null!;
 
         [TestInitialize]
@@ -27,7 +27,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             base.InitializeTestBase();
 
             _quoteRepositoryMock = new Mock<IQuoteRepository>();
-            _clientRepositoryMock = new Mock<IClientRepository>();
+            _clientRepositoryMock = new Mock<ICustomerRepository>();
 
             var mapper = GetRequiredService<IMapper>();
 
@@ -45,7 +45,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 {
                     new() { Description = "Item A", Quantity = 2, UnitPrice = 10, Total = 18 }
                 },
-                PaymentMethod = PaymentConditions.Cash,
+                PaymentMethod = PaymentMethod.Cash,
                 CashDiscount = 5
             };
 
@@ -117,7 +117,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 },
                 CashDiscount = null,
                 TotalPrice = 40,
-                PaymentConditions = PaymentConditions.Cash
+                PaymentMethod = PaymentMethod.Cash
             };
 
             _quoteRepositoryMock
@@ -146,7 +146,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                     new() { Description = "Updated Item", Quantity = 1, UnitPrice = 100, Total = 95 }
                 },
                 CashDiscount = 5,
-                PaymentMethod = PaymentConditions.CreditCard,
+                PaymentMethod = PaymentMethod.CreditCard,
             };
 
             var existingQuote = new Quote
@@ -160,7 +160,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 },
                 CashDiscount = null,
                 TotalPrice = 40,
-                PaymentConditions = PaymentConditions.Cash
+                PaymentMethod = PaymentMethod.Cash
             };
 
             _quoteRepositoryMock

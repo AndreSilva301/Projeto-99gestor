@@ -29,7 +29,8 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public decimal TotalPrice { get; set; }
 
-        public PaymentConditions PaymentConditions { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
+        public string PaymentConditions { get; set; } = string.Empty;
 
         public decimal? CashDiscount { get; set; } // nullable to represent “no discount”
 

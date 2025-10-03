@@ -18,12 +18,12 @@ namespace ManiaDeLimpeza.Application.Services
     public class QuoteService : IQuoteService, IScopedDependency
     {
         private readonly IQuoteRepository _quoteRepository;
-        private readonly IClientRepository _clientRepository;
+        private readonly ICustomerRepository _clientRepository;
         private readonly IMapper _mapper;
 
         public QuoteService(
             IQuoteRepository quoteRepository,
-            IClientRepository clientRepository,
+            ICustomerRepository clientRepository,
             IMapper mapper)
         {
             _quoteRepository = quoteRepository;
@@ -60,13 +60,9 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<Quote?> GetByIdAsync(int id)
         {
-            throw new NotImplementedException();    
-            //    var quote = await _quoteRepository.GetByIdAsync(id);
-            //    if (quote == null || quote.IsArchived)
-            //    {
-            //        return null;
-            //    }
-            //    return quote;
+            var quote = await _quoteRepository.GetByIdAsync(id);
+
+            return quote;
         }
 
         /// <summary>

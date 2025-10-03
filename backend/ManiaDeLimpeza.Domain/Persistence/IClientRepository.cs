@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Persistence
 {
-    public interface IClientRepository : IBaseRepository<Customer>
+    public interface ICustomerRepository : IBaseRepository<Customer>
     {
         Task<List<Customer>> SearchAsync(string searchTerm);
         Task<PagedResult<Customer>> SearchPagedAsync(string searchTerm, int page, int pageSize);

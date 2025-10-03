@@ -91,7 +91,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                     var quote = new QuoteDto
                     {
                         ClientId = createdClient!.Id,
-                        PaymentMethod = PaymentConditions.Pix,
+                        PaymentMethod = PaymentMethod.Pix,
                         CashDiscount = 0,
                         LineItems = new List<LineItemDto>
                         {

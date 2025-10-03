@@ -30,10 +30,10 @@ namespace ManiaDeLimpeza.Persistence
         : base(options) { }
 
         public DbSet<Company> Company => Set<Company>();
-        public DbSet<User> Users => Set<User>();
-        public DbSet<Customer> Customer => Set<Customer>();
+        public DbSet<User> User => Set<User>();
+        public DbSet<Customer> Custome => Set<Customer>();
         public DbSet<CustumerRelationship> CostumerRelationship => Set<CustumerRelationship>();
-        public DbSet<Quote> Quotes => Set<Quote>();
+        public DbSet<Quote> Quote => Set<Quote>();
         public DbSet<QuoteItem> QuoteItem => Set<QuoteItem>();
 
 

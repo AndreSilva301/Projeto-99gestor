@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
-    public class ClientRepository : BaseRepository<Customer>, IClientRepository, IScopedDependency
+    public class ClientRepository : BaseRepository<Customer>, ICustomerRepository, IScopedDependency
     {
         protected readonly ApplicationDbContext _context;
 

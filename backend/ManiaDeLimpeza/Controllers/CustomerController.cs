@@ -8,57 +8,57 @@ namespace ManiaDeLimpeza.Api.Controllers
     [ApiController]
     [Authorize]
     [Route("api/[controller]")]
-    public class ClientController : ControllerBase
+    public class CustomerController : ControllerBase
     {
-        private readonly IClientService _clientService;
+        private readonly ICustomerService _customerService;
 
-        public ClientController(IClientService clientService)
+        public CustomerController(ICustomerService customerService)
         {
-            _clientService = clientService;
+            _customerService = customerService;
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<Customer>> GetById(int id)
         {
-            var client = await _clientService.GetByIdAsync(id);
-            if (client == null)
+            var customer = await _customerService.GetByIdAsync(id);
+            if (customer == null)
                 return NotFound();
 
-            return Ok(client);
+            return Ok(customer);
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Customer>>> GetAll()
         {
-            var clients = await _clientService.GetAllAsync();
-            return Ok(clients);
+            var customer = await _customerService.GetAllAsync();
+            return Ok(customer);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create(Customer client)
+        public async Task<ActionResult> Create(Customer customer)
         {
-            await _clientService.AddAsync(client);
-            return CreatedAtAction(nameof(GetById), new { id = client.Id }, client);
+            await _customerService.AddAsync(customer);
+            return CreatedAtAction(nameof(GetById), new { id = customer.Id }, customer);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Update(int id, Customer client)
+        public async Task<ActionResult> Update(int id, Customer customer)
         {
-            if (id != client.Id)
+            if (id != customer.Id)
                 return BadRequest("ID mismatch");
 
-            await _clientService.UpdateAsync(client);
+            await _customerService.UpdateAsync(customer);
             return NoContent();
         }
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var client = await _clientService.GetByIdAsync(id);
-            if (client == null)
+            var customer = await _customerService.GetByIdAsync(id);
+            if (customer == null)
                 return NotFound();
 
-            await _clientService.DeleteAsync(client);
+            await _customerService.DeleteAsync(customer);
             return NoContent();
         }
 
@@ -69,7 +69,7 @@ namespace ManiaDeLimpeza.Api.Controllers
             [FromQuery] int pageSize = 10
             )
         {
-            var results = await _clientService.PaginatedSearchAsync(term, page, pageSize);
+            var results = await _customerService.PaginatedSearchAsync(term, page, pageSize);
             return Ok(results);
         }
     }

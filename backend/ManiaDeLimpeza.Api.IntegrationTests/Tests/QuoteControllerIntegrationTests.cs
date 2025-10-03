@@ -69,7 +69,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = client.Id,
                 CashDiscount = 10,
-                PaymentMethod = PaymentConditions.Pix,
+                PaymentMethod = PaymentMethod.Pix,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Cleaning", Quantity = 1, UnitPrice = 100, Total = 100 }
@@ -133,7 +133,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = client!.Id,
                 CashDiscount = 0,
-                PaymentMethod = PaymentConditions.DebitCard,
+                PaymentMethod = PaymentMethod.DebitCard,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Item 1", Quantity = 1, UnitPrice = 30, Total = 30 },
@@ -189,7 +189,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = client!.Id,
                 CashDiscount = 0,
-                PaymentMethod = PaymentConditions.CreditCard,
+                PaymentMethod = PaymentMethod.CreditCard,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Item A", Quantity = 1, UnitPrice = 50, Total = 50 },
@@ -228,7 +228,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             {
                 ClientId = createdClient!.Id,
                 CashDiscount = 0,
-                PaymentMethod = PaymentConditions.CreditCard,
+                PaymentMethod = PaymentMethod.CreditCard,
                 LineItems = new List<LineItemDto>
                 {
                     new LineItemDto { Description = "Test Service", Quantity = 2, UnitPrice = 50, Total = 100 }

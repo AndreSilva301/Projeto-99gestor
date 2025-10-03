@@ -12,7 +12,8 @@ namespace ManiaDeLimpeza.Application.Dtos
         public int Id { get; set; }
         public int ClientId { get; set; }
         public decimal TotalPrice { get; set; }
-        public PaymentConditions PaymentMethod { get; set; }
+        public PaymentMethod PaymentMethod { get; set; }
+        public string PaymentConditions { get; set; } = string.Empty;
         public decimal? CashDiscount { get; set; }
         public List<LineItemDto> LineItems { get; set; } = new();
     }

@@ -56,10 +56,10 @@
 | CustomerId         | INT FK       | FK → Customer.Id |
 | UserId             | INT FK       | FK → User.Id (who created) |
 | TotalValue         | DECIMAL(12,2)|       | Sum of items |
-| PaymentConditions  | TEXT         |       | |
+| PaymentConditions     | STRING          |       |  |
 | CashDiscount       | DECIMAL(12,2)|       | |
 | CreatedDate        | DATETIME     |       | |
-
+| PaymentMethod      | INT          |       | ENUM  |
 ---
 
 ### **QuoteItem**
@@ -72,6 +72,17 @@
 | UnitPrice     | DECIMAL(12,2)| NULL  | Optional |
 | TotalValue    | DECIMAL(12,2)| NOT NULL | Always required |
 | ExtraFields   | JSON         |       | Allows future flexibility |
+---
+
+### **PaymentMethod**
+| Field         | Type          |   Key     |   Notes              |
+|---------------|---------------|-----------|----------------------|
+| PaymentMethod | INT           |           |      ENUM            |
+|Cash           | INT           |    1      |                      |
+|CreditCard     | INT           |    2      |                      |
+|DebitCard      | INT           |    3      |                      |
+|Pix            | INT           |    4      |                      |
+|BankTransfer   | INT           |    5      |                      |
 
 ---
 

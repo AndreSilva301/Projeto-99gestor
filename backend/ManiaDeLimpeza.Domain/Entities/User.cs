@@ -34,7 +34,7 @@ namespace ManiaDeLimpeza.Domain.Entities
         [Required(ErrorMessage = "Profile is required")]
         public UserProfile Profile { get; set; }
 
-        public DateTime DateTime { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
     }
 }
