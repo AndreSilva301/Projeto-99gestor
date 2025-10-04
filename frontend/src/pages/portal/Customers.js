@@ -3,10 +3,12 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../../components/common/Icon';
 import DataTable from '../../components/common/DataTable';
 import { customerService, formatPhone, formatDate, getStatusLabel, getStatusColor } from '../../services/customerService';
+import { useHeader } from '../../contexts/HeaderContext';
 
 const Customers = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { updateHeader } = useHeader();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState({
@@ -25,7 +27,12 @@ const Customers = () => {
   // Success/Error messages
   const [message, setMessage] = useState(null);
 
+  useEffect(() => {    
+    updateHeader('Clientes', 'Gerencie seus clientes e mantenha informações atualizadas');
+  }, []);
+
   useEffect(() => {
+    // Update header when component mounts    
     loadCustomers();
     loadStats();
     
@@ -164,26 +171,7 @@ const Customers = () => {
   ];
 
   return (
-    <div className="customers-page">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <h2 className="mb-1">
-            <Icon name="users" className="me-2" />
-            Clientes
-          </h2>
-          <p className="text-muted mb-0">
-            Gerencie seus clientes e mantenha informações atualizadas
-          </p>
-        </div>
-        <button
-          className="btn btn-primary"
-          onClick={handleCreateCustomer}
-        >
-          <Icon name="plus" size="sm" className="me-1" />
-          Novo Cliente
-        </button>
-      </div>
-
+    <div className="customers-page">  
       {/* Success/Error Message */}
       {message && (
         <div className={`alert alert-${message.type === 'success' ? 'success' : 'danger'} alert-dismissible fade show`} role="alert">
@@ -265,52 +253,14 @@ const Customers = () => {
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="card mb-4">
-        <div className="card-body">
-          <div className="row align-items-end">
-            <div className="col-md-6">
-              <label className="form-label">Filtrar por Status</label>
-              <div className="btn-group w-100" role="group">
-                <input
-                  type="radio"
-                  className="btn-check"
-                  name="statusFilter"
-                  id="status-all"
-                  checked={statusFilter === 'all'}
-                  onChange={() => handleStatusFilter('all')}
-                />
-                <label className="btn btn-outline-primary" htmlFor="status-all">
-                  Todos ({stats.total})
-                </label>
-
-                <input
-                  type="radio"
-                  className="btn-check"
-                  name="statusFilter"
-                  id="status-active"
-                  checked={statusFilter === 'active'}
-                  onChange={() => handleStatusFilter('active')}
-                />
-                <label className="btn btn-outline-success" htmlFor="status-active">
-                  Ativos ({stats.active})
-                </label>
-
-                <input
-                  type="radio"
-                  className="btn-check"
-                  name="statusFilter"
-                  id="status-inactive"
-                  checked={statusFilter === 'inactive'}
-                  onChange={() => handleStatusFilter('inactive')}
-                />
-                <label className="btn btn-outline-secondary" htmlFor="status-inactive">
-                  Inativos ({stats.inactive})
-                </label>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div className="d-flex justify-content-end align-items-center mb-4">
+        <button
+          className="btn btn-primary"
+          onClick={handleCreateCustomer}
+        >
+          <Icon name="plus" size="sm" className="me-1" />
+          Novo Cliente
+        </button>
       </div>
 
       {/* Data Table */}

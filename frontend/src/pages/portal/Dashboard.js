@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { mockApiService, formatCurrency } from '../../services/mockApi';
 import { Icon } from '../../components/common';
+import { useHeader } from '../../contexts/HeaderContext';
 
 // Stats Card Component
 const StatsCard = ({ icon, label, value, change, gradient }) => (
@@ -43,11 +44,18 @@ const QuickActionButton = ({ icon, label, onClick, to }) => {
 };
 
 const Dashboard = () => {
+  const { updateHeader } = useHeader();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    updateHeader('Dashboard', 'Bem-vindo ao seu painel de controle CRM');
+  }, []);
+
   // Load dashboard data
   useEffect(() => {
+    // Update header when component mounts
+    
     const loadDashboardData = async () => {
       try {
         // Simulate API call delay
@@ -63,7 +71,7 @@ const Dashboard = () => {
     };
 
     loadDashboardData();
-  }, []);
+  }, [updateHeader]);
 
   // Quick actions based on MVP requirements
   const quickActions = [

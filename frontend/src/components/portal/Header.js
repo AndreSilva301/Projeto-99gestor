@@ -1,11 +1,9 @@
 import React from 'react';
 import { Icon } from '../common';
+import { useHeader } from '../../contexts/HeaderContext';
 
-const Header = ({ 
-  title = 'Indicadores', 
-  subtitle = 'Bem-vindo ao seu painel de controle CRM',
-  onToggleSidebar 
-}) => {
+const Header = ({ onToggleSidebar }) => {
+  const { headerData } = useHeader();
   const getCurrentTime = () => {
     return new Intl.DateTimeFormat('en-US', {
       month: 'short',
@@ -28,8 +26,8 @@ const Header = ({
 
       {/* Title section */}
       <div className="portal-header-title">
-        <h1>{title}</h1>
-        <p>{subtitle}</p>
+        <h1>{headerData.title}</h1>
+        <p>{headerData.subtitle}</p>
       </div>
 
       {/* Actions section */}

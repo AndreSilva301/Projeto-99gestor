@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
+import { HeaderProvider } from '../../contexts/HeaderContext';
 import '../../styles/portal.css';
 
 const PortalLayout = ({ 
-  title = 'Indicadores', 
-  subtitle = 'Bem-vindo ao seu painel de controle CRM',
   userRole = 'Administrator' 
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -57,29 +56,29 @@ const PortalLayout = ({
   }, [isMobile, isSidebarOpen]);
 
   return (
-    <div className="portal-layout">
-      {/* Sidebar */}
-      <Sidebar 
-        isOpen={isMobile ? isSidebarOpen : true}
-        onClose={handleCloseSidebar}
-        userRole={userRole}
-      />
-
-      {/* Main content area */}
-      <div className="portal-content">
-        {/* Header */}
-        <Header 
-          title={title}
-          subtitle={subtitle}
-          onToggleSidebar={handleToggleSidebar}
+    <HeaderProvider>
+      <div className="portal-layout">
+        {/* Sidebar */}
+        <Sidebar 
+          isOpen={isMobile ? isSidebarOpen : true}
+          onClose={handleCloseSidebar}
+          userRole={userRole}
         />
 
-        {/* Main content */}
-        <main className="portal-main">
-          <Outlet />
-        </main>
+        {/* Main content area */}
+        <div className="portal-content">
+          {/* Header */}
+          <Header 
+            onToggleSidebar={handleToggleSidebar}
+          />
+
+          {/* Main content */}
+          <main className="portal-main">
+            <Outlet />
+          </main>
+        </div>
       </div>
-    </div>
+    </HeaderProvider>
   );
 };
 
