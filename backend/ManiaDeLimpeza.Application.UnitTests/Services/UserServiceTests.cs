@@ -15,6 +15,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
     [TestClass]
     public class UserServiceTests
     {
+        private Mock<ICompanyRepository> _companyRepositoryMock = null!;
         private Mock<IUserRepository> _userRepositoryMock = null!;
         private UserService _userService = null!;
 
@@ -22,7 +23,12 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         public void Setup()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
-            _userService = new UserService(_userRepositoryMock.Object);
+            _companyRepositoryMock = new Mock<ICompanyRepository>();
+
+            _userService = new UserService(
+                _userRepositoryMock.Object,
+                _companyRepositoryMock.Object
+            );
         }
 
         [TestMethod]
@@ -36,8 +42,20 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 PasswordHash = "plaintext"
             };
 
-            // Act
-            var result = await _userService.CreateUserAsync(user);
+            var company = new Company
+            {
+                Name = "Test Company",
+                
+            };
+
+            _companyRepositoryMock.Setup(repo => repo.CreateAsync(It.IsAny<Company>()))
+                .ReturnsAsync((Company c) => { c.Id = 1; return c; });
+
+            _userRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<User>()))
+                               .ReturnsAsync((User u) => { u.Id = 1; return u; });
+
+            // ActOLTAR ESSE PAR
+            var result = await _userService.CreateUserAsync(user, company);  
 
             // Assert
             _userRepositoryMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>

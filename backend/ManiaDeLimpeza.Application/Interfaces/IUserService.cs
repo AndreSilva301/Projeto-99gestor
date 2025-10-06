@@ -9,7 +9,7 @@ namespace ManiaDeLimpeza.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<User> CreateUserAsync(User user);
+        Task<User> CreateUserAsync(User user, Company company);
         Task<User> UpdateUserAsync(User user);
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByCredentialsAsync(string email, string password);

@@ -15,18 +15,42 @@ namespace ManiaDeLimpeza.Application.Services
     public class UserService : IUserService, IScopedDependency
     {
         private readonly IUserRepository _userRepository;
+        private readonly ICompanyRepository _companyRepository;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, ICompanyRepository companyRepository)
         {
             _userRepository = userRepository;
+            _companyRepository = companyRepository;
+
         }
 
-        public async Task<User> CreateUserAsync(User user)
-        { 
-            user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
+        public async Task<User> CreateUserAsync(User user, Company company)
+        {
+            // Cria a empresa primeiro
+            var createdCompany = await _companyRepository.CreateAsync(company);
+            try
+            {
+                // Associa a empresa ao usuário
+                user.CompanyId = createdCompany.Id;
+                user.Company = createdCompany;
+                user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
 
-            await _userRepository.AddAsync(user);
-            return user;
+                // Cria o usuário
+                var createdUser = await _userRepository.AddAsync(user);
+
+                return createdUser;
+            }
+            catch (Exception)
+            {
+                // Se der erro, remove a empresa criada
+                await _companyRepository.DeleteAsync(createdCompany);
+
+                // Se o usuário foi criado antes do erro, remova também
+                if (user.Id > 0)
+                    await _userRepository.DeleteAsync(user.Id);
+
+                throw; // Repassa o erro para o controller
+            }
         }
 
         public async Task<User> UpdateUserAsync(User user)
