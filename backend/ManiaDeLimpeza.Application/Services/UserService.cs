@@ -15,24 +15,23 @@ namespace ManiaDeLimpeza.Application.Services
     public class UserService : IUserService, IScopedDependency
     {
         private readonly IUserRepository _userRepository;
-        private readonly ICompanyRepository _companyRepository;
+        private readonly ICompanyServices _companyServices;
 
-        public UserService(IUserRepository userRepository, ICompanyRepository companyRepository)
+        public UserService(IUserRepository userRepository, ICompanyServices companyServices)
         {
             _userRepository = userRepository;
-            _companyRepository = companyRepository;
-
+            _companyServices = companyServices;
         }
 
-        public async Task<User> CreateUserAsync(User user, Company company)
+        public async Task<User> CreateUserAsync(User user)
         {
-            // Cria a empresa primeiro
-            var createdCompany = await _companyRepository.CreateAsync(company);
+            Company associatedCompany = null!;
             try
             {
+                associatedCompany = await _companyServices.CreateCompanyAsync(user.Company);
                 // Associa a empresa ao usuário
-                user.CompanyId = createdCompany.Id;
-                user.Company = createdCompany;
+                user.CompanyId = associatedCompany.Id;
+                user.Company = associatedCompany;
                 user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
 
                 // Cria o usuário
@@ -42,14 +41,12 @@ namespace ManiaDeLimpeza.Application.Services
             }
             catch (Exception)
             {
-                // Se der erro, remove a empresa criada
-                await _companyRepository.DeleteAsync(createdCompany);
-
-                // Se o usuário foi criado antes do erro, remova também
+                if (associatedCompany != null && associatedCompany.Id > 0)
+                   await _companyServices.DeleteCompanyAsync(associatedCompany.Id);
+                 
                 if (user.Id > 0)
                     await _userRepository.DeleteAsync(user.Id);
-
-                throw; // Repassa o erro para o controller
+                throw; 
             }
         }
 

@@ -37,11 +37,12 @@ public class AuthController : ControllerBase
             var user = _mapper.Map<User>(dto);
             var company = new Company
             {
-                Name = dto.Company
+                Name = dto.Company,
+                CNPJ = dto.CNPJ
             };
-            var created = await _userService.CreateUserAsync(user, company);
+            var createdUser = await _userService.CreateUserAsync(user);
 
-            var result = _mapper.Map<AuthResponseDto>(created);
+            var result = _mapper.Map<AuthResponseDto>(createdUser);
 
             return ApiResponseHelper.SuccessResponse(result, "User registered successfully");
         }
