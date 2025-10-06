@@ -22,13 +22,11 @@ namespace ManiaDeLimpeza.Application.Services
         }
 
         public async Task<User> CreateUserAsync(User user)
-        {
-            throw new NotImplementedException();
-            //// hash password before saving
-            //user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
+        { 
+            user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
 
-            //await _userRepository.AddAsync(user);
-            //return user;
+            await _userRepository.AddAsync(user);
+            return user;
         }
 
         public async Task<User> UpdateUserAsync(User user)

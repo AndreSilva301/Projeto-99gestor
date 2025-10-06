@@ -4,6 +4,7 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Mvc;
+using ManiaDeLimpeza.Api.Response;
 
 namespace ManiaDeLimpeza.Api.Controllers
 {
@@ -26,37 +27,51 @@ namespace ManiaDeLimpeza.Api.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<ActionResult<AuthResponseDto>> Register(RegisterUserDto dto)
+        [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register(RegisterUserDto dto)
         {
-            var user = _mapper.Map<User>(dto);
+          try
+            {
+                var user = _mapper.Map<User>(dto);
 
-            var created = await _userService.CreateUserAsync(user);
+                var created = await _userService.CreateUserAsync(user);
 
-            var result = _mapper.Map<AuthResponseDto>(created);
+                var result = _mapper.Map<AuthResponseDto>(created);
 
-            return CreatedAtAction(nameof(Register), result);
+                return ApiResponseHelper.SuccessResponse(result, "User registered successfully");
+            }
+          catch (Exception ex)
+            {
+                return ApiResponseHelper.ErrorResponse<AuthResponseDto>(new List<string> { ex.Message }, "User registration failed");
+            }
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<AuthResponseDto>> Login(LoginDto dto)
+        [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Login(LoginDto dto)
         {
             User user;
             try
             {
                 user = await _userService.GetByCredentialsAsync(dto.Email, dto.Password);
             }
-            catch(BusinessException ex)
+            catch (BusinessException ex)
             {
-                return Unauthorized(ex.Message);
+                return Unauthorized(ApiResponseHelper.ErrorResponse<AuthResponseDto>(
+                    new List<string> { ex.Message }, "Unauthorized"));
             }
 
             if (user == null)
-                return Unauthorized("Invalid credentials");
-                                    
+                return Unauthorized(ApiResponseHelper.ErrorResponse<AuthResponseDto>(
+                    new List<string> { "Invalid credentials" }, "Login failed"));
+
             var result = _mapper.Map<AuthResponseDto>(user);
             result.BearerToken = _tokenService.GenerateToken(user.Id.ToString(), user.Email);
 
-            return Ok(result);
+            return Ok(ApiResponseHelper.SuccessResponse(result, "Login successful"));
         }
+
     }
 }

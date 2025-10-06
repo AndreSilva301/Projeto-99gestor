@@ -8,6 +8,7 @@ using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.OpenApi.Models;
 using ManiaDeLimpeza.Api.Extensions;
+using ManiaDeLimpeza.Api.Response;
 
 namespace ManiaDeLimpeza;
 
@@ -64,12 +65,26 @@ public class Program
                     new List<string>()
                 }
             });
+
+            options.MapType(typeof(ApiResponse<>), () => new OpenApiSchema
+            {
+                Type = "object",
+                Properties =
+                {
+                    ["success"] = new OpenApiSchema { Type = "boolean" },
+                    ["message"] = new OpenApiSchema { Type = "string" },
+                    ["data"] = new OpenApiSchema { Type = "object" },
+                    ["errors"] = new OpenApiSchema { Type = "array", Items = new OpenApiSchema { Type = "string" } },
+                    ["timeStamp"] = new OpenApiSchema { Type = "string", Format = "date-time" }
+                }
+            });
         });
+
 
         //Configure the database
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
+        
 
         //Add Authorization
         builder.Services.Configure<AuthOptions>(
