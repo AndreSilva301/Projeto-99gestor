@@ -45,6 +45,16 @@ const CustomerEdit = () => {
     }
   };
 
+  const handleAddRelationship = async (relationshipText) => {
+    await customerService.addCustomerRelationship(id, relationshipText);
+    loadCustomer(); // Reload to get updated relationships
+  };
+
+  const handleDeleteRelationship = async (relationshipId) => {
+    await customerService.deleteCustomerRelationship(id, relationshipId);
+    loadCustomer(); // Reload to get updated relationships
+  };
+
   const handleCancel = () => {
     navigate('/portal/customers');
   };
@@ -73,6 +83,8 @@ const CustomerEdit = () => {
             mode="edit"
             onSubmit={handleSubmit}
             onCancel={handleCancel}
+            onAddRelationship={handleAddRelationship}
+            onDeleteRelationship={handleDeleteRelationship}
             loading={loading}
           />
         </div>
