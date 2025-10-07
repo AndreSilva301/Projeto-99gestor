@@ -68,6 +68,7 @@ public class AuthController : ControllerBase
             await transaction.CommitAsync();
 
             var result = _mapper.Map<AuthResponseDto>(createdUser);
+            result.BearerToken = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
             var response = ApiResponseHelper.SuccessResponse(result, "User registered successfully");
 
             return Created("/User", response);
