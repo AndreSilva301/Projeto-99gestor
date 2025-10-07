@@ -9,7 +9,7 @@ public class Company
     [Required(ErrorMessage = "Company Name is required")]
     public string Name { get; set; } = string.Empty;
 
-    public string CNPJ { get; set; } = string.Empty;
+    public string? CNPJ { get; set; } 
 
     public DateTime DateTime { get; set; } = DateTime.UtcNow;
 

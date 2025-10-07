@@ -1,9 +1,10 @@
 ﻿using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 
 namespace ManiaDeLimpeza.Application.Services;
-public class CompanyServices : ICompanyServices
+public class CompanyServices : ICompanyServices, IScopedDependency
 {
     private readonly ICompanyRepository _companyRepository;
     public CompanyServices(ICompanyRepository companyRepository)
@@ -22,20 +23,20 @@ public class CompanyServices : ICompanyServices
 
     public async Task<Company> CreateCompanyAsync(Company company)
     {
-        var existingCompany = await _companyRepository.GetByCnpjAsync(company.CNPJ); // vai verificar se a empresa já existe pelo CNPJ
+        Company existingCompany = null;
 
-        Company associatedCompany;
+        if (!string.IsNullOrWhiteSpace(company.CNPJ))
+        {
+            existingCompany = await _companyRepository.GetByCnpjAsync(company.CNPJ);
 
-        if (existingCompany != null)
-        {
-            associatedCompany = existingCompany;
-            return existingCompany;
+            if (existingCompany != null)
+            {
+                return existingCompany; 
+            }
         }
-        else
-        {
-            var createdCompany = await _companyRepository.CreateAsync(company);
-            return createdCompany;
-        }
+
+        var createdCompany = await _companyRepository.CreateAsync(company);
+        return createdCompany;
     }
     public async Task<Company> UpdateCompanyAsync(Company company)
     {
