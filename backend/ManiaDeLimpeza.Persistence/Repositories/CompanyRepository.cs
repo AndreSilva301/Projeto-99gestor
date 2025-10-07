@@ -16,7 +16,7 @@ namespace ManiaDeLimpeza.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Company?> GetByCNPJAsync(decimal cnpj)
+        public async Task<Company?> GetByCnpjAsync(string cnpj)
         {
             return await _context.Companies.FirstOrDefaultAsync(c => c.CNPJ == cnpj);
         }
@@ -26,5 +26,6 @@ namespace ManiaDeLimpeza.Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return company;
         }
+   
     }
 }
