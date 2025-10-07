@@ -28,16 +28,22 @@ public class CompanyServices : ICompanyServices, IScopedDependency
         if (!string.IsNullOrWhiteSpace(company.CNPJ))
         {
             existingCompany = await _companyRepository.GetByCnpjAsync(company.CNPJ);
-
             if (existingCompany != null)
             {
-                return existingCompany; 
+                return existingCompany;
             }
+        }
+
+        existingCompany = await _companyRepository.GetByNameAsync(company.Name);
+        if (existingCompany != null)
+        {
+            return existingCompany;
         }
 
         var createdCompany = await _companyRepository.CreateAsync(company);
         return createdCompany;
     }
+
     public async Task<Company> UpdateCompanyAsync(Company company)
     {
         var existingCompany = await _companyRepository.GetByIdAsync(company.Id);

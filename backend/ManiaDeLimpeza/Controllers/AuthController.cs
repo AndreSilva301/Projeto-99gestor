@@ -5,7 +5,9 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using System.Transactions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace ManiaDeLimpeza.Api.Controllers;
@@ -17,17 +19,20 @@ public class AuthController : ControllerBase
     private readonly ICompanyServices _companyServices;
     private readonly IMapper _mapper;
     private readonly ITokenService _tokenService;
+    private readonly ApplicationDbContext _dbContext;
 
     public AuthController(
         IUserService userService,
         ICompanyServices companyServices,
         ITokenService tokenService,
-        IMapper mapper)
+        IMapper mapper,
+        ApplicationDbContext dbContext)
     {
         _userService = userService;
         _mapper = mapper;
         _tokenService = tokenService;
         _companyServices = companyServices;
+        _dbContext = dbContext;
     }
 
     [HttpPost("register")]
@@ -35,47 +40,43 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register(RegisterUserDto dto)
     {
+        var transaction = await _dbContext.Database.BeginTransactionAsync();
+
         try
         {
             var errors = dto.Validate();
 
             if (errors.Count > 0)
             {
-                return BadRequest(
-                    ApiResponseHelper.ErrorResponse<AuthResponseDto>(
+                return BadRequest(ApiResponseHelper.ErrorResponse<AuthResponseDto>(
                     errors,
                     "User registration failed"
                 ));
             }
 
-            var company = new Company
-            {
-                Name = dto.CompanyName,
-            };
-
+            var company = new Company { Name = dto.CompanyName };
             company = await _companyServices.CreateCompanyAsync(company);
 
             var user = _mapper.Map<User>(dto);
-
             user.CompanyId = company.Id;
 
             var createdUser = await _userService.CreateUserAsync(user, dto.Password);
 
-            var result = _mapper.Map<AuthResponseDto>(createdUser);
+            await transaction.CommitAsync();
 
+            var result = _mapper.Map<AuthResponseDto>(createdUser);
             var response = ApiResponseHelper.SuccessResponse(result, "User registered successfully");
 
             return Created("/User", response);
         }
         catch (Exception ex)
         {
-            return 
-                BadRequest(
-                    ApiResponseHelper.ErrorResponse<AuthResponseDto>(
-                        new List<string> { ex.Message },
-                        "User registration failed"
-                    )
-                );
+            await transaction.RollbackAsync();
+
+            return BadRequest(ApiResponseHelper.ErrorResponse<AuthResponseDto>(
+                new List<string> { ex.Message },
+                "User registration failed"
+            ));
         }
     }
 
