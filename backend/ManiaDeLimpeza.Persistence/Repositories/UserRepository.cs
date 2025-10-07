@@ -57,6 +57,14 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             await _context.SaveChangesAsync();
             return existingUser;
         }
-
+        public async Task DeleteAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

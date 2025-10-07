@@ -4,13 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManiaDeLimpeza.Application.Dtos
+namespace ManiaDeLimpeza.Application.Dtos; 
+public class AuthResponseDto
 {
-    public class AuthResponseDto
-    {
-        public int Id { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string BearerToken { get; set; } = string.Empty;
-    }
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public string BearerToken { get; set; } = string.Empty;
 }

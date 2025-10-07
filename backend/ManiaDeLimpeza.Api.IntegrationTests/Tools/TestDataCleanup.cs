@@ -9,6 +9,12 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
 {
     public static class TestDataCleanup
     {
+        public static void ClearCompany(ApplicationDbContext db)
+        {
+            db.Companies.RemoveRange(db.Companies);
+            db.SaveChanges();
+        }
+
         public static void ClearUsers(ApplicationDbContext db)
         {
             db.Users.RemoveRange(db.Users);

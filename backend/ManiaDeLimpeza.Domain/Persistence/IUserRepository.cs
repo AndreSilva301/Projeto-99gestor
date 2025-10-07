@@ -13,5 +13,6 @@ namespace ManiaDeLimpeza.Domain.Persistence
         Task<IEnumerable<User>> GetAllAsync();
         Task<User?> GetByEmailAsync(string email);
         Task<User> UpdateAsync(User user);
+        Task DeleteAsync(int userId);
     }
 }
