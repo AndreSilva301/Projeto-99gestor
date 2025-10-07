@@ -15,18 +15,39 @@ namespace ManiaDeLimpeza.Application.Services
     public class UserService : IUserService, IScopedDependency
     {
         private readonly IUserRepository _userRepository;
+        private readonly ICompanyServices _companyServices;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, ICompanyServices companyServices)
         {
             _userRepository = userRepository;
+            _companyServices = companyServices;
         }
 
         public async Task<User> CreateUserAsync(User user)
-        { 
-            user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
+        {
+            Company associatedCompany = null!;
+            try
+            {
+                associatedCompany = await _companyServices.CreateCompanyAsync(user.Company);
+                // Associa a empresa ao usuário
+                user.CompanyId = associatedCompany.Id;
+                user.Company = associatedCompany;
+                user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
 
-            await _userRepository.AddAsync(user);
-            return user;
+                // Cria o usuário
+                var createdUser = await _userRepository.AddAsync(user);
+
+                return createdUser;
+            }
+            catch (Exception)
+            {
+                if (associatedCompany != null && associatedCompany.Id > 0)
+                   await _companyServices.DeleteCompanyAsync(associatedCompany.Id);
+                 
+                if (user.Id > 0)
+                    await _userRepository.DeleteAsync(user.Id);
+                throw; 
+            }
         }
 
         public async Task<User> UpdateUserAsync(User user)
