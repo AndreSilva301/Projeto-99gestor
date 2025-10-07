@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Api.IntegrationTests.Tools;
+using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.Extensions.DependencyInjection;
@@ -236,6 +237,42 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
 
         }
+
+
+        [TestMethod]
+        public async Task Register_WhenValid_ShouldGiveBackAJWT()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Name = "Test User",
+                Email = "testuser@test.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "12345678"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/auth/register", content);
+
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<AuthResponseDto>>(responseBody);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+            Assert.IsNotNull(apiResponse);
+            Assert.IsTrue(apiResponse.Success);
+            Assert.IsNotNull(apiResponse.Data);
+            Assert.AreEqual("Test User", apiResponse.Data.Name);
+            Assert.AreEqual("testuser@test.com", apiResponse.Data.Email);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(apiResponse.Data.BearerToken), "bearer token not populated");
+
+        }
+
 
         [TestMethod]
         public async Task Login_ShouldReturnOk()

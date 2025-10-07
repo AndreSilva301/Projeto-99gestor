@@ -7,6 +7,7 @@ using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore.Storage;
 using System.Transactions;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
@@ -40,7 +41,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register(RegisterUserDto dto)
     {
-        var transaction = await _dbContext.Database.BeginTransactionAsync();
+        IDbContextTransaction transaction = null;
 
         try
         {
@@ -53,6 +54,8 @@ public class AuthController : ControllerBase
                     "User registration failed"
                 ));
             }
+
+            transaction = await _dbContext.Database.BeginTransactionAsync();
 
             var company = new Company { Name = dto.CompanyName };
             company = await _companyServices.CreateCompanyAsync(company);
@@ -71,7 +74,7 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            await transaction.RollbackAsync();
+            await transaction?.RollbackAsync();
 
             return BadRequest(ApiResponseHelper.ErrorResponse<AuthResponseDto>(
                 new List<string> { ex.Message },

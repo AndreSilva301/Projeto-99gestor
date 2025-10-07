@@ -8,6 +8,8 @@ public class ApiResponse<T>
     public List<string> Errors { get; set; } = new List<string>();
     public string TimeStamp { get; set; } = DateTime.UtcNow.ToString("O");
 
+    public ApiResponse() { }
+
     public ApiResponse(T data, string message)
     {
         Success = true;
