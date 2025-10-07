@@ -31,6 +31,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
             TestDataCleanup.ClearUsers(db);
+            TestDataCleanup.ClearCompany(db);
         }
 
         [TestMethod]
