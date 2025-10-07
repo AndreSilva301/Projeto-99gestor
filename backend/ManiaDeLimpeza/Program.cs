@@ -4,10 +4,12 @@ using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using AutoMapper;
 using ManiaDeLimpeza.Application.Common;
 using ManiaDeLimpeza.Api.Auth;
-using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.OpenApi.Models;
 using ManiaDeLimpeza.Api.Extensions;
+using ManiaDeLimpeza.Api.Response;
+using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.Repositories;
 
 namespace ManiaDeLimpeza;
 
@@ -16,6 +18,7 @@ public class Program
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 
         // Register services (DI)
         builder.Services.AddMarkedDependencies();
@@ -26,10 +29,10 @@ public class Program
         // Add CORS using the extension
         builder.Services.AddConfiguredCors(builder.Configuration);
 
-        // Add services to the container.
+        // Add controllers
         builder.Services.AddControllers();
 
-        // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+        // Swagger configuration
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
@@ -64,14 +67,10 @@ public class Program
                     new List<string>()
                 }
             });
-        });
-
-        //Configure the database
+        }); 
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-
-        //Add Authorization
         builder.Services.Configure<AuthOptions>(
             builder.Configuration.GetSection(AuthOptions.SECTION));
 
@@ -82,13 +81,11 @@ public class Program
         builder.Services.AddJwtAuthentication(authOptions.JwtSecret);
         builder.Services.AddAuthorization();
 
-        //Build App
+        // Build the app
         var app = builder.Build();
 
-        // Use the named policy
         app.UseCors("DefaultCorsPolicy");
 
-        // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
@@ -96,11 +93,8 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-
         app.UseAuthorization();
-
         app.MapControllers();
-
         app.Run();
     }
 }
