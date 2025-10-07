@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Application.Services;
+﻿using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
@@ -15,7 +16,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
     [TestClass]
     public class UserServiceTests
     {
-        private Mock<ICompanyRepository> _companyRepositoryMock = null!;
+        private Mock<ICompanyServices> _companyServicesMock = null!;
         private Mock<IUserRepository> _userRepositoryMock = null!;
         private UserService _userService = null!;
 
@@ -23,11 +24,11 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         public void Setup()
         {
             _userRepositoryMock = new Mock<IUserRepository>();
-            _companyRepositoryMock = new Mock<ICompanyRepository>();
+            _companyServicesMock = new Mock<ICompanyServices>();
 
             _userService = new UserService(
                 _userRepositoryMock.Object,
-                _companyRepositoryMock.Object
+                _companyServicesMock.Object
             );
         }
 
@@ -48,14 +49,11 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 
             };
 
-            _companyRepositoryMock.Setup(repo => repo.CreateAsync(It.IsAny<Company>()))
-                .ReturnsAsync((Company c) => { c.Id = 1; return c; });
-
             _userRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<User>()))
                                .ReturnsAsync((User u) => { u.Id = 1; return u; });
 
             // ActOLTAR ESSE PAR
-            var result = await _userService.CreateUserAsync(user, company);  
+            var result = await _userService.CreateUserAsync(user);  
 
             // Assert
             _userRepositoryMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>

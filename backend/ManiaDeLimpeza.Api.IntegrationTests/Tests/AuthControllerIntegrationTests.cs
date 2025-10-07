@@ -37,12 +37,17 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_ShouldReturnCreated()
         {
             // Arrange
-            var registerDto = new
+            var registerDto = new RegisterUserDto
             {
                 Name = "Test User",
                 Email = "testuser@example.com",
-                Password = "Secure123"
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "1234567890"
             };
+
             var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
 
             // Act
@@ -50,6 +55,188 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             // Assert
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+        }
+
+
+        [TestMethod]
+        public async Task Register_WhenPasswordNotMatch_ShouldBreak()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Name = "Test User",
+                Email = "testuser@example.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure1234",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "1234567890"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/auth/register", content);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+        }
+
+
+        [TestMethod]
+        public async Task Register_WhenEmailIsInvalid_ShouldBreak()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Name = "Test User",
+                Email = "testuser",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "1234567890"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/auth/register", content);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+        }
+
+
+        [TestMethod]
+        public async Task Register_WhenEmailIsDuplicated_ShouldBreak()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Name = "Test User",
+                Email = "testuser@test.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "1234567890"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/auth/register", content);
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+
+            var registedUser = db.Users.SingleOrDefault(u => u.Email == registerDto.Email);
+            Assert.IsNotNull(registedUser);
+            Assert.AreEqual(registerDto.Name, registedUser.Name);
+            Assert.AreEqual(registerDto.Email, registedUser.Email);
+
+            registerDto = new RegisterUserDto
+            {
+                Name = "Test User2",
+                Email = "testuser@test.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "123456780"
+            };
+
+            content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            response = await _client.PostAsync("/api/auth/register", content);
+
+            // Act
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+
+        [TestMethod]
+        public async Task Register_WhenUsuarioNaoEhCriado_NaoDuplicarEmpresa()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Name = "Test User",
+                Email = "testuser@test.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "1234567890"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/auth/register", content);
+
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+
+            var registedUser = db.Users.SingleOrDefault(u => u.Email == registerDto.Email);
+            Assert.IsNotNull(registedUser);
+            Assert.AreEqual(registerDto.Name, registedUser.Name);
+            Assert.AreEqual(registerDto.Email, registedUser.Email);
+
+            registerDto = new RegisterUserDto
+            {
+                Name = "Test User2",
+                Email = "testuser@test.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "123456780"
+            };
+
+            content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            response = await _client.PostAsync("/api/auth/register", content);
+
+            var empresasRegistradas = db.Companies.Select(u => u.Name == registerDto.CompanyName);
+            Assert.AreEqual(1, empresasRegistradas.Count());
+
+            // Act
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+
+
+        [TestMethod]
+        public async Task Register_WhenPhoneIsInvalid_ShouldBreak()
+        {
+            // Arrange
+            var registerDto = new RegisterUserDto
+            {
+                Name = "Test User",
+                Email = "testuser@test.com",
+                Password = "Secure123",
+                ConfirmPassword = "Secure123",
+                AcceptTerms = true,
+                CompanyName = "Test Company",
+                Phone = "1234567890123123123123123"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/auth/register", content);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
         }
 
         [TestMethod]

@@ -14,17 +14,20 @@ namespace ManiaDeLimpeza.Api.Controllers;
 public class AuthController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly ICompanyServices _companyServices;
     private readonly IMapper _mapper;
     private readonly ITokenService _tokenService;
 
     public AuthController(
         IUserService userService,
+        ICompanyServices companyServices,
         ITokenService tokenService,
         IMapper mapper)
     {
         _userService = userService;
         _mapper = mapper;
         _tokenService = tokenService;
+        _companyServices = companyServices;
     }
 
     [HttpPost("register")]
@@ -34,26 +37,48 @@ public class AuthController : ControllerBase
     {
         try
         {
-            var user = _mapper.Map<User>(dto);
+            var errors = dto.Validate();
+
+            if (errors.Count > 0)
+            {
+                return BadRequest(
+                    ApiResponseHelper.ErrorResponse<AuthResponseDto>(
+                    errors,
+                    "User registration failed"
+                ));
+            }
+
             var company = new Company
             {
-                Name = dto.Company,
-                CNPJ = dto.CNPJ
+                Name = dto.CompanyName,
             };
-            var createdUser = await _userService.CreateUserAsync(user);
+
+            company = await _companyServices.CreateCompanyAsync(company);
+
+            var user = _mapper.Map<User>(dto);
+
+            user.CompanyId = company.Id;
+
+            var createdUser = await _userService.CreateUserAsync(user, dto.Password);
 
             var result = _mapper.Map<AuthResponseDto>(createdUser);
 
-            return ApiResponseHelper.SuccessResponse(result, "User registered successfully");
+            var response = ApiResponseHelper.SuccessResponse(result, "User registered successfully");
+
+            return Created("/User", response);
         }
         catch (Exception ex)
         {
-            return ApiResponseHelper.ErrorResponse<AuthResponseDto>(
-                new List<string> { ex.Message },
-                "User registration failed"
-            );
+            return 
+                BadRequest(
+                    ApiResponseHelper.ErrorResponse<AuthResponseDto>(
+                        new List<string> { ex.Message },
+                        "User registration failed"
+                    )
+                );
         }
     }
+
     [HttpPost("login")]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]

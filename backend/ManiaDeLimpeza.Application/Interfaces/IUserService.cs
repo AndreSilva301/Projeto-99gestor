@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ namespace ManiaDeLimpeza.Application.Interfaces
 {
     public interface IUserService
     {
-        Task<User> CreateUserAsync(User user);
+        Task<User> CreateUserAsync(User user, string password);
         Task<User> UpdateUserAsync(User user);
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByCredentialsAsync(string email, string password);

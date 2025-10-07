@@ -1,4 +1,6 @@
-﻿using ManiaDeLimpeza.Application.Interfaces;
+﻿using AutoMapper;
+using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
@@ -16,38 +18,34 @@ namespace ManiaDeLimpeza.Application.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly ICompanyServices _companyServices;
+        private readonly IMapper _mapper;
 
-        public UserService(IUserRepository userRepository, ICompanyServices companyServices)
+        public UserService(
+            IUserRepository userRepository, 
+            ICompanyServices companyServices,
+            IMapper mapper)
         {
             _userRepository = userRepository;
             _companyServices = companyServices;
+            _mapper = mapper;
         }
 
-        public async Task<User> CreateUserAsync(User user)
+        public async Task<User> CreateUserAsync(User user, string password)
         {
-            Company associatedCompany = null!;
-            try
-            {
-                associatedCompany = await _companyServices.CreateCompanyAsync(user.Company);
-                // Associa a empresa ao usuário
-                user.CompanyId = associatedCompany.Id;
-                user.Company = associatedCompany;
-                user.PasswordHash = PasswordHelper.Hash(user.PasswordHash, user);
+            var existingUser = await _userRepository.GetByEmailAsync(user.Email);
 
-                // Cria o usuário
-                var createdUser = await _userRepository.AddAsync(user);
-
-                return createdUser;
-            }
-            catch (Exception)
+            if(existingUser != null)
             {
-                if (associatedCompany != null && associatedCompany.Id > 0)
-                   await _companyServices.DeleteCompanyAsync(associatedCompany.Id);
-                 
-                if (user.Id > 0)
-                    await _userRepository.DeleteAsync(user.Id);
-                throw; 
+                throw new BusinessException("A user with this email already exists.");
             }
+
+            // Updates the password hash
+            user.PasswordHash = PasswordHelper.Hash(password, user);
+
+            // Cria o usuário
+            var createdUser = await _userRepository.AddAsync(user);
+
+            return createdUser;
         }
 
         public async Task<User> UpdateUserAsync(User user)
