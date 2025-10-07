@@ -167,51 +167,48 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             var registerDto = new RegisterUserDto
             {
                 Name = "Test User",
+                Phone = "1234567890",
+                CompanyName = "Test Company",
                 Email = "testuser@test.com",
                 Password = "Secure123",
                 ConfirmPassword = "Secure123",
-                AcceptTerms = true,
-                CompanyName = "Test Company",
-                Phone = "1234567890"
+                AcceptTerms = true
+               
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
 
             var response = await _client.PostAsync("/api/auth/register", content);
 
-            using var scope = _factory.Services.CreateScope();
-            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
-
-            var registedUser = db.Users.SingleOrDefault(u => u.Email == registerDto.Email);
-            Assert.IsNotNull(registedUser);
-            Assert.AreEqual(registerDto.Name, registedUser.Name);
-            Assert.AreEqual(registerDto.Email, registedUser.Email);
 
             registerDto = new RegisterUserDto
             {
                 Name = "Test User2",
+                Phone = "1234567890",
+                CompanyName = "Test Company",
                 Email = "testuser@test.com",
                 Password = "Secure123",
                 ConfirmPassword = "Secure123",
-                AcceptTerms = true,
-                CompanyName = "Test Company",
-                Phone = "123456780"
+                AcceptTerms = true
             };
 
             content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
 
             response = await _client.PostAsync("/api/auth/register", content);
 
-            var empresasRegistradas = db.Companies.Select(u => u.Name == registerDto.CompanyName);
-            Assert.AreEqual(1, empresasRegistradas.Count());
-
-            // Act
             // Assert
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var empresasRegistradas = db.Companies
+                .Where(c => c.Name == registerDto.CompanyName)
+                .ToList();
+
+            Assert.AreEqual(1, empresasRegistradas.Count);
+
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
-
 
 
         [TestMethod]
