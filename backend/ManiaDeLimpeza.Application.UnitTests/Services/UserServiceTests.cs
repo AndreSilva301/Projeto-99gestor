@@ -28,7 +28,8 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
 
             _userService = new UserService(
                 _userRepositoryMock.Object,
-                _companyServicesMock.Object
+                _companyServicesMock.Object,
+                _companyServicesMock.Object as AutoMapper.IMapper
             );
         }
 
@@ -53,7 +54,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                                .ReturnsAsync((User u) => { u.Id = 1; return u; });
 
             // ActOLTAR ESSE PAR
-            var result = await _userService.CreateUserAsync(user);  
+            var result = await _userService.CreateUserAsync(user, "plaintext");  
 
             // Assert
             _userRepositoryMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>

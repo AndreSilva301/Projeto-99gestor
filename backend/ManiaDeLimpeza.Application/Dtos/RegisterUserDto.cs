@@ -69,7 +69,7 @@ namespace ManiaDeLimpeza.Application.Dtos
 
             // Count digits only (ignore formatting characters)
             int digitCount = phone.Count(char.IsDigit);
-            return digitCount >= 9 && digitCount <= 11;
+            return digitCount >= 8 && digitCount <= 11;
         }
 
     }
