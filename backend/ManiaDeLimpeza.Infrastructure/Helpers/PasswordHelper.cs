@@ -17,7 +17,7 @@ namespace ManiaDeLimpeza.Infrastructure.Helpers
             return _hasher.HashPassword(user, plainPassword);
         }
 
-        public static bool Verify(string hashedPassword, string plainPassword, User user)
+        public static bool Verify(string plainPassword, string hashedPassword, User user)
         {
             var result = _hasher.VerifyHashedPassword(user, hashedPassword, plainPassword);
             return result == PasswordVerificationResult.Success;

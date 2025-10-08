@@ -291,12 +291,14 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             // Act
             var response = await _client.PostAsync("/api/auth/login", content);
-
+            var boby = await response.Content.ReadAsStringAsync();
+            
             // Assert
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            //Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(body));
+            //var body = await response.Content.ReadAsStringAsync();
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, $"❌ Body: {boby}");
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(boby));
         }
 
 

@@ -7,34 +7,44 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
+public static class TestDataSeeder
 {
-    public static class TestDataSeeder
+    private const string DefaultEmail = "testuser@example.com";
+    public static string DefaultPassword = "Secure123";
+
+    public static void SeedDefaultUser(ApplicationDbContext db)
     {
-        private const string DefaultEmail = "testuser@example.com";
-        public static string DefaultPassword = "Secure123";
-
-        public static void SeedDefaultUser(ApplicationDbContext db)
+        var defaultUser = db.Users.SingleOrDefault(u => u.Email == DefaultEmail);
+        if (defaultUser == null)
         {
-            var defaultUser = db.Users.SingleOrDefault(u => u.Email == DefaultEmail);
-            if (defaultUser == null)
+            var company = new Company
             {
-                db.Users.Add(GetDefaultUser());
-                db.SaveChanges();
-            }
-        }
+                Name = "Empresa Teste",
+                CNPJ = "12345678000199"
+            };
 
-        public static User GetDefaultUser()
-        {
-            var user =  new User
+            var user = new User
             {
                 Name = "Test User",
                 Email = DefaultEmail,
+                Company = company, 
             };
 
             user.PasswordHash = PasswordHelper.Hash(DefaultPassword, user);
 
-            return user;
+            db.Companies.Add(company);
+            db.Users.Add(user);
+            db.SaveChanges();
         }
+    }
+
+    public static User GetDefaultUser()
+    {
+        return new User
+        {
+            Name = "Test User",
+            Email = DefaultEmail,
+            PasswordHash = PasswordHelper.Hash(DefaultPassword, null)
+        };
     }
 }
