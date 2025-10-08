@@ -273,7 +273,6 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
         }
 
-
         [TestMethod]
         public async Task Login_ShouldReturnOk()
         {
@@ -284,19 +283,24 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             // Arrange
             var loginDto = new
             {
-                Email = seedUser.Email,
+                Email = TestDataSeeder.DefaultEmail,
                 Password = TestDataSeeder.DefaultPassword,
             };
             var content = new StringContent(JsonConvert.SerializeObject(loginDto), Encoding.UTF8, "application/json");
 
             // Act
             var response = await _client.PostAsync("/api/auth/login", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<AuthResponseDto>>(responseBody);
 
             // Assert
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var body = await response.Content.ReadAsStringAsync();
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(body));
+            Assert.IsNotNull(apiResponse);
+            Assert.IsTrue(apiResponse.Success);
+            Assert.IsNotNull(apiResponse.Data);
+            Assert.AreEqual(seedUser.Name, apiResponse.Data.Name);
+            Assert.AreEqual(seedUser.Email, apiResponse.Data.Email);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(apiResponse.Data.BearerToken), "bearer token not populated");
         }
 
 
@@ -310,16 +314,21 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             // Arrange
             var loginDto = new
             {
-                Email = seedUser.Email,
+                Email = TestDataSeeder.DefaultEmail,
                 Password = "WrongPassword",
             };
             var content = new StringContent(JsonConvert.SerializeObject(loginDto), Encoding.UTF8, "application/json");
 
             // Act
             var response = await _client.PostAsync("/api/auth/login", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<AuthResponseDto>>(responseBody);
 
             // Assert
             Assert.AreEqual(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.IsNotNull(apiResponse);
+            Assert.IsFalse(apiResponse.Success);
+            Assert.IsNull(apiResponse.Data);
         }
 
         private void SeedUserDatabase()

@@ -102,7 +102,7 @@ public class AuthController : ControllerBase
 
         if (user == null)
             return Unauthorized(ApiResponseHelper.ErrorResponse<AuthResponseDto>(
-                new List<string> { "Invalid credentials" }, "Login failed"));
+                new List<string> { "Invalid email or password" }, "Unauthorized"));
 
         var result = _mapper.Map<AuthResponseDto>(user);
         result.BearerToken = _tokenService.GenerateToken(user.Id.ToString(), user.Email);
