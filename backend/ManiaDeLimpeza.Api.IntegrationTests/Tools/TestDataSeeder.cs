@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 public static class TestDataSeeder
 {
-    private const string DefaultEmail = "testuser@example.com";
+    public static string DefaultEmail = "testuser@example.com";
     public static string DefaultPassword = "Secure123";
 
     public static void SeedDefaultUser(ApplicationDbContext db)
@@ -23,14 +23,8 @@ public static class TestDataSeeder
                 CNPJ = "12345678000199"
             };
 
-            var user = new User
-            {
-                Name = "Test User",
-                Email = DefaultEmail,
-                Company = company, 
-            };
-
-            user.PasswordHash = PasswordHelper.Hash(DefaultPassword, user);
+            var user = GetDefaultUser();
+            user.Company = company;
 
             db.Companies.Add(company);
             db.Users.Add(user);

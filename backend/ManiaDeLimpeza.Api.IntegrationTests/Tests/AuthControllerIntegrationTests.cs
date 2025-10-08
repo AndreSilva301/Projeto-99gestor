@@ -284,21 +284,21 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             // Arrange
             var loginDto = new
             {
-                Email = seedUser.Email,
+                Email = TestDataSeeder.DefaultEmail,
                 Password = TestDataSeeder.DefaultPassword,
             };
             var content = new StringContent(JsonConvert.SerializeObject(loginDto), Encoding.UTF8, "application/json");
 
             // Act
             var response = await _client.PostAsync("/api/auth/login", content);
-            var boby = await response.Content.ReadAsStringAsync();
+            var body = await response.Content.ReadAsStringAsync();
             
             // Assert
             //Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             //var body = await response.Content.ReadAsStringAsync();
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, $"❌ Body: {boby}");
-            Assert.IsTrue(!string.IsNullOrWhiteSpace(boby));
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            Assert.IsTrue(!string.IsNullOrWhiteSpace(body));
         }
 
 
@@ -312,7 +312,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             // Arrange
             var loginDto = new
             {
-                Email = seedUser.Email,
+                Email = TestDataSeeder.DefaultEmail,
                 Password = "WrongPassword",
             };
             var content = new StringContent(JsonConvert.SerializeObject(loginDto), Encoding.UTF8, "application/json");
