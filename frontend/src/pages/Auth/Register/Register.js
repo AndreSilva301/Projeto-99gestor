@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { authService } from '../../../services/authService';
 import './Register.css';
 
 const Register = () => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errors, setErrors] = useState([]);
   const [formData, setFormData] = useState({
     // Step 1 - Contact Info (Essential)
     name: '',
@@ -44,48 +48,73 @@ const Register = () => {
   };
 
   const validateCurrentStep = () => {
+    const newErrors = [];
+    
     switch (currentStep) {
       case 1:
         if (!formData.name.trim()) {
-          alert('Por favor, digite seu nome');
-          return false;
+          newErrors.push('Por favor, digite seu nome');
         }
-        return true;
+        break;
       case 2:
         if (!formData.companyName.trim()) {
-          alert('Por favor, digite o nome da empresa');
-          return false;
+          newErrors.push('Por favor, digite o nome da empresa');
         }
         if (!formData.email.trim()) {
-          alert('Por favor, digite seu e-mail');
-          return false;
+          newErrors.push('Por favor, digite seu e-mail');
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+          newErrors.push('Por favor, digite um e-mail válido');
         }
-        return true;
+        break;
       case 3:
         if (formData.password.length < 6) {
-          alert('A senha deve ter pelo menos 6 caracteres');
-          return false;
+          newErrors.push('A senha deve ter pelo menos 6 caracteres');
         }
         if (formData.password !== formData.confirmPassword) {
-          alert('As senhas não coincidem!');
-          return false;
+          newErrors.push('As senhas não coincidem!');
         }
         if (!formData.acceptTerms) {
-          alert('Você deve aceitar os termos de uso!');
-          return false;
+          newErrors.push('Você deve aceitar os termos de uso!');
         }
-        return true;
+        break;
       default:
-        return true;
+        break;
     }
+
+    setErrors(newErrors);
+    return newErrors.length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (validateCurrentStep()) {
-      // TODO: Implement registration logic
-      console.log('Registration completed:', formData);
+    if (!validateCurrentStep()) {
+      return;
+    }
+
+    setIsLoading(true);
+    setErrors([]);
+
+    try {
+      const result = await authService.register(formData);
+
+      if (result.success) {
+        // Registration successful - redirect to dashboard or home
+        console.log('Registration successful:', result);
+        navigate('/dashboard', { 
+          state: { 
+            message: 'Conta criada com sucesso! Bem-vindo ao 99Gestor!' 
+          }
+        });
+      } else {
+        // Handle registration errors
+        setErrors(result.errors || [result.message]);
+      }
+    } catch (error) {
+      console.error('Registration error:', error);
+      setErrors(['Erro inesperado. Tente novamente mais tarde.']);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,6 +128,23 @@ const Register = () => {
                 <h2 className="text-success">99Gestor</h2>
                 <h4>Criar sua conta</h4>
                 <p className="text-muted">Comece gratuitamente hoje mesmo</p>
+                
+                {/* Error Messages */}
+                {errors.length > 0 && (
+                  <div className="alert alert-danger alert-dismissible fade show" role="alert">
+                    <ul className="mb-0">
+                      {errors.map((error, index) => (
+                        <li key={index}>{error}</li>
+                      ))}
+                    </ul>
+                    <button 
+                      type="button" 
+                      className="btn-close" 
+                      onClick={() => setErrors([])}
+                      aria-label="Close"
+                    ></button>
+                  </div>
+                )}
                 
                 {/* Progress Steps */}
                 <div className="progress-steps mb-4">
@@ -157,7 +203,11 @@ const Register = () => {
                       </div>
                     </div>
 
-                    <button type="submit" className="btn btn-success w-100">
+                    <button 
+                      type="submit" 
+                      className="btn btn-success w-100"
+                      disabled={isLoading}
+                    >
                       Continuar
                     </button>
                   </div>
@@ -206,10 +256,19 @@ const Register = () => {
                     </div>
 
                     <div className="d-grid gap-2">
-                      <button type="submit" className="btn btn-success">
+                      <button 
+                        type="submit" 
+                        className="btn btn-success"
+                        disabled={isLoading}
+                      >
                         Continuar
                       </button>
-                      <button type="button" className="btn btn-outline-secondary" onClick={prevStep}>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-secondary" 
+                        onClick={prevStep}
+                        disabled={isLoading}
+                      >
                         Voltar
                       </button>
                     </div>
@@ -300,10 +359,26 @@ const Register = () => {
                     </div>
 
                     <div className="d-grid gap-2">
-                      <button type="submit" className="btn btn-success">
-                        🎉 Criar Conta Gratuitamente
+                      <button 
+                        type="submit" 
+                        className="btn btn-success" 
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <>
+                            <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                            Criando conta...
+                          </>
+                        ) : (
+                          '🎉 Criar Conta Gratuitamente'
+                        )}
                       </button>
-                      <button type="button" className="btn btn-outline-secondary" onClick={prevStep}>
+                      <button 
+                        type="button" 
+                        className="btn btn-outline-secondary" 
+                        onClick={prevStep}
+                        disabled={isLoading}
+                      >
                         Voltar
                       </button>
                     </div>
