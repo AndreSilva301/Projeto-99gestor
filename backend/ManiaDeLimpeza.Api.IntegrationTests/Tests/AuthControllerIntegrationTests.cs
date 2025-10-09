@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Persistence;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -18,6 +19,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
     {
         private static CustomWebApplicationFactory _factory;
         private static HttpClient _client;
+
 
         [ClassInitialize]
         public static void ClassInit(TestContext context)
@@ -338,5 +340,18 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             TestDataSeeder.SeedDefaultUser(db);
         }
-    }
+
+        [TestMethod]
+        public async Task ForgotpassWord_shouldReturnOk()
+        {
+            var dto = new  
+            {
+                Email = "testepassword@gmail.com"
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+        }
+    } 
 }

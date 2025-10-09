@@ -21,19 +21,23 @@ public class AuthController : ControllerBase
     private readonly IMapper _mapper;
     private readonly ITokenService _tokenService;
     private readonly ApplicationDbContext _dbContext;
+    private readonly IForgotPasswordService _forgotPasswordService;
+
 
     public AuthController(
         IUserService userService,
         ICompanyServices companyServices,
         ITokenService tokenService,
         IMapper mapper,
-        ApplicationDbContext dbContext)
+        ApplicationDbContext dbContext,
+        IForgotPasswordService forgotPasswordService)
     {
         _userService = userService;
         _mapper = mapper;
         _tokenService = tokenService;
         _companyServices = companyServices;
         _dbContext = dbContext;
+        _forgotPasswordService = forgotPasswordService;
     }
 
     [HttpPost("register")]
@@ -109,4 +113,13 @@ public class AuthController : ControllerBase
 
         return Ok(ApiResponseHelper.SuccessResponse(result, "Login successful"));
     }
+
+
+    [HttpPost("forgot-password")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    {
+        await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
+        return Ok(ApiResponseHelper.SuccessResponse("recovery email sent successfully."));
+    }               
 }
