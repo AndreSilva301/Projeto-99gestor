@@ -68,21 +68,16 @@ namespace ManiaDeLimpeza.Application.Services
 
         public async Task<User?> GetByCredentialsAsync(string email, string password)
         {
-            throw new NotImplementedException();    
-            //var user = await _userRepository.GetByEmailAsync(email);
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                return null;
 
-            //if (user == null)
-            //    return null;
+            var isValid = PasswordHelper.Verify(password, user.PasswordHash, user);
 
-            //if (!PasswordHelper.Verify(user.PasswordHash, password, user))
-            //{
-            //    return null;
-            //}
+            if (!isValid)
+                return null;
 
-            //if (!user.IsActive)
-            //    throw new BusinessException("The user must be approved in order to login");
-
-            //return PasswordHelper.Verify(user.PasswordHash, password, user) ? user : null;
+            return user;
         }
     }
 }
