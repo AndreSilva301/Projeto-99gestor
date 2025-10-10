@@ -10,4 +10,8 @@ public static class ApiResponseHelper
     {
         return new ApiResponse<T>(errors, message);
     }
+    public static ApiResponse<string> ErrorResponse(string errorMessage, string message = "Request failed")
+    {
+        return new ApiResponse<string>(errorMessage, message);
+    }
 }

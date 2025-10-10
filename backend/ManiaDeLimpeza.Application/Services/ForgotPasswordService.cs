@@ -2,51 +2,55 @@
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using System.Reflection.Metadata.Ecma335;
+using ManiaDeLimpeza.Application.Services;
 using System.Security.Cryptography;
+using Microsoft.Extensions.Options;
+using ManiaDeLimpeza.Api.Auth;
+
+
 
 namespace ManiaDeLimpeza.Application.Services;
 public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
 {
-
     private readonly IPasswordResetRepository _passwordResetRepository;
-    private readonly IUserRepository _userRepository; 
-      
+    private readonly IUserRepository _userRepository;
+    private readonly IEmailSenderServices _emailSenderService;
+    private readonly int _expirationInMinutes;
+   
+
     public ForgotPasswordService(
         IPasswordResetRepository passwordResetRepository,
-        IUserRepository userRepository)
+        IUserRepository userRepository,
+        IEmailSenderServices emailSenderService,
+        IOptions<ResetPasswordOptions> resetPasswordOptions)
     {
         _passwordResetRepository = passwordResetRepository;
         _userRepository = userRepository;
-      
+        _emailSenderService = emailSenderService;
+        _expirationInMinutes = resetPasswordOptions.Value.TokenExpirationInMinutes;
     }
 
     public async Task SendResetPasswordEmailAsync(string email)
     {
-        // Tenta encontrar o usuário (não lança exceção se não encontrar)
         var user = await _userRepository.GetByEmailAsync(email);
         if (user == null)
             return;
 
-        // Gera sempre um token novo
         var token = GenerateSecureToken();
-        var expiration = DateTime.UtcNow.AddMinutes(30);
+        var expiration = DateTime.UtcNow.AddMinutes(_expirationInMinutes);
 
         var resetToken = new PasswordResetToken
         {
             Token = token,
             Expiration = expiration,
+            UserId = user.Id,
             User = user
         };
 
         await _passwordResetRepository.AddAsync(resetToken);
 
-        var link = $"https://seusite.com/reset-password?token={token}";
-        var subject = "Recuperação de senha";
-        var body = $"Olá {user.Name},\n\nUse o link abaixo para redefinir sua senha:\n{link}\n\nEste link expira em 30 minutos.";
-        
+        await _emailSenderService.SendResetPasswordEmailAsync(user.Email, token);
     }
-
     private static string GenerateSecureToken()
     {
         var randomBytes = RandomNumberGenerator.GetBytes(32);

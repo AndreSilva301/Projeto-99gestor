@@ -119,7 +119,31 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
-        await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
-        return Ok(ApiResponseHelper.SuccessResponse("recovery email sent successfully."));
-    }               
+        if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
+            return BadRequest(ApiResponseHelper.ErrorResponse("Invalid email."));
+
+        try
+        {
+            await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Erro ao processar ForgotPassword: {ex.Message}");
+        }
+        return Ok(ApiResponseHelper.SuccessResponse("E-mail de recuperação enviado com sucesso"));
+    }
+
+    /*[HttpPost("verify-reset-token")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<object>>> VerifyResetToken([FromBody] VerifyResetToken dto)
+    {
+        var isValid = await _forgotPasswordService.VerifyResetTokenAsync(dto.Token);
+        if (!isValid)
+        {
+            return BadRequest(ApiResponseHelper.ErrorResponse<object>(
+                new List<string> { "Invalid or expired token." }, "Token verification failed"));
+        }
+        return Ok(ApiResponseHelper.SuccessResponse(new { Valid = true }, "Token is valid"));
+    }*/
 }

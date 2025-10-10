@@ -71,6 +71,9 @@ public class Program
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+        builder.Services.Configure<ResetPasswordOptions>(
+     builder.Configuration.GetSection(ResetPasswordOptions.SECTION));
+
         builder.Services.Configure<AuthOptions>(
             builder.Configuration.GetSection(AuthOptions.SECTION));
 

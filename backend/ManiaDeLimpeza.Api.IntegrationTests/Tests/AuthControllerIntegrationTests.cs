@@ -1,6 +1,8 @@
 ﻿using ManiaDeLimpeza.Api.IntegrationTests.Tools;
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.DependencyInjection;
@@ -177,7 +179,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 Password = "Secure123",
                 ConfirmPassword = "Secure123",
                 AcceptTerms = true
-               
+
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(registerDto), Encoding.UTF8, "application/json");
@@ -344,14 +346,133 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task ForgotpassWord_shouldReturnOk()
         {
-            var dto = new  
+            var email = "testepassword@gmail.com";
+
+            using (var scope = _factory.Services.CreateScope())
             {
-                Email = "testepassword@gmail.com"
+                var companyRepo = scope.ServiceProvider.GetRequiredService<ICompanyRepository>();
+                var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
+
+                var newCompany = new Company
+                {
+                    Name = "Empresa Teste",
+                    CNPJ = "12345678000199"
+                };
+                await companyRepo.AddAsync(newCompany);
+
+                var newUser = new User
+                {
+                    Name = "Usuário Teste",
+                    Email = email,
+                    PasswordHash = "hash-aqui",
+                    CompanyId = newCompany.Id // usa o ID da empresa criada
+                };
+
+                await userRepo.AddAsync(newUser);
+            }
+
+            var dto = new { Email = email };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var passwordResetRepo = scope.ServiceProvider.GetRequiredService<IPasswordResetRepository>();
+                var createdToken = await passwordResetRepo.GetLatestByEmailAsync(email);
+
+                Assert.IsNotNull(createdToken, "O token de redefinição deveria ter sido criado no banco.");
+                Assert.IsTrue(createdToken.Expiration > DateTime.UtcNow, "O token criado não deve estar expirado.");
+            }
+        }
+
+        [TestMethod]
+        public async Task ForgotpassWord_ShoulReturnOK_WhenEmailDoesNotExist()
+        {
+            var dto = new 
+            {
+                Email = "testeemailnotexist@gmail.com"
             };
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
             var response = await _client.PostAsync("/api/auth/forgot-password", content);
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ShouldReturnBadRequest_WhenEmailIsInvalid()
+        {
+            var dto = new 
+            {
+                Email = "emailsemarroba" 
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ShouldReturnBadRequest_WhenEmailIsEmpty()
+        {
+            var dto = new { Email = "" };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+        [TestMethod]
+        public async Task ForgotPassword_ShouldReturnBadRequest_WhenSqlInjectionAttempt()
+        {
+            var dto = new
+            {
+                Email = "test@gmail.com' OR 1=1--"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        }
+
+        [TestMethod]
+        public async Task ForgotPassword_ShouldReturnSameResponse_ForExistingAndNonExistingEmail()
+        {
+            var existingDto = new { Email = "testepassword@gmail.com" };
+            var nonExistingDto = new { Email = "testeemailnotexist@gmail.com" };
+
+            var contentExisting = new StringContent(JsonConvert.SerializeObject(existingDto), Encoding.UTF8, "application/json");
+            var contentNonExisting = new StringContent(JsonConvert.SerializeObject(nonExistingDto), Encoding.UTF8, "application/json");
+
+            var responseExisting = await _client.PostAsync("/api/auth/forgot-password", contentExisting);
+            var responseNonExisting = await _client.PostAsync("/api/auth/forgot-password", contentNonExisting);
+
+            Assert.AreEqual(responseExisting.StatusCode, responseNonExisting.StatusCode, "Os status codes devem ser iguais para emails existentes e inexistentes.");
+
+            var bodyExisting = await responseExisting.Content.ReadAsStringAsync();
+            var bodyNonExisting = await responseNonExisting.Content.ReadAsStringAsync();
+
+            var responseExistingParsed = JsonConvert.DeserializeObject<ApiResponse<string>>(bodyExisting);
+            var responseNonExistingParsed = JsonConvert.DeserializeObject<ApiResponse<string>>(bodyNonExisting);
+
+            Assert.AreEqual(responseExistingParsed.Success, responseNonExistingParsed.Success, "Campo 'Success' deve ser igual");
+            Assert.AreEqual(responseExistingParsed.Message, responseNonExistingParsed.Message, "Campo 'Message' deve ser igual");
+            Assert.AreEqual(responseExistingParsed.Data, responseNonExistingParsed.Data, "Campo 'Data' deve ser igual");
+
+            CollectionAssert.AreEqual(
+                responseExistingParsed.Errors ?? new List<string>(),
+                responseNonExistingParsed.Errors ?? new List<string>(),
+                "Campo 'Errors' deve ser igual");
+
+            // Comparar timestamps com tolerância de 5 segundos
+            var timestampExisting = DateTime.Parse(responseExistingParsed.TimeStamp).ToUniversalTime();
+            var timestampNonExisting = DateTime.Parse(responseNonExistingParsed.TimeStamp).ToUniversalTime();
+
+            Assert.IsTrue(
+                Math.Abs((timestampExisting - timestampNonExisting).TotalSeconds) < 5,
+                "timeStamps devem estar dentro de 5 segundos");
         }
     } 
 }
