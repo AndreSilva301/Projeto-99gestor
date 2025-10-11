@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { authService } from '../../../services/authService';
 import './Login.css';
 
 const Login = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
@@ -31,10 +33,19 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement login logic
-    console.log('Login attempt:', formData);
+    // Implement login logic
+    var response = await authService.login(formData);
+    if(response.success){
+      navigate('/portal/', { 
+        state: { 
+          message: 'Bem-vindo ao 99Gestor!' 
+        }
+      });
+    }else{
+      setSuccessMessage(response.errors.join(", ") || 'Erro ao fazer login. Tente novamente.');
+    }
   };
 
   return (
