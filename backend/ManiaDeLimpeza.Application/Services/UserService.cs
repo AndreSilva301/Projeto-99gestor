@@ -50,15 +50,12 @@ namespace ManiaDeLimpeza.Application.Services
 
         public async Task<User> UpdateUserAsync(User user)
         {
-            throw new NotImplementedException();
-            //// If password was changed, re-hash it (example check)
-            //if (!string.IsNullOrWhiteSpace(user.Password))
-            //{
-            //    user.Password = PasswordHelper.Hash(user.Password, user);
-            //}
-
-            //// Assuming the repo has an UpdateAsync method (add it if needed)
-            //return await _userRepository.UpdateAsync(user);
+            var existingUser = await _userRepository.GetByEmailAsync(user.Email);
+            if (existingUser != null && existingUser.Id != user.Id)
+            {
+                throw new BusinessException("A user with this email already exists.");
+            }
+            return await _userRepository.UpdateAsync(user);
         }
 
         public async Task<User?> GetByEmailAsync(string email)
@@ -78,6 +75,12 @@ namespace ManiaDeLimpeza.Application.Services
                 return null;
 
             return user;
+        }
+
+        public async Task<User?> UpdatePasswordAsync(User user, string newPassword)
+        {
+            user.PasswordHash = PasswordHelper.Hash(newPassword, user);
+            return await _userRepository.UpdateAsync(user);
         }
     }
 }

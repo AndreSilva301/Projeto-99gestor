@@ -152,4 +152,31 @@ public class AuthController : ControllerBase
             expiresAt = tokenData.Expiration
         }, "Token válido"));
     }
+
+    [HttpPost("reset-password")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Token))
+            return BadRequest(ApiResponseHelper.ErrorResponse("Token é obrigatório."));
+        if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
+            return BadRequest(ApiResponseHelper.ErrorResponse("A nova senha deve ter pelo menos 6 caracteres."));
+        var tokenData = await passwordResetRepository.GetByTokenAsync(dto.Token);
+        if (tokenData == null || tokenData.Expiration < DateTime.UtcNow)
+            return BadRequest(ApiResponseHelper.ErrorResponse("Token inválido ou expirado"));
+        var user = tokenData.User;
+        if (user == null)
+            return BadRequest(ApiResponseHelper.ErrorResponse("Usuário não encontrado para o token informado."));
+        try
+        {
+            await _userService.UpdatePasswordAsync(user, dto.NewPassword);
+            
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
+        }
+        return Ok(ApiResponseHelper.SuccessResponse("Senha redefinida com sucesso"));
+    }   
 }

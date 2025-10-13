@@ -34,5 +34,4 @@ public class PasswordResetRepository : IPasswordResetRepository, IScopedDependen
             .FirstOrDefaultAsync();
     }
 
-    
 }

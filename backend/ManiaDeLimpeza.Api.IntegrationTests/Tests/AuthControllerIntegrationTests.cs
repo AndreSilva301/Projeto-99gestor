@@ -1,12 +1,16 @@
-﻿using ManiaDeLimpeza.Api.IntegrationTests.Tools;
+﻿using AutoMapper;
+using ManiaDeLimpeza.Api.Controllers;
+using ManiaDeLimpeza.Api.IntegrationTests.Tools;
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -581,5 +585,178 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             StringAssert.Contains(body, "Token inválido ou expirado");
         }
 
+
+        [TestMethod]
+        public async Task ResetPassword_ShouldReturnBadRequest_WhenTokenIsInvalid()
+        {
+            var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
+            var mockUserService = new Mock<IUserService>();
+
+            var controller = new AuthController(
+                mockUserService.Object,
+                Mock.Of<ICompanyServices>(),
+                Mock.Of<ITokenService>(),
+                Mock.Of<IMapper>(),
+                null, 
+                Mock.Of<IForgotPasswordService>(),
+                mockPasswordResetRepo.Object
+            );
+
+            var dto = new ResetPasswordDto
+            {
+                Token = "invalid-token",
+                NewPassword = "novaSenha123"
+            };
+
+            mockPasswordResetRepo
+                .Setup(r => r.GetByTokenAsync(dto.Token))
+                .ReturnsAsync((PasswordResetToken)null);
+
+            // Act
+            var result = await controller.ResetPassword(dto);
+
+            // Assert
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.IsNotNull(badRequestResult);
+
+            var response = badRequestResult.Value as ApiResponse<string>;
+            Assert.IsFalse(response.Success);
+            Assert.AreEqual("Token inválido ou expirado", response.Message);
+        }
+
+        [TestMethod]
+        public async Task ResetPassword_ShouldReturnBadRequest_WhenTokenIsExpired()
+        {
+            var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
+            var mockUserService = new Mock<IUserService>();
+
+            var controller = new AuthController(
+                mockUserService.Object,
+                Mock.Of<ICompanyServices>(),
+                Mock.Of<ITokenService>(),
+                Mock.Of<IMapper>(),
+                null,
+                Mock.Of<IForgotPasswordService>(),
+                mockPasswordResetRepo.Object
+            );
+
+            var expiredToken = new PasswordResetToken
+            {
+                Token = "expired-token",
+                Expiration = DateTime.UtcNow.AddMinutes(-1),
+                UserId = 1
+            };
+
+            mockPasswordResetRepo
+                .Setup(r => r.GetByTokenAsync("expired-token"))
+                .ReturnsAsync(expiredToken);
+
+            var dto = new ResetPasswordDto
+            {
+                Token = "expired-token",
+                NewPassword = "novaSenha123"
+            };
+
+            // Act
+            var result = await controller.ResetPassword(dto);
+
+            // Assert
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.IsNotNull(badRequestResult);
+
+            var response = badRequestResult.Value as ApiResponse<string>;
+            Assert.IsFalse(response.Success);
+            Assert.AreEqual("Token inválido ou expirado", response.Message);
+        }
+
+        [TestMethod]
+        public async Task ResetPassword_ShouldReturnOk_WhenTokenIsValid()
+        {
+            var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
+            var mockUserService = new Mock<IUserService>();
+
+            var fakeUser = new User
+            {
+                Id = 1,
+                Name = "Usuário Teste",
+                Email = "teste@exemplo.com"
+            };
+
+            var validToken = new PasswordResetToken
+            {
+                Token = "valid-token",
+                Expiration = DateTime.UtcNow.AddMinutes(10),
+                UserId = 1,
+                User = fakeUser 
+            };
+
+            mockPasswordResetRepo
+                .Setup(r => r.GetByTokenAsync("valid-token"))
+                .ReturnsAsync(validToken);
+
+            mockUserService
+                .Setup(u => u.UpdatePasswordAsync(It.IsAny<User>(), It.IsAny<string>()))
+                .ReturnsAsync(fakeUser);
+
+            var controller = new AuthController(
+                mockUserService.Object,
+                Mock.Of<ICompanyServices>(),
+                Mock.Of<ITokenService>(),
+                Mock.Of<IMapper>(),
+                null,
+                Mock.Of<IForgotPasswordService>(),
+                mockPasswordResetRepo.Object
+            );
+
+            var dto = new ResetPasswordDto
+            {
+                Token = "valid-token",
+                NewPassword = "novaSenha123"
+            };
+
+            // Act
+            var result = await controller.ResetPassword(dto);
+
+            // Assert
+            var okResult = result.Result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+
+            var response = okResult.Value as ApiResponse<string>;
+            Assert.IsTrue(response.Success);
+            Assert.AreEqual("Senha redefinida com sucesso", response.Data); ;
+
+            mockUserService.Verify(u => u.UpdatePasswordAsync(
+                                It.Is<User>(usr => usr.Id == validToken.UserId),
+                                dto.NewPassword), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ResetPassword_ShouldReturnBadRequest_WhenPasswordIsEmpty()
+        {
+            var controller = new AuthController(
+                Mock.Of<IUserService>(),
+                Mock.Of<ICompanyServices>(),
+                Mock.Of<ITokenService>(),
+                Mock.Of<IMapper>(),
+                null,
+                Mock.Of<IForgotPasswordService>(),
+                Mock.Of<IPasswordResetRepository>()
+            );
+
+            var dto = new ResetPasswordDto
+            {
+                Token = "some-token",
+                NewPassword = ""
+            };
+
+            var result = await controller.ResetPassword(dto);
+
+            var badRequestResult = result.Result as BadRequestObjectResult;
+            Assert.IsNotNull(badRequestResult);
+
+            var response = badRequestResult.Value as ApiResponse<string>;
+            Assert.IsFalse(response.Success);
+            Assert.AreEqual("A nova senha deve ter pelo menos 6 caracteres.", response.Message);
+        }
     }
 }
