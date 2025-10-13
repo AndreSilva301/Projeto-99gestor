@@ -56,4 +56,13 @@ public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
         var randomBytes = RandomNumberGenerator.GetBytes(32);
         return Convert.ToBase64String(randomBytes);
     }
+    public async Task<PasswordResetToken?> VerifyResetTokenAsync(string token)
+    {
+        var tokenEntity = await _passwordResetRepository.GetByTokenAsync(token);
+
+        if (tokenEntity == null || tokenEntity.Expiration < DateTime.UtcNow)
+            return null;
+
+        return tokenEntity;
+    }
 }

@@ -22,6 +22,7 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly ApplicationDbContext _dbContext;
     private readonly IForgotPasswordService _forgotPasswordService;
+    private readonly IPasswordResetRepository passwordResetRepository;
 
 
     public AuthController(
@@ -30,7 +31,8 @@ public class AuthController : ControllerBase
         ITokenService tokenService,
         IMapper mapper,
         ApplicationDbContext dbContext,
-        IForgotPasswordService forgotPasswordService)
+        IForgotPasswordService forgotPasswordService,
+        IPasswordResetRepository passwordResetRepository)
     {
         _userService = userService;
         _mapper = mapper;
@@ -38,6 +40,7 @@ public class AuthController : ControllerBase
         _companyServices = companyServices;
         _dbContext = dbContext;
         _forgotPasswordService = forgotPasswordService;
+        this.passwordResetRepository = passwordResetRepository;
     }
 
     [HttpPost("register")]
@@ -133,17 +136,20 @@ public class AuthController : ControllerBase
         return Ok(ApiResponseHelper.SuccessResponse("E-mail de recuperação enviado com sucesso"));
     }
 
-    /*[HttpPost("verify-reset-token")]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    [HttpPost("verify-reset-token")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<object>>> VerifyResetToken([FromBody] VerifyResetToken dto)
     {
-        var isValid = await _forgotPasswordService.VerifyResetTokenAsync(dto.Token);
-        if (!isValid)
+        var tokenData = await _forgotPasswordService.VerifyResetTokenAsync(dto.Token);
+
+        if (tokenData == null)
+            return BadRequest(ApiResponseHelper.ErrorResponse("Token inválido ou expirado"));
+
+        return Ok(ApiResponseHelper.SuccessResponse(new
         {
-            return BadRequest(ApiResponseHelper.ErrorResponse<object>(
-                new List<string> { "Invalid or expired token." }, "Token verification failed"));
-        }
-        return Ok(ApiResponseHelper.SuccessResponse(new { Valid = true }, "Token is valid"));
-    }*/
+            email = tokenData.User.Email,
+            expiresAt = tokenData.Expiration
+        }, "Token válido"));
+    }
 }

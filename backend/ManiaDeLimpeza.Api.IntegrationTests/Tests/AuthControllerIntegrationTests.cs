@@ -5,6 +5,7 @@ using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -474,5 +475,111 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 Math.Abs((timestampExisting - timestampNonExisting).TotalSeconds) < 5,
                 "timeStamps devem estar dentro de 5 segundos");
         }
-    } 
+        [TestMethod]
+        public async Task VerifyResetToken_ShouldReturnBadRequest_WhenTokenIsInvalid()
+        {
+            // Arrange
+            var dto = new
+            {
+                Token = "token-invalido-123"
+            };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/auth/verify-reset-token", content);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            StringAssert.Contains(body, "Token inválido ou expirado");
+        }
+
+        [TestMethod]
+        public async Task VerifyResetToken_ShouldReturnOk_WhenTokenIsValid()
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                var company = new Company
+                {
+                    Name = "Empresa Teste"
+                };
+
+                var user = TestDataSeeder.GetDefaultUser();
+                user.CompanyId = company.Id;
+                user.Company = company;
+                await db.Users.AddAsync(user);
+                await db.SaveChangesAsync();
+
+                var validToken = new PasswordResetToken
+                {
+                    Token = "valid-token-123",
+                    UserId = user.Id,
+                    Expiration = DateTime.UtcNow.AddMinutes(30)
+                };
+
+                await db.PasswordResetTokens.AddAsync(validToken);
+                await db.SaveChangesAsync();
+            }
+
+            var dto = new { Token = "valid-token-123" };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/auth/verify-reset-token", content);
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            StringAssert.Contains(body, "Token válido");
+            StringAssert.Contains(body, TestDataSeeder.DefaultEmail);
+        }
+
+
+        [TestMethod]
+        public async Task VerifyResetToken_ShouldReturnBadRequest_WhenTokenIsExpired()
+        {
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                var company = new Company
+                {
+                    Name = "Empresa Teste"
+                };
+
+                await db.Companies.AddAsync(company);
+                await db.SaveChangesAsync();
+
+                var user = TestDataSeeder.GetDefaultUser();
+                user.CompanyId = company.Id;
+                user.Company = company;
+
+                await db.Users.AddAsync(user);
+                await db.SaveChangesAsync();
+
+                var expiredToken = new PasswordResetToken
+                {
+                    Token = "expired-token-123",
+                    UserId = user.Id,
+                    Expiration = DateTime.UtcNow.AddMinutes(-30) // já expirado
+                };
+
+                await db.PasswordResetTokens.AddAsync(expiredToken);
+                await db.SaveChangesAsync();
+            }
+
+            var dto = new { Token = "expired-token-123" };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+
+            var response = await _client.PostAsync("/api/auth/verify-reset-token", content);
+
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            StringAssert.Contains(body, "Token inválido ou expirado");
+        }
+
+    }
 }
