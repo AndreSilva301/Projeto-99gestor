@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
@@ -23,6 +24,7 @@ public class AuthController : ControllerBase
     private readonly ApplicationDbContext _dbContext;
     private readonly IForgotPasswordService _forgotPasswordService;
     private readonly IPasswordResetRepository passwordResetRepository;
+    private readonly ILeadService _leadService;
 
 
     public AuthController(
@@ -32,7 +34,8 @@ public class AuthController : ControllerBase
         IMapper mapper,
         ApplicationDbContext dbContext,
         IForgotPasswordService forgotPasswordService,
-        IPasswordResetRepository passwordResetRepository)
+        IPasswordResetRepository passwordResetRepository,
+        ILeadService leadService)
     {
         _userService = userService;
         _mapper = mapper;
@@ -41,6 +44,7 @@ public class AuthController : ControllerBase
         _dbContext = dbContext;
         _forgotPasswordService = forgotPasswordService;
         this.passwordResetRepository = passwordResetRepository;
+        _leadService = leadService;
     }
 
     [HttpPost("register")]
@@ -178,5 +182,22 @@ public class AuthController : ControllerBase
             return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
         }
         return Ok(ApiResponseHelper.SuccessResponse("Senha redefinida com sucesso"));
-    }   
+    }
+
+    [HttpPost("capture")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<string>>> CaptureLead([FromBody] LeadCaptureDto dto)
+    {
+        try
+        {
+            var resultMessage = await _leadService.CaptureLeadAsync(dto);
+            return Ok(ApiResponseHelper.SuccessResponse(resultMessage));
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
+        }
+    }
 }
+

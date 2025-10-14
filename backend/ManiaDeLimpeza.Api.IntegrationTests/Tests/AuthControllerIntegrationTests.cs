@@ -599,7 +599,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 Mock.Of<IMapper>(),
                 null, 
                 Mock.Of<IForgotPasswordService>(),
-                mockPasswordResetRepo.Object
+                mockPasswordResetRepo.Object,
+                Mock.Of<ILeadService>()
             );
 
             var dto = new ResetPasswordDto
@@ -637,7 +638,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 Mock.Of<IMapper>(),
                 null,
                 Mock.Of<IForgotPasswordService>(),
-                mockPasswordResetRepo.Object
+                mockPasswordResetRepo.Object,
+                Mock.Of<ILeadService>()
             );
 
             var expiredToken = new PasswordResetToken
@@ -705,7 +707,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 Mock.Of<IMapper>(),
                 null,
                 Mock.Of<IForgotPasswordService>(),
-                mockPasswordResetRepo.Object
+                mockPasswordResetRepo.Object,
+                Mock.Of<ILeadService>()
             );
 
             var dto = new ResetPasswordDto
@@ -740,7 +743,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 Mock.Of<IMapper>(),
                 null,
                 Mock.Of<IForgotPasswordService>(),
-                Mock.Of<IPasswordResetRepository>()
+                Mock.Of<IPasswordResetRepository>(),
+                Mock.Of<ILeadService>()
             );
 
             var dto = new ResetPasswordDto
