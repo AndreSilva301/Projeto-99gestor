@@ -33,5 +33,4 @@ public class PasswordResetRepository : IPasswordResetRepository, IScopedDependen
             .OrderByDescending(t => t.Expiration)
             .FirstOrDefaultAsync();
     }
-
 }

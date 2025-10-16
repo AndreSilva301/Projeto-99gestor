@@ -22,7 +22,7 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly ApplicationDbContext _dbContext;
     private readonly IForgotPasswordService _forgotPasswordService;
-    private readonly IPasswordResetRepository passwordResetRepository;
+    private readonly IPasswordResetRepository _passwordResetRepository;
 
 
     public AuthController(
@@ -40,7 +40,7 @@ public class AuthController : ControllerBase
         _companyServices = companyServices;
         _dbContext = dbContext;
         _forgotPasswordService = forgotPasswordService;
-        this.passwordResetRepository = passwordResetRepository;
+        this._passwordResetRepository = passwordResetRepository;
     }
 
     [HttpPost("register")]
@@ -122,8 +122,8 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Email) || !dto.Email.Contains("@"))
-            return BadRequest(ApiResponseHelper.ErrorResponse("Invalid email."));
+        if (!dto.IsValid())
+            return BadRequest(ApiResponseHelper.ErrorResponse("E-mail inválido."));
 
         try
         {
@@ -133,15 +133,17 @@ public class AuthController : ControllerBase
         {
             Console.WriteLine($"Erro ao processar ForgotPassword: {ex.Message}");
         }
+
         return Ok(ApiResponseHelper.SuccessResponse("E-mail de recuperação enviado com sucesso"));
     }
+
 
     [HttpPost("verify-reset-token")]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<object>>> VerifyResetToken([FromBody] VerifyResetToken dto)
+    public async Task<ActionResult<ApiResponse<object>>> VerifyResetToken([FromBody] string token)
     {
-        var tokenData = await _forgotPasswordService.VerifyResetTokenAsync(dto.Token);
+        var tokenData = await _forgotPasswordService.VerifyResetTokenAsync(token);
 
         if (tokenData == null)
             return BadRequest(ApiResponseHelper.ErrorResponse("Token inválido ou expirado"));
@@ -156,27 +158,29 @@ public class AuthController : ControllerBase
     [HttpPost("reset-password")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordRequestDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Token))
-            return BadRequest(ApiResponseHelper.ErrorResponse("Token é obrigatório."));
-        if (string.IsNullOrWhiteSpace(dto.NewPassword) || dto.NewPassword.Length < 6)
-            return BadRequest(ApiResponseHelper.ErrorResponse("A nova senha deve ter pelo menos 6 caracteres."));
-        var tokenData = await passwordResetRepository.GetByTokenAsync(dto.Token);
+        if (!dto.IsValid())
+            return BadRequest(ApiResponseHelper.ErrorResponse(string.Join(", ", dto.Validate())));
+
+        var tokenData = await _passwordResetRepository.GetByTokenAsync(dto.Token);
+
         if (tokenData == null || tokenData.Expiration < DateTime.UtcNow)
             return BadRequest(ApiResponseHelper.ErrorResponse("Token inválido ou expirado"));
+
         var user = tokenData.User;
         if (user == null)
             return BadRequest(ApiResponseHelper.ErrorResponse("Usuário não encontrado para o token informado."));
+
         try
         {
             await _userService.UpdatePasswordAsync(user, dto.NewPassword);
-            
         }
         catch (BusinessException ex)
         {
             return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
         }
+
         return Ok(ApiResponseHelper.SuccessResponse("Senha redefinida com sucesso"));
-    }   
+    }
 }

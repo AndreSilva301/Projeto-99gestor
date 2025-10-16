@@ -14,14 +14,14 @@ public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
 {
     private readonly IPasswordResetRepository _passwordResetRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IEmailSenderServices _emailSenderService;
+    private readonly IEmailServices _emailSenderService;
     private readonly int _expirationInMinutes;
    
 
     public ForgotPasswordService(
         IPasswordResetRepository passwordResetRepository,
         IUserRepository userRepository,
-        IEmailSenderServices emailSenderService,
+        IEmailServices emailSenderService,
         IOptions<ResetPasswordOptions> resetPasswordOptions)
     {
         _passwordResetRepository = passwordResetRepository;
@@ -49,7 +49,7 @@ public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
 
         await _passwordResetRepository.AddAsync(resetToken);
 
-        await _emailSenderService.SendResetPasswordEmailAsync(user.Email, token);
+        await _emailSenderService.SendForgetPasswordEmail(user.Email, token);
     }
     private static string GenerateSecureToken()
     {

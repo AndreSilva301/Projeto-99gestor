@@ -15,5 +15,7 @@ namespace ManiaDeLimpeza.Application.Interfaces
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByCredentialsAsync(string email, string password);
         Task<User?> UpdatePasswordAsync(User user, string newPassword);
+        Task<User?> GetByIdAsync(int id);
+        Task<User> ChangePasswordAsync(string email, string currentPassword, string newPassword);
     }
 }
