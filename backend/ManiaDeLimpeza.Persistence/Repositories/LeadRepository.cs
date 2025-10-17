@@ -1,23 +1,18 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.DependencyInjection;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Linq.Expressions;
 
 namespace ManiaDeLimpeza.Persistence.Repositories;
-public class LeadRepository : ILeadRepository
+public class LeadRepository : BaseRepository<Lead>, ILeadRepository, IScopedDependency
 {
-    private readonly ApplicationDbContext _context;
-
-    public LeadRepository(ApplicationDbContext context)
+    protected readonly ApplicationDbContext _context;
+    public LeadRepository(ApplicationDbContext context) : base(context)
     {
         _context = context;
-    }
-
-    public async Task AddAsync(Lead lead)
-    {
-        await _context.Leads.AddAsync(lead);
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
     }
 }

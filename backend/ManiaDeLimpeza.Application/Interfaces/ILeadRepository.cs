@@ -1,8 +1,8 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Persistence;
 
 namespace ManiaDeLimpeza.Application.Interfaces;
-public interface ILeadRepository
+public interface ILeadRepository : IBaseRepository<Lead>
 {
-    Task AddAsync(Lead lead);
-    Task SaveChangesAsync();
+
 }
