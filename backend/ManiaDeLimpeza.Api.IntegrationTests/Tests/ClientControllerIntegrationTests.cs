@@ -157,5 +157,6 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.AreEqual("Carlos Souza", result.Items[0].Name);
         }
 
+        
     }
 }

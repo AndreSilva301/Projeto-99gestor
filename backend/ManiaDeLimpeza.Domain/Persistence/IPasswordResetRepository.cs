@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 namespace ManiaDeLimpeza.Domain.Persistence;
 public interface IPasswordResetRepository
 {
-    Task AddAsync(PasswordResetToken token);
+    Task AddAsync(PasswordResetToken passwordResetToken);
     Task<PasswordResetToken?> GetByTokenAsync(string token);
 }
+    

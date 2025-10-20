@@ -15,7 +15,7 @@ public class PasswordResetRepository : IPasswordResetRepository, IScopedDependen
 
     public async Task AddAsync(PasswordResetToken token)
     {
-        await _context.Set<PasswordResetToken>().AddAsync(token);
+        await _context.PasswordResetTokens.AddAsync(token);
         await _context.SaveChangesAsync();
     }
 
@@ -25,4 +25,5 @@ public class PasswordResetRepository : IPasswordResetRepository, IScopedDependen
             .Include(p => p.User)
             .FirstOrDefaultAsync(p => p.Token == token);
     }
+   
 }

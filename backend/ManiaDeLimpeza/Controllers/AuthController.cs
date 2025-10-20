@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
@@ -22,6 +23,7 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly ApplicationDbContext _dbContext;
     private readonly IForgotPasswordService _forgotPasswordService;
+    private readonly IPasswordResetRepository _passwordResetRepository;
 
 
     public AuthController(
@@ -30,7 +32,8 @@ public class AuthController : ControllerBase
         ITokenService tokenService,
         IMapper mapper,
         ApplicationDbContext dbContext,
-        IForgotPasswordService forgotPasswordService)
+        IForgotPasswordService forgotPasswordService,
+        IPasswordResetRepository passwordResetRepository)
     {
         _userService = userService;
         _mapper = mapper;
@@ -38,6 +41,7 @@ public class AuthController : ControllerBase
         _companyServices = companyServices;
         _dbContext = dbContext;
         _forgotPasswordService = forgotPasswordService;
+        this._passwordResetRepository = passwordResetRepository;
     }
 
     [HttpPost("register")]
@@ -117,9 +121,53 @@ public class AuthController : ControllerBase
 
     [HttpPost("forgot-password")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
     {
-        await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
-        return Ok(ApiResponseHelper.SuccessResponse("recovery email sent successfully."));
-    }               
+        var (isValid, errorMessage) = dto.IsValid(); 
+
+        if (!isValid)
+            return BadRequest(ApiResponseHelper.ErrorResponse(errorMessage));
+
+        try
+        {
+            await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
+        }
+        catch (Exception ex) // A resposta para o usuário nesse método sempre deve ser Ok, por questão de segurança.
+        {
+            Console.WriteLine($"Erro ao processar ForgotPassword: {ex.Message}");
+        }
+
+        return Ok(ApiResponseHelper.SuccessResponse("E-mail de recuperação enviado com sucesso"));
+    }
+
+
+    [HttpPost("verify-reset-token")]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<object>>> VerifyResetToken([FromBody] string token)
+    {
+        var tokenData = await _forgotPasswordService.VerifyResetTokenAsync(token);
+
+        if (tokenData == null)
+            return BadRequest(ApiResponseHelper.ErrorResponse("Token inválido ou expirado"));
+
+        return Ok(ApiResponseHelper.SuccessResponse(new
+        {
+            email = tokenData.User.Email,
+            expiresAt = tokenData.Expiration
+        }, "Token válido"));
+    }
+
+    [HttpPost("reset-password")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordRequestDto dto,
+                                                                       [FromServices] IResetPasswordService resetPasswordService)
+    {
+        var response = await resetPasswordService.ResetAsync(dto);
+        if (!response.Success)
+            return BadRequest(response);
+
+        return Ok(response);
+    }
 }
