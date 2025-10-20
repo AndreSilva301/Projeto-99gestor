@@ -4,8 +4,10 @@ using ManiaDeLimpeza.Api.IntegrationTests.Tools;
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -761,6 +763,71 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             var response = badRequestResult.Value as ApiResponse<string>;
             Assert.IsFalse(response.Success);
             Assert.AreEqual("A nova senha deve ter pelo menos 6 caracteres.", response.Message);
+        }
+
+        [TestMethod]
+        public async Task CaptureLeadAsync_DeveSalvarLead_QuandoDadosForemValidos()
+        {
+            // Arrange
+            var mockRepo = new Mock<ILeadRepository>();
+            var service = new LeadService(mockRepo.Object);
+
+            var dto = new LeadCaptureRequestDto
+            {
+                Name = "João da Silva",
+                Phone = "11999999999"
+            };
+
+            // Act
+            var result = await service.CaptureLeadAsync(dto);
+
+            // Assert
+            Assert.IsNotNull(result);
+            Assert.AreEqual("João da Silva", result.Name);
+            Assert.AreEqual("11999999999", result.Phone);
+            mockRepo.Verify(r => r.AddAsync(It.IsAny<Lead>()), Times.Once);
+
+        }
+
+        [TestMethod]
+        public async Task CaptureLeadAsync_DeveLancarExcecao_QuandoNomeForVazio()
+        {
+            // Arrange
+            var mockRepo = new Mock<ILeadRepository>();
+            var service = new LeadService(mockRepo.Object);
+
+            var dto = new LeadCaptureRequestDto
+            {
+                Name = "",
+                Phone = "11999999999"
+            };
+
+            // Act + Assert
+            var ex = await Assert.ThrowsExceptionAsync<BusinessException>(() =>
+                service.CaptureLeadAsync(dto));
+
+            Assert.AreEqual("O nome é obrigatório.", ex.Message);
+        }
+
+
+        [TestMethod]
+        public async Task CaptureLeadAsync_DeveLancarExcecao_QuandoTelefoneForVazio()
+        {
+            // Arrange
+            var mockRepo = new Mock<ILeadRepository>();
+            var service = new LeadService(mockRepo.Object);
+
+            var dto = new LeadCaptureRequestDto
+            {
+                Name = "João",
+                Phone = ""
+            };
+
+            // Act + Assert
+            var ex = await Assert.ThrowsExceptionAsync<BusinessException>(() =>
+                service.CaptureLeadAsync(dto));
+
+            Assert.AreEqual("O telefone é obrigatório.", ex.Message);
         }
     }
 }

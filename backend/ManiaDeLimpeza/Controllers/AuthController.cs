@@ -187,12 +187,18 @@ public class AuthController : ControllerBase
     [HttpPost("capture")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<string>>> CaptureLead([FromBody] LeadCaptureDto dto)
+    public async Task<ActionResult<ApiResponse<Lead>>> CaptureLead([FromBody] LeadCaptureRequestDto dto)
     {
         try
         {
-            var resultMessage = await _leadService.CaptureLeadAsync(dto);
-            return Ok(ApiResponseHelper.SuccessResponse(resultMessage));
+            var lead = await _leadService.CaptureLeadAsync(dto);
+           
+            if (lead != null)
+            {
+                return Ok(ApiResponseHelper.SuccessResponse(lead));
+            }
+
+            return Ok(ApiResponseHelper.SuccessResponse<Lead>(null));
         }
         catch (BusinessException ex)
         {
