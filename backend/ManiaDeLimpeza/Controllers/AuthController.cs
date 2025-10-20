@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
@@ -120,16 +121,18 @@ public class AuthController : ControllerBase
 
     [HttpPost("forgot-password")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
-    public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> ForgotPassword([FromBody] ForgotPasswordRequestDto dto)
     {
-        if (!dto.IsValid())
-            return BadRequest(ApiResponseHelper.ErrorResponse("E-mail inválido."));
+        var (isValid, errorMessage) = dto.IsValid(); 
+
+        if (!isValid)
+            return BadRequest(ApiResponseHelper.ErrorResponse(errorMessage));
 
         try
         {
             await _forgotPasswordService.SendResetPasswordEmailAsync(dto.Email);
         }
-        catch (Exception ex)
+        catch (Exception ex) // A resposta para o usuário nesse método sempre deve ser Ok, por questão de segurança.
         {
             Console.WriteLine($"Erro ao processar ForgotPassword: {ex.Message}");
         }
@@ -158,29 +161,13 @@ public class AuthController : ControllerBase
     [HttpPost("reset-password")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordRequestDto dto)
+    public async Task<ActionResult<ApiResponse<string>>> ResetPassword([FromBody] ResetPasswordRequestDto dto,
+                                                                       [FromServices] IResetPasswordService resetPasswordService)
     {
-        if (!dto.IsValid())
-            return BadRequest(ApiResponseHelper.ErrorResponse(string.Join(", ", dto.Validate())));
+        var response = await resetPasswordService.ResetAsync(dto);
+        if (!response.Success)
+            return BadRequest(response);
 
-        var tokenData = await _passwordResetRepository.GetByTokenAsync(dto.Token);
-
-        if (tokenData == null || tokenData.Expiration < DateTime.UtcNow)
-            return BadRequest(ApiResponseHelper.ErrorResponse("Token inválido ou expirado"));
-
-        var user = tokenData.User;
-        if (user == null)
-            return BadRequest(ApiResponseHelper.ErrorResponse("Usuário não encontrado para o token informado."));
-
-        try
-        {
-            await _userService.UpdatePasswordAsync(user, dto.NewPassword);
-        }
-        catch (BusinessException ex)
-        {
-            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
-        }
-
-        return Ok(ApiResponseHelper.SuccessResponse("Senha redefinida com sucesso"));
+        return Ok(response);
     }
 }

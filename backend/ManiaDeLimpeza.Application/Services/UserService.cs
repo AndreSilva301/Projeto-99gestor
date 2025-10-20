@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using ManiaDeLimpeza.Application.Common;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
@@ -39,28 +40,34 @@ namespace ManiaDeLimpeza.Application.Services
                 throw new BusinessException("A user with this email already exists.");
             }
 
-            // Updates the password hash
             user.PasswordHash = PasswordHelper.Hash(password, user);
 
-            // Cria o usuário
             var createdUser = await _userRepository.AddAsync(user);
 
             return createdUser;
         }
 
-        public async Task<User> UpdateUserAsync(User user)
+        public async Task<User> ChangePasswordAsync(string email, string currentPassword, string newPassword)
         {
-            var existingUser = await _userRepository.GetByIdAsync(user.Id);
-            if (existingUser == null)
+            if (string.IsNullOrWhiteSpace(email))
+                throw new BusinessException("O e-mail é obrigatório.");
+
+            if (string.IsNullOrWhiteSpace(currentPassword))
+                throw new BusinessException("A senha atual é obrigatória.");
+
+            if (!StringUtils.ValidatePassword(newPassword))
+                throw new BusinessException("A nova senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
+
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
                 throw new BusinessException("Usuário não encontrado.");
 
-            if (string.IsNullOrWhiteSpace(user.Name))
-                throw new BusinessException("O nome não pode estar vazio.");
+            var isValid = PasswordHelper.Verify(currentPassword, user.PasswordHash, user);
+            if (!isValid)
+                throw new BusinessException("Senha atual incorreta.");
 
-            existingUser.Name = user.Name.Trim();
-            return await _userRepository.UpdateAsync(existingUser);
+            return await UpdatePasswordAsync(user, newPassword);
         }
-
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _userRepository.GetByEmailAsync(email);
@@ -82,34 +89,39 @@ namespace ManiaDeLimpeza.Application.Services
 
         public async Task<User?> UpdatePasswordAsync(User user, string newPassword)
         {
-            user.PasswordHash = PasswordHelper.Hash(newPassword, user);
-            return await _userRepository.UpdateAsync(user);
+            if (user == null || user.Id <= 0)
+                throw new BusinessException("Usuário inválido.");
+
+            var existingUser = await _userRepository.GetByIdAsync(user.Id);
+
+            if (existingUser == null)
+                throw new BusinessException("Usuário não encontrado.");
+
+            existingUser.PasswordHash = PasswordHelper.Hash(newPassword, existingUser);
+
+            return await _userRepository.UpdateAsync(existingUser);
         }
         public async Task<User?> GetByIdAsync(int id)
         {
             return await _userRepository.GetByIdAsync(id);
         }
 
-        public async Task<User> ChangePasswordAsync(string email, string currentPassword, string newPassword)
+        public async Task<User?> UpdateUserAsync(User updatedUser)
         {
-            var user = await _userRepository.GetByEmailAsync(email);
-            if (user == null)
+            if (updatedUser == null)
+                throw new BusinessException("Usuário inválido.");
+
+            if (updatedUser.Id <= 0)
+                throw new BusinessException("ID do usuário inválido.");
+
+            var existingUser = await _userRepository.GetByIdAsync(updatedUser.Id);
+
+            if (existingUser == null)
                 throw new BusinessException("Usuário não encontrado.");
 
-            var isValid = PasswordHelper.Verify(currentPassword, user.PasswordHash, user);
-            if (!isValid)
-                throw new BusinessException("Senha atual incorreta.");
+            existingUser.Name = updatedUser.Name;
 
-            var existingUser = await _userRepository.GetByEmailAsync(user.Email);
-            if (existingUser != null && existingUser.Id != user.Id)
-                throw new BusinessException("A user with this email already exists.");
-
-            if (string.IsNullOrWhiteSpace(newPassword) || newPassword.Length < 6)
-                throw new BusinessException("A nova senha deve ter pelo menos 6 caracteres.");
-
-            user.PasswordHash = PasswordHelper.Hash(newPassword, user);
-
-            return await _userRepository.UpdateAsync(user);
+            return await _userRepository.UpdateAsync(existingUser);
         }
     }
 }

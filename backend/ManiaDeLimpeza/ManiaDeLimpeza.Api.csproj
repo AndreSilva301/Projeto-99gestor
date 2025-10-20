@@ -22,5 +22,9 @@
     <ProjectReference Include="..\ManiaDeLimpeza.Persistence\ManiaDeLimpeza.Persistence.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Response\" />
+  </ItemGroup>
+
 </Project>
             

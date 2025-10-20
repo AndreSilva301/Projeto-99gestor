@@ -25,6 +25,7 @@ using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 {
+   
     [TestClass]
     public class AuthControllerIntegrationTests
     {
@@ -353,8 +354,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         }
 
         [TestMethod]
-        public async Task ForgotpassWord_shouldReturnOk()
+        public async Task ForgotPassword_shouldReturnOk()
         {
+            // Arrange
             var email = "testepassword@gmail.com";
 
             using (var scope = _factory.Services.CreateScope())
@@ -374,26 +376,42 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                     Name = "Usuário Teste",
                     Email = email,
                     PasswordHash = "hash-aqui",
-                    CompanyId = newCompany.Id // usa o ID da empresa criada
+                    CompanyId = newCompany.Id
                 };
-
                 await userRepo.AddAsync(newUser);
             }
 
-            var dto = new { Email = email };
-            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+            // Act - chama o endpoint de recuperação de senha
+            var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", new { Email = email });
 
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            // Assert - valida o retorno da API
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<string>>();
 
+            Assert.IsNotNull(result);
+            Assert.AreEqual("Email de recuperação enviado com sucesso.", result.Message);
+
+            // Assert extra - garante que o token foi realmente criado no banco
             using (var scope = _factory.Services.CreateScope())
             {
-                var passwordResetRepo = scope.ServiceProvider.GetRequiredService<IPasswordResetRepository>();
-                var createdToken = await passwordResetRepo.GetLatestByEmailAsync(email);
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                Assert.IsNotNull(createdToken, "O token de redefinição deveria ter sido criado no banco.");
-                Assert.IsTrue(createdToken.Expiration > DateTime.UtcNow, "O token criado não deve estar expirado.");
+                var token = await context.PasswordResetTokens
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.User.Email == email);
+
+                Assert.IsNotNull(token);
+                Assert.AreEqual(email, token.User.Email);
+                Assert.IsTrue(token.Expiration > DateTime.UtcNow); // garante que ainda está válido
             }
+        }
+        private async Task<PasswordResetToken?> GetLatestTokenByEmailAsync(ApplicationDbContext db, string email)
+        {
+            return await db.PasswordResetTokens
+        .Include(t => t.User)
+        .Where(t => t.User.Email == email)
+        .OrderByDescending(t => t.CreatedAt)
+        .FirstOrDefaultAsync();
         }
 
         [TestMethod]
@@ -590,8 +608,10 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task ResetPassword_ShouldReturnBadRequest_WhenTokenIsInvalid()
         {
+            // Arrange
             var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
             var mockUserService = new Mock<IUserService>();
+            var mockResetPasswordService = new Mock<IResetPasswordService>();
 
             var controller = new AuthController(
                 mockUserService.Object,
@@ -609,12 +629,16 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 NewPassword = "novaSenha123"
             };
 
-            mockPasswordResetRepo
-                .Setup(r => r.GetByTokenAsync(dto.Token))
-                .ReturnsAsync((PasswordResetToken)null);
+            mockResetPasswordService
+                .Setup(s => s.ResetAsync(dto))
+                .ReturnsAsync(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Token inválido ou expirado"
+                });
 
             // Act
-            var result = await controller.ResetPassword(dto);
+            var result = await controller.ResetPassword(dto, mockResetPasswordService.Object);
 
             // Assert
             var badRequestResult = result.Result as BadRequestObjectResult;
@@ -630,6 +654,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         {
             var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
             var mockUserService = new Mock<IUserService>();
+            var mockResetPasswordService = new Mock<IResetPasswordService>();
 
             var controller = new AuthController(
                 mockUserService.Object,
@@ -641,25 +666,23 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 mockPasswordResetRepo.Object
             );
 
-            var expiredToken = new PasswordResetToken
-            {
-                Token = "expired-token",
-                Expiration = DateTime.UtcNow.AddMinutes(-1),
-                UserId = 1
-            };
-
-            mockPasswordResetRepo
-                .Setup(r => r.GetByTokenAsync("expired-token"))
-                .ReturnsAsync(expiredToken);
-
             var dto = new ResetPasswordRequestDto
             {
-                Token = "expired-token",
+                Token = "invalid-token",
                 NewPassword = "novaSenha123"
             };
 
+            // Configura o mock para retornar uma resposta de falha (token inválido)
+            mockResetPasswordService
+                .Setup(s => s.ResetAsync(dto))
+                .ReturnsAsync(new ApiResponse<string>
+                {
+                    Success = false,
+                    Message = "Token inválido ou expirado"
+                });
+
             // Act
-            var result = await controller.ResetPassword(dto);
+            var result = await controller.ResetPassword(dto, mockResetPasswordService.Object);
 
             // Assert
             var badRequestResult = result.Result as BadRequestObjectResult;
@@ -675,6 +698,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         {
             var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
             var mockUserService = new Mock<IUserService>();
+            var mockResetPasswordService = new Mock<IResetPasswordService>();
 
             var fakeUser = new User
             {
@@ -715,8 +739,18 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 NewPassword = "novaSenha123"
             };
 
+            // Mock do serviço de reset de senha retornando sucesso
+            mockResetPasswordService
+                .Setup(s => s.ResetAsync(dto))
+                .ReturnsAsync(new ApiResponse<string>
+                {
+                    Success = true,
+                    Message = "Senha redefinida com sucesso",
+                    Data = "Senha redefinida com sucesso"
+                });
+
             // Act
-            var result = await controller.ResetPassword(dto);
+            var result = await controller.ResetPassword(dto, mockResetPasswordService.Object);
 
             // Assert
             var okResult = result.Result as OkObjectResult;
@@ -724,16 +758,30 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             var response = okResult.Value as ApiResponse<string>;
             Assert.IsTrue(response.Success);
-            Assert.AreEqual("Senha redefinida com sucesso", response.Data); ;
+            Assert.AreEqual("Senha redefinida com sucesso", response.Data);
 
             mockUserService.Verify(u => u.UpdatePasswordAsync(
-                                It.Is<User>(usr => usr.Id == validToken.UserId),
-                                dto.NewPassword), Times.Once);
+                It.Is<User>(usr => usr.Id == validToken.UserId),
+                dto.NewPassword), Times.Once);
         }
 
         [TestMethod]
         public async Task ResetPassword_ShouldReturnBadRequest_WhenPasswordIsEmpty()
         {
+            // Arrange
+            var mockResetPasswordService = new Mock<IResetPasswordService>();
+
+            // Configura o comportamento do serviço quando a senha for vazia
+            var expectedResponse = new ApiResponse<string>
+            {
+                Success = false,
+                Message = "A nova senha deve ter pelo menos 6 caracteres."
+            };
+
+            mockResetPasswordService
+                .Setup(s => s.ResetAsync(It.IsAny<ResetPasswordRequestDto>()))
+                .ReturnsAsync(expectedResponse);
+
             var controller = new AuthController(
                 Mock.Of<IUserService>(),
                 Mock.Of<ICompanyServices>(),
@@ -747,11 +795,13 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             var dto = new ResetPasswordRequestDto
             {
                 Token = "some-token",
-                NewPassword = ""
+                NewPassword = "" // senha vazia
             };
 
-            var result = await controller.ResetPassword(dto);
+            // Act
+            var result = await controller.ResetPassword(dto, mockResetPasswordService.Object);
 
+            // Assert
             var badRequestResult = result.Result as BadRequestObjectResult;
             Assert.IsNotNull(badRequestResult);
 
@@ -849,59 +899,6 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             // Assert
             Assert.AreEqual("Novo Nome", result.Name);
             mockRepo.Verify(r => r.UpdateAsync(It.Is<User>(u => u.Name == "Novo Nome")), Times.Once);
-        }
-
-        [TestMethod]
-        public async Task ForgotPassword_shouldReturnOk()
-        {
-            // Arrange
-            var email = "testepassword@gmail.com";
-
-            using (var scope = _factory.Services.CreateScope())
-            {
-                var companyRepo = scope.ServiceProvider.GetRequiredService<ICompanyRepository>();
-                var userRepo = scope.ServiceProvider.GetRequiredService<IUserRepository>();
-
-                var newCompany = new Company
-                {
-                    Name = "Empresa Teste",
-                    CNPJ = "12345678000199"
-                };
-                await companyRepo.AddAsync(newCompany);
-
-                var newUser = new User
-                {
-                    Name = "Usuário Teste",
-                    Email = email,
-                    PasswordHash = "hash-aqui",
-                    CompanyId = newCompany.Id
-                };
-                await userRepo.AddAsync(newUser);
-            }
-
-            // Act - chama o endpoint de recuperação de senha
-            var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", new { Email = email });
-
-            // Assert - valida o retorno da API
-            response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<ApiResponse<string>>();
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual("Email de recuperação enviado com sucesso.", result.Message);
-
-            // Assert extra - garante que o token foi realmente criado no banco
-            using (var scope = _factory.Services.CreateScope())
-            {
-                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-                var token = await context.PasswordResetTokens
-                    .Include(t => t.User)
-                    .FirstOrDefaultAsync(t => t.User.Email == email);
-
-                Assert.IsNotNull(token);
-                Assert.AreEqual(email, token.User.Email);
-                Assert.IsTrue(token.Expiration > DateTime.UtcNow); // garante que ainda está válido
-            }
-        }
+        }  
     }
 }

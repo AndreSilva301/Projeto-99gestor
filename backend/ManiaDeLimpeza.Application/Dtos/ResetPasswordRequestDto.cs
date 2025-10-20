@@ -1,4 +1,6 @@
-﻿namespace ManiaDeLimpeza.Application.Dtos;
+﻿using ManiaDeLimpeza.Application.Common;
+
+namespace ManiaDeLimpeza.Application.Dtos;
 public class ResetPasswordRequestDto
 {
     public string Token { get; set; } = string.Empty;
@@ -9,17 +11,28 @@ public class ResetPasswordRequestDto
     {
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Token))
-            errors.Add("Token é obrigatório.");
-
         if (string.IsNullOrWhiteSpace(NewPassword))
+        {
             errors.Add("A nova senha é obrigatória.");
-        else if (NewPassword.Length < 6)
-            errors.Add("A nova senha deve ter pelo menos 6 caracteres.");
+        }
+        else if (!StringUtils.ValidatePassword(NewPassword))
+        {
+            errors.Add("A nova senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
+        }
 
-        if (NewPassword != NewPasswordConfirm)
-            errors.Add("As senhas não conferem.");
+        if (string.IsNullOrWhiteSpace(NewPasswordConfirm))
+        {
+            errors.Add("A confirmação da nova senha é obrigatória.");
+        }
+        else if (NewPassword != NewPasswordConfirm)
+        {
+            errors.Add("As senhas não coincidem.");
+        }
 
+        if (string.IsNullOrWhiteSpace(Token))
+        {
+            errors.Add("O token de redefinição é obrigatório.");
+        }
         return errors;
     }
     public bool IsValid() => !Validate().Any();

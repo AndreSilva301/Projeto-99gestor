@@ -4,11 +4,11 @@ using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace ManiaDeLimpeza.Application.Services;
-public class EmailSendServices : IEmailServices, IScopedDependency
+public class EmailServices : IEmailServices, IScopedDependency
 {
-    private readonly ILogger<EmailSendServices> _logger;
+    private readonly ILogger<EmailServices> _logger;
 
-    public EmailSendServices(ILogger<EmailSendServices> logger)
+    public EmailServices(ILogger<EmailServices> logger)
     {
         _logger = logger;
     }

@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Infrastructure.Exceptions;
+﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -32,9 +33,13 @@ namespace ManiaDeLimpeza.Application.Dtos
                 errors.Add("E-mail inválido.");
 
             if (string.IsNullOrWhiteSpace(Password))
+            {
                 errors.Add("Senha é obrigatória.");
-            else if (Password.Length < 6)
-                errors.Add("Senha deve ter pelo menos 6 caracteres.");
+            }
+            else if (!StringUtils.ValidatePassword(Password))
+            {
+                errors.Add("A senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
+            }
 
             if (!IsValidPhone(Phone))
                 errors.Add("Telefone inválido. Deve conter entre 9 e 11 dígitos, podendo incluir espaços, parênteses, traços e o sinal de mais.");
@@ -53,7 +58,6 @@ namespace ManiaDeLimpeza.Application.Dtos
 
         private bool IsValidEmail(string email)
         {
-            // Simple but effective regex for most valid email formats
             var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
             return Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
         }
@@ -62,12 +66,10 @@ namespace ManiaDeLimpeza.Application.Dtos
             if (string.IsNullOrWhiteSpace(phone))
                 return false;
 
-            // Allow digits, spaces, parentheses, dashes, and plus sign
             var pattern = @"^[\d\s\-\+\(\)]+$";
             if (!Regex.IsMatch(phone, pattern))
                 return false;
 
-            // Count digits only (ignore formatting characters)
             int digitCount = phone.Count(char.IsDigit);
             return digitCount >= 8 && digitCount <= 11;
         }
