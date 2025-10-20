@@ -846,7 +846,6 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             var mockRepo = new Mock<IUserRepository>();
             mockRepo.Setup(r => r.GetByIdAsync(existingUser.Id)).ReturnsAsync(existingUser);
-            mockRepo.Setup(r => r.GetByEmailAsync(existingUser.Email)).ReturnsAsync(existingUser);
             mockRepo.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(existingUser);
 
             var service = new UserService(mockRepo.Object, null!, null!);
@@ -854,9 +853,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             // Act
             var result = await service.UpdateUserAsync(updatedUser);
 
-            var response = badRequestResult.Value as ApiResponse<string>;
-            Assert.IsFalse(response.Success);
-            Assert.AreEqual("A nova senha deve ter pelo menos 6 caracteres.", response.Message);
+            // Assert
+            Assert.AreEqual("Novo Nome", result.Name);
+            mockRepo.Verify(r => r.UpdateAsync(It.Is<User>(u => u.Name == "Novo Nome")), Times.Once);
         }
 
         [TestMethod]
