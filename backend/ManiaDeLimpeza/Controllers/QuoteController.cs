@@ -1,55 +1,58 @@
 ﻿using ManiaDeLimpeza.Api.Controllers.Base;
-using ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers;
 using ManiaDeLimpeza.Application.Dtos;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManiaDeLimpeza.Api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize]
-    public class QuoteController : AuthControllerBase
+    public class QuoteController : AuthBaseController
     {
-        private readonly IQuoteService _quoteService;
+        // Remover IQuoteService temporariamente até implementarmos
+        // private readonly IQuoteService _quoteService;
 
-        public QuoteController(IQuoteService quoteService)
+        public QuoteController()
         {
-            _quoteService = quoteService;
+            // _quoteService = quoteService;
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] QuoteDto quoteDto)
         {
-            var user = GetCurrentUser();
-            if (user == null)
+            // Usar a propriedade CurrentUser do AuthBaseController
+            if (CurrentUser == null)
                 return Unauthorized("Unable to resolve current user");
 
-            var created = await _quoteService.CreateAsync(quoteDto, user);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            // TODO: Implementar quando IQuoteService estiver disponível
+            // var created = await _quoteService.CreateAsync(quoteDto, CurrentUser);
+            // return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            
+            return Ok($"Quote would be created for user: {CurrentUser.Name}");
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] QuoteDto quoteDto)
         {
             if (id != quoteDto.Id) return BadRequest("ID mismatch");
-            await _quoteService.UpdateAsync(quoteDto);
+            // await _quoteService.UpdateAsync(quoteDto);
             return NoContent();
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var quote = await _quoteService.GetByIdAsync(id);
-            if (quote == null) return NotFound();
-            return Ok(quote);
+            // var quote = await _quoteService.GetByIdAsync(id);
+            // if (quote == null) return NotFound();
+            // return Ok(quote);
+            return Ok($"Quote {id} for user: {CurrentUser?.Name}");
         }
 
         [HttpPost("search")]
         public async Task<IActionResult> Search([FromBody] QuoteFilterDto filter)
         {
-            var quotes = await _quoteService.GetPagedAsync(filter);
-            return Ok(quotes);
+            // var quotes = await _quoteService.GetPagedAsync(filter);
+            // return Ok(quotes);
+            return Ok($"Search quotes for user: {CurrentUser?.Name}");
         }
     }
 }

@@ -96,6 +96,10 @@ public class Program
         }
 
         app.UseHttpsRedirection();
+        // IMPORTANT: Add authentication before authorization
+        app.UseAuthentication(); 
+        // Middleware to fetch user from DB
+        app.UseMiddleware<UserFetchMiddleware>(); 
         app.UseAuthorization();
         app.MapControllers();
         app.Run();

@@ -1,14 +1,13 @@
-﻿using ManiaDeLimpeza.Application.Interfaces;
+﻿using ManiaDeLimpeza.Api.Controllers.Base;
+using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManiaDeLimpeza.Api.Controllers
 {
     [ApiController]
-    [Authorize]
     [Route("api/[controller]")]
-    public class CustomerController : ControllerBase
+    public class CustomerController : AuthBaseController
     {
         private readonly ICustomerService _customerService;
 

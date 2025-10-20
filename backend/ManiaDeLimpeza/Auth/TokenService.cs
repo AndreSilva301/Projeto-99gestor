@@ -29,7 +29,7 @@ namespace ManiaDeLimpeza.Api.Auth
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(claims),
-                Expires = DateTime.UtcNow.AddHours(_options.ExpireTimeInSeconds),
+                Expires = DateTime.UtcNow.AddSeconds(_options.ExpireTimeInSeconds),
                 SigningCredentials = new SigningCredentials(
                     new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
