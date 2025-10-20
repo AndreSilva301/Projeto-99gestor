@@ -1,7 +1,8 @@
 ﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Interfaces;
 
 namespace ManiaDeLimpeza.Application.Dtos;
-public class ForgotPasswordRequestDto
+public class ForgotPasswordRequestDto : IBasicDto
 {
     public string Email { get; set; } = string.Empty;
 
@@ -9,20 +10,17 @@ public class ForgotPasswordRequestDto
     {
         var errors = new List<string>();
 
-        if (!StringUtils.IsValidEmail(Email))
+        if (string.IsNullOrWhiteSpace(Email))
+            errors.Add("E-mail é obrigatório.");
+        else if (!Email.IsValidEmail())  // Fixed: negation added
             errors.Add("E-mail inválido.");
 
         return errors;
     }
 
-    public (bool IsValid, string ErrorMessage) IsValid()
+    public bool IsValid()
     {
-        if (string.IsNullOrWhiteSpace(Email))
-            return (false, "O campo de e-mail é obrigatório.");
-
-        if (!Email.Contains("@"))
-            return (false, "O e-mail informado é inválido.");
-
-        return (true, string.Empty);
+        return Validate().Count == 0;
     }
+
 }

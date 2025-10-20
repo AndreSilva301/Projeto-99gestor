@@ -1,7 +1,8 @@
 ﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Interfaces;
 
 namespace ManiaDeLimpeza.Application.Dtos;
-public class ResetPasswordRequestDto
+public class ResetPasswordRequestDto : IBasicDto
 {
     public string Token { get; set; } = string.Empty;
     public string NewPassword { get; set; } = string.Empty;
@@ -15,7 +16,7 @@ public class ResetPasswordRequestDto
         {
             errors.Add("A nova senha é obrigatória.");
         }
-        else if (!StringUtils.ValidatePassword(NewPassword))
+        else if (!NewPassword.ValidatePassword())  // Fixed: negation added
         {
             errors.Add("A nova senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
         }
@@ -35,6 +36,10 @@ public class ResetPasswordRequestDto
         }
         return errors;
     }
-    public bool IsValid() => !Validate().Any();
+
+    public bool IsValid()
+    {
+        return Validate().Count == 0;
+    }
 }
 

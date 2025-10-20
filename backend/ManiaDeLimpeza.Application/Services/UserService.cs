@@ -1,17 +1,11 @@
 ﻿using AutoMapper;
 using ManiaDeLimpeza.Application.Common;
-using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
 using ManiaDeLimpeza.Infrastructure.Helpers;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Application.Services
 {
@@ -68,6 +62,7 @@ namespace ManiaDeLimpeza.Application.Services
 
             return await UpdatePasswordAsync(user, newPassword);
         }
+
         public async Task<User?> GetByEmailAsync(string email)
         {
             return await _userRepository.GetByEmailAsync(email);

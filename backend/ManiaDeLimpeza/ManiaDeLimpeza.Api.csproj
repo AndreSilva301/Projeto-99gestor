@@ -18,7 +18,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\ManiaDeLimpeza.Application\ManiaDeLimpeza.Application.csproj" />
-    <ProjectReference Include="..\ManiaDeLimpeza.Infrastructure\ManiaDeLimpeza.Infrastructure.csproj" />
     <ProjectReference Include="..\ManiaDeLimpeza.Persistence\ManiaDeLimpeza.Persistence.csproj" />
   </ItemGroup>
 
