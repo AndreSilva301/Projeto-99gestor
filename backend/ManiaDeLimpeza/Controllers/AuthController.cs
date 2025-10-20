@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
@@ -21,6 +22,7 @@ public class AuthController : ControllerBase
     private readonly ITokenService _tokenService;
     private readonly ApplicationDbContext _dbContext;
     private readonly IForgotPasswordService _forgotPasswordService;
+    private readonly ILeadService _leadService;
 
 
     public AuthController(
@@ -30,7 +32,7 @@ public class AuthController : ControllerBase
         IMapper mapper,
         ApplicationDbContext dbContext,
         IForgotPasswordService forgotPasswordService,
-        IPasswordResetRepository passwordResetRepository)
+        ILeadService leadService)
     {
         _userService = userService;
         _mapper = mapper;
@@ -38,6 +40,7 @@ public class AuthController : ControllerBase
         _companyServices = companyServices;
         _dbContext = dbContext;
         _forgotPasswordService = forgotPasswordService;
+        _leadService = leadService;
     }
 
     [HttpPost("register")]
@@ -165,5 +168,27 @@ public class AuthController : ControllerBase
             return BadRequest(response);
 
         return Ok(response);
+    }
+
+    [HttpPost("capture")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<Lead>>> CaptureLead([FromBody] LeadCaptureRequestDto dto)
+    {
+        try
+        {
+            var lead = await _leadService.CaptureLeadAsync(dto);
+
+            if (lead != null)
+            {
+                return Ok(ApiResponseHelper.SuccessResponse(lead));
+            }
+
+            return Ok(ApiResponseHelper.SuccessResponse<Lead>(null));
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
+        }
     }
 }
