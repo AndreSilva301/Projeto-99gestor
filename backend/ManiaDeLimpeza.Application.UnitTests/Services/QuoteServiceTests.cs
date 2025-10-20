@@ -15,7 +15,7 @@ using ManiaDeLimpeza.Application.UnitTests.Tools;
 namespace ManiaDeLimpeza.Application.UnitTests.Services
 {
     [TestClass]
-    public class QuoteServiceTests: TestsBase
+    public class QuoteServiceTests : TestsBase
     {
         private Mock<IQuoteRepository> _quoteRepositoryMock = null!;
         private Mock<ICustomerRepository> _clientRepositoryMock = null!;
@@ -85,7 +85,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             await _service.CreateAsync(quoteDto, user);
         }
 
-        
+
         [TestMethod]
         public async Task UpdateAsync_ShouldRecalculateTotal()
         {
@@ -173,5 +173,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             Assert.AreEqual(90, result.TotalPrice); // 95 - 5
             _quoteRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Quote>()), Times.Once);
         }
+
     }
 }

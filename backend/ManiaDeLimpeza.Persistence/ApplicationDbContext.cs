@@ -35,6 +35,7 @@ namespace ManiaDeLimpeza.Persistence
         public DbSet<CustomerRelationship> CustomerRelationships => Set<CustomerRelationship>();
         public DbSet<Quote> Quotes => Set<Quote>();
         public DbSet<QuoteItem> QuoteItems => Set<QuoteItem>();
+        public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

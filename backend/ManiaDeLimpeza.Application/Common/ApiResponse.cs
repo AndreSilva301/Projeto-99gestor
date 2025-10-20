@@ -4,27 +4,33 @@ public class ApiResponse<T>
 {
     public bool Success { get; set; }
     public string Message { get; set; } = string.Empty;
-    public T Data { get; set;}
+    public T Data { get; set; }
     public List<string> Errors { get; set; } = new List<string>();
     public string TimeStamp { get; set; } = DateTime.UtcNow.ToString("O");
 
-    public ApiResponse() { }
-
-    public ApiResponse(T data, string message)
+    public ApiResponse(T data, string message = "Request successful")
     {
         Success = true;
         Message = message;
         Data = data;
-        Errors = new List<string>();
-        TimeStamp = DateTime.UtcNow.ToString("O");
+        Errors = null;
     }
 
-    public ApiResponse(List<string> errors, string message)
+    public ApiResponse(List<string> errors, string message = "Request failed")
     {
         Success = false;
-        Message = message;
+        Message = message; 
         Data = default;
         Errors = errors;
-        TimeStamp = DateTime.UtcNow.ToString("O");
     }
+
+    public ApiResponse(string error, string message = "Request failed")
+    {
+        Success = false;
+        Message = message; 
+        Data = default;
+        Errors = new List<string> { error };
+    }
+
+    public ApiResponse() { }
 }
