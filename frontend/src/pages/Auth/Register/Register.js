@@ -99,9 +99,9 @@ const Register = () => {
       const result = await authService.register(formData);
 
       if (result.success) {
-        // Registration successful - redirect to dashboard or home
+        // Registration successful - redirect to portal
         console.log('Registration successful:', result);
-        navigate('/dashboard', { 
+        navigate('/portal/', { 
           state: { 
             message: 'Conta criada com sucesso! Bem-vindo ao 99Gestor!' 
           }

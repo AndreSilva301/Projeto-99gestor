@@ -1,11 +1,14 @@
-﻿using ManiaDeLimpeza.Application.Interfaces;
+﻿using ManiaDeLimpeza.Api.Auth;
+using ManiaDeLimpeza.Api.Response;
+using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using ManiaDeLimpeza.Application.Services;
-using System.Security.Cryptography;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Microsoft.Extensions.Options;
-using ManiaDeLimpeza.Api.Auth;
+using System.Security.Cryptography;
 
 
 
@@ -14,20 +17,23 @@ public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
 {
     private readonly IPasswordResetRepository _passwordResetRepository;
     private readonly IUserRepository _userRepository;
-    private readonly IEmailSenderServices _emailSenderService;
+    private readonly IUserService _userService;
+    private readonly IEmailServices _emailSenderService;
     private readonly int _expirationInMinutes;
-   
+
 
     public ForgotPasswordService(
         IPasswordResetRepository passwordResetRepository,
         IUserRepository userRepository,
-        IEmailSenderServices emailSenderService,
+        IUserService userService,
+        IEmailServices emailSenderService,
         IOptions<ResetPasswordOptions> resetPasswordOptions)
     {
         _passwordResetRepository = passwordResetRepository;
         _userRepository = userRepository;
         _emailSenderService = emailSenderService;
         _expirationInMinutes = resetPasswordOptions.Value.TokenExpirationInMinutes;
+        _userService = userService;
     }
 
     public async Task SendResetPasswordEmailAsync(string email)
@@ -49,7 +55,7 @@ public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
 
         await _passwordResetRepository.AddAsync(resetToken);
 
-        await _emailSenderService.SendResetPasswordEmailAsync(user.Email, token);
+        await _emailSenderService.SendForgetPasswordEmail(user.Email, token);
     }
     private static string GenerateSecureToken()
     {
@@ -64,5 +70,30 @@ public class ForgotPasswordService : IForgotPasswordService, IScopedDependency
             return null;
 
         return tokenEntity;
+    }
+
+    public async Task<ApiResponse<string>> ResetAsync(ResetPasswordRequestDto dto)
+    {
+        if (!dto.IsValid())
+            return ApiResponseHelper.ErrorResponse(string.Join(", ", dto.Validate()));
+
+        var tokenData = await _passwordResetRepository.GetByTokenAsync(dto.Token);
+
+        if (tokenData == null || tokenData.Expiration < DateTime.UtcNow)
+            return ApiResponseHelper.ErrorResponse("Token inválido ou expirado");
+
+        var user = tokenData.User;
+        if (user == null)
+            return ApiResponseHelper.ErrorResponse("Usuário não encontrado para o token informado.");
+
+        try
+        {
+            await _userService.UpdatePasswordAsync(user, dto.NewPassword);
+            return ApiResponseHelper.SuccessResponse("Senha redefinida com sucesso");
+        }
+        catch (BusinessException ex)
+        {
+            return ApiResponseHelper.ErrorResponse(ex.Message);
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using ManiaDeLimpeza.Infrastructure.Exceptions;
+﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Interfaces;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,7 +8,7 @@ using System.Text.RegularExpressions;
 
 namespace ManiaDeLimpeza.Application.Dtos
 {
-    public class RegisterUserDto
+    public class RegisterUserRequestDto : IBasicDto
     {
         public string Name { get; set; } = string.Empty;
         public string Phone { get; set; } = string.Empty;
@@ -15,6 +17,11 @@ namespace ManiaDeLimpeza.Application.Dtos
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
         public bool AcceptTerms { get; set; }
+
+        public bool IsValid()
+        {
+            return Validate().Count == 0;
+        }
 
         public List<string> Validate()
         {
@@ -28,15 +35,20 @@ namespace ManiaDeLimpeza.Application.Dtos
 
             if (string.IsNullOrWhiteSpace(Email))
                 errors.Add("E-mail é obrigatório.");
-            else if (!IsValidEmail(Email))
+
+            else if (!Email.IsValidEmail())  
                 errors.Add("E-mail inválido.");
 
             if (string.IsNullOrWhiteSpace(Password))
+            {
                 errors.Add("Senha é obrigatória.");
-            else if (Password.Length < 6)
-                errors.Add("Senha deve ter pelo menos 6 caracteres.");
+            }
+            else if (!Password.ValidatePassword())  
+            {
+                errors.Add("A senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
+            }
 
-            if (!IsValidPhone(Phone))
+            if (!Phone.IsValidPhone())  
                 errors.Add("Telefone inválido. Deve conter entre 9 e 11 dígitos, podendo incluir espaços, parênteses, traços e o sinal de mais.");
             
             if (Password != ConfirmPassword)
@@ -49,27 +61,6 @@ namespace ManiaDeLimpeza.Application.Dtos
                 errors.Add("É necessário aceitar os termos de uso.");
 
             return errors;
-        }
-
-        private bool IsValidEmail(string email)
-        {
-            // Simple but effective regex for most valid email formats
-            var pattern = @"^[^@\s]+@[^@\s]+\.[^@\s]+$";
-            return Regex.IsMatch(email, pattern, RegexOptions.IgnoreCase);
-        }
-        private bool IsValidPhone(string phone)
-        {
-            if (string.IsNullOrWhiteSpace(phone))
-                return false;
-
-            // Allow digits, spaces, parentheses, dashes, and plus sign
-            var pattern = @"^[\d\s\-\+\(\)]+$";
-            if (!Regex.IsMatch(phone, pattern))
-                return false;
-
-            // Count digits only (ignore formatting characters)
-            int digitCount = phone.Count(char.IsDigit);
-            return digitCount >= 8 && digitCount <= 11;
         }
 
     }

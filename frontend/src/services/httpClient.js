@@ -129,7 +129,7 @@ class HttpClient {
 }
 
 // Create and export a configured HTTP client instance
-const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:7294/api';
+const API_BASE_URL = process.env.REACT_APP_API_BASE_URL || 'https://localhost:7033/api';
 const httpClient = new HttpClient(API_BASE_URL);
 
 export { HttpClient, httpClient };

@@ -1,18 +1,23 @@
-﻿using ManiaDeLimpeza.Domain.Persistence;
+﻿using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 
 namespace ManiaDeLimpeza.Application.Services;
 public class EmailServices : IEmailServices, IScopedDependency
 {
+    private readonly ILogger<EmailServices> _logger;
+
+    public EmailServices(ILogger<EmailServices> logger)
+    {
+        _logger = logger;
+    }
+
     public Task SendForgetPasswordEmail(string email, string token)
     {
-        Console.WriteLine($"[Simulação] E-mail de recuperação de senha enviado para: {email}");
-        Console.WriteLine($"Link de redefinição:");
+        _logger.LogInformation("[Simulação] E-mail de recuperação de senha enviado para: {email}", email);
+        _logger.LogInformation("[Simulação] Link de redefinição: {token}", token);
+
         return Task.CompletedTask;
     }
 }

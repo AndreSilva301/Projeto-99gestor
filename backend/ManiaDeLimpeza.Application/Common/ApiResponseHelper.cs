@@ -10,9 +10,9 @@ public static class ApiResponseHelper
         return response;
     }
 
-    public static ApiResponse<T> ErrorResponse<T>(List<string> errors, string message = "Request failed")
+    public static ApiResponse<string> ErrorResponse(List<string> errors, string message = "Request failed")
     {
-        var response = new ApiResponse<T>(errors, message);
+        var response = new ApiResponse<string>(errors, message);
         response.Success = false;
         response.Message = message;
         response.Errors = errors ?? new List<string>();

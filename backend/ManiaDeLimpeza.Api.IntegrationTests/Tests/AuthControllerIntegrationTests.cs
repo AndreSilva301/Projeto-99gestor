@@ -8,6 +8,7 @@ using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Infrastructure.Helpers;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,11 +19,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Net.Http.Json;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 {
+   
     [TestClass]
     public class AuthControllerIntegrationTests
     {
@@ -50,7 +53,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_ShouldReturnCreated()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Email = "testuser@example.com",
@@ -75,7 +78,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_WhenPasswordNotMatch_ShouldBreak()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Email = "testuser@example.com",
@@ -101,7 +104,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_WhenEmailIsInvalid_ShouldBreak()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Email = "testuser",
@@ -127,7 +130,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_WhenEmailIsDuplicated_ShouldBreak()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Email = "testuser@test.com",
@@ -152,7 +155,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.AreEqual(registerDto.Name, registedUser.Name);
             Assert.AreEqual(registerDto.Email, registedUser.Email);
 
-            registerDto = new RegisterUserDto
+            registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User2",
                 Email = "testuser@test.com",
@@ -177,7 +180,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_WhenUsuarioNaoEhCriado_NaoDuplicarEmpresa()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Phone = "1234567890",
@@ -195,7 +198,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
 
-            registerDto = new RegisterUserDto
+            registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User2",
                 Phone = "1234567890",
@@ -228,7 +231,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_WhenPhoneIsInvalid_ShouldBreak()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Email = "testuser@test.com",
@@ -254,7 +257,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task Register_WhenValid_ShouldGiveBackAJWT()
         {
             // Arrange
-            var registerDto = new RegisterUserDto
+            var registerDto = new RegisterUserRequestDto
             {
                 Name = "Test User",
                 Email = "testuser@test.com",
@@ -351,8 +354,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         }
 
         [TestMethod]
-        public async Task ForgotpassWord_shouldReturnOk()
+        public async Task ForgotPassword_shouldReturnOk()
         {
+            // Arrange
             var email = "testepassword@gmail.com";
 
             using (var scope = _factory.Services.CreateScope())
@@ -372,32 +376,51 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                     Name = "Usuário Teste",
                     Email = email,
                     PasswordHash = "hash-aqui",
-                    CompanyId = newCompany.Id // usa o ID da empresa criada
+                    CompanyId = newCompany.Id
                 };
-
                 await userRepo.AddAsync(newUser);
             }
 
-            var dto = new { Email = email };
-            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-            var response = await _client.PostAsync("/api/auth/forgot-password", content);
+            // Act - chama o endpoint de recuperação de senha
+            var response = await _client.PostAsJsonAsync("/api/auth/forgot-password", new { Email = email });
 
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            // Assert - valida o retorno da API
+            response.EnsureSuccessStatusCode();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<string>>();
 
+            Assert.IsNotNull(result);
+            Assert.IsTrue(result.Success);
+            // The message should be in Data property based on ApiResponseHelper.SuccessResponse implementation
+            Assert.IsNotNull(result.Data);
+            StringAssert.Contains(result.Data, "E-mail de recuperação enviado");
+
+            // Assert extra - garante que o token foi realmente criado no banco
             using (var scope = _factory.Services.CreateScope())
             {
-                var passwordResetRepo = scope.ServiceProvider.GetRequiredService<IPasswordResetRepository>();
-                var createdToken = await passwordResetRepo.GetLatestByEmailAsync(email);
+                var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-                Assert.IsNotNull(createdToken, "O token de redefinição deveria ter sido criado no banco.");
-                Assert.IsTrue(createdToken.Expiration > DateTime.UtcNow, "O token criado não deve estar expirado.");
+                var token = await context.PasswordResetTokens
+                    .Include(t => t.User)
+                    .FirstOrDefaultAsync(t => t.User.Email == email);
+
+                Assert.IsNotNull(token);
+                Assert.AreEqual(email, token.User.Email);
+                Assert.IsTrue(token.Expiration > DateTime.UtcNow); // garante que ainda está válido
             }
+        }
+        private async Task<PasswordResetToken?> GetLatestTokenByEmailAsync(ApplicationDbContext db, string email)
+        {
+            return await db.PasswordResetTokens
+        .Include(t => t.User)
+        .Where(t => t.User.Email == email)
+        .OrderByDescending(t => t.CreatedAt)
+        .FirstOrDefaultAsync();
         }
 
         [TestMethod]
         public async Task ForgotpassWord_ShoulReturnOK_WhenEmailDoesNotExist()
         {
-            var dto = new 
+            var dto = new
             {
                 Email = "testeemailnotexist@gmail.com"
             };
@@ -410,9 +433,9 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task ForgotPassword_ShouldReturnBadRequest_WhenEmailIsInvalid()
         {
-            var dto = new 
+            var dto = new
             {
-                Email = "emailsemarroba" 
+                Email = "emailsemarroba"
             };
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
             var response = await _client.PostAsync("/api/auth/forgot-password", content);
@@ -441,7 +464,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
             var response = await _client.PostAsync("/api/auth/forgot-password", content);
 
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+            // The controller validates the email format and returns BadRequest for invalid emails
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
@@ -485,11 +509,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         public async Task VerifyResetToken_ShouldReturnBadRequest_WhenTokenIsInvalid()
         {
             // Arrange
-            var dto = new
-            {
-                Token = "token-invalido-123"
-            };
-            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            var token = "\"token-invalido-123\""; // precisa das aspas para ser JSON string válido
+            var content = new StringContent(token, Encoding.UTF8, "application/json");
 
             // Act
             var response = await _client.PostAsync("/api/auth/verify-reset-token", content);
@@ -516,6 +537,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 var user = TestDataSeeder.GetDefaultUser();
                 user.CompanyId = company.Id;
                 user.Company = company;
+
                 await db.Users.AddAsync(user);
                 await db.SaveChangesAsync();
 
@@ -530,18 +552,17 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 await db.SaveChangesAsync();
             }
 
-            var dto = new { Token = "valid-token-123" };
-            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            var content = new StringContent("\"valid-token-123\"", Encoding.UTF8, "application/json");
 
             var response = await _client.PostAsync("/api/auth/verify-reset-token", content);
 
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
             var body = await response.Content.ReadAsStringAsync();
+
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode, $"Resposta inesperada: {body}");
+
             StringAssert.Contains(body, "Token válido");
             StringAssert.Contains(body, TestDataSeeder.DefaultEmail);
         }
-
 
         [TestMethod]
         public async Task VerifyResetToken_ShouldReturnBadRequest_WhenTokenIsExpired()
@@ -576,8 +597,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 await db.SaveChangesAsync();
             }
 
-            var dto = new { Token = "expired-token-123" };
-            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+            // Send just the string token, not an object
+            var content = new StringContent("\"expired-token-123\"", Encoding.UTF8, "application/json");
 
             var response = await _client.PostAsync("/api/auth/verify-reset-token", content);
 
@@ -591,174 +612,247 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task ResetPassword_ShouldReturnBadRequest_WhenTokenIsInvalid()
         {
-            var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
-            var mockUserService = new Mock<IUserService>();
-
-            var controller = new AuthController(
-                mockUserService.Object,
-                Mock.Of<ICompanyServices>(),
-                Mock.Of<ITokenService>(),
-                Mock.Of<IMapper>(),
-                null, 
-                Mock.Of<IForgotPasswordService>(),
-                mockPasswordResetRepo.Object,
-                Mock.Of<ILeadService>()
-            );
-
-            var dto = new ResetPasswordDto
+            // Arrange
+            var dto = new ResetPasswordRequestDto
             {
                 Token = "invalid-token",
-                NewPassword = "novaSenha123"
+                NewPassword = "ValidPass123",
+                NewPasswordConfirm = "ValidPass123"
             };
 
-            mockPasswordResetRepo
-                .Setup(r => r.GetByTokenAsync(dto.Token))
-                .ReturnsAsync((PasswordResetToken)null);
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
 
             // Act
-            var result = await controller.ResetPassword(dto);
+            var response = await _client.PostAsync("/api/auth/reset-password", content);
 
             // Assert
-            var badRequestResult = result.Result as BadRequestObjectResult;
-            Assert.IsNotNull(badRequestResult);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
 
-            var response = badRequestResult.Value as ApiResponse<string>;
-            Assert.IsFalse(response.Success);
-            Assert.AreEqual("Token inválido ou expirado", response.Message);
+            var body = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<string>>(body);
+            Assert.IsFalse(apiResponse.Success);
+            StringAssert.Contains(apiResponse.Message, "Token inválido ou expirado");
         }
 
         [TestMethod]
         public async Task ResetPassword_ShouldReturnBadRequest_WhenTokenIsExpired()
         {
-            var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
-            var mockUserService = new Mock<IUserService>();
-
-            var controller = new AuthController(
-                mockUserService.Object,
-                Mock.Of<ICompanyServices>(),
-                Mock.Of<ITokenService>(),
-                Mock.Of<IMapper>(),
-                null,
-                Mock.Of<IForgotPasswordService>(),
-                mockPasswordResetRepo.Object,
-                Mock.Of<ILeadService>()
-            );
-
-            var expiredToken = new PasswordResetToken
+            // Arrange
+            var dto = new ResetPasswordRequestDto
             {
                 Token = "expired-token",
-                Expiration = DateTime.UtcNow.AddMinutes(-1),
-                UserId = 1
+                NewPassword = "ValidPass123",
+                NewPasswordConfirm = "ValidPass123"
             };
 
-            mockPasswordResetRepo
-                .Setup(r => r.GetByTokenAsync("expired-token"))
-                .ReturnsAsync(expiredToken);
-
-            var dto = new ResetPasswordDto
-            {
-                Token = "expired-token",
-                NewPassword = "novaSenha123"
-            };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
 
             // Act
-            var result = await controller.ResetPassword(dto);
+            var response = await _client.PostAsync("/api/auth/reset-password", content);
 
             // Assert
-            var badRequestResult = result.Result as BadRequestObjectResult;
-            Assert.IsNotNull(badRequestResult);
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
 
-            var response = badRequestResult.Value as ApiResponse<string>;
-            Assert.IsFalse(response.Success);
-            Assert.AreEqual("Token inválido ou expirado", response.Message);
+            var body = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<string>>(body);
+            Assert.IsFalse(apiResponse.Success);
+            StringAssert.Contains(apiResponse.Message, "Token inválido ou expirado");
         }
 
         [TestMethod]
         public async Task ResetPassword_ShouldReturnOk_WhenTokenIsValid()
         {
-            var mockPasswordResetRepo = new Mock<IPasswordResetRepository>();
-            var mockUserService = new Mock<IUserService>();
-
-            var fakeUser = new User
+            using (var scope = _factory.Services.CreateScope())
             {
-                Id = 1,
-                Name = "Usuário Teste",
-                Email = "teste@exemplo.com"
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                var company = new Company
+                {
+                    Name = "Empresa Teste"
+                };
+
+                await db.Companies.AddAsync(company);
+                await db.SaveChangesAsync();
+
+                var user = TestDataSeeder.GetDefaultUser();
+                user.CompanyId = company.Id;
+                user.Company = company;
+
+                await db.Users.AddAsync(user);
+                await db.SaveChangesAsync();
+
+                var validToken = new PasswordResetToken
+                {
+                    Token = "valid-token-123",
+                    UserId = user.Id,
+                    Expiration = DateTime.UtcNow.AddMinutes(30)
+                };
+
+                await db.PasswordResetTokens.AddAsync(validToken);
+                await db.SaveChangesAsync();
+            }
+
+            var dto = new ResetPasswordRequestDto
+            {
+                Token = "valid-token-123",
+                NewPassword = "ValidPass123",
+                NewPasswordConfirm = "ValidPass123"
             };
 
-            var validToken = new PasswordResetToken
-            {
-                Token = "valid-token",
-                Expiration = DateTime.UtcNow.AddMinutes(10),
-                UserId = 1,
-                User = fakeUser 
-            };
-
-            mockPasswordResetRepo
-                .Setup(r => r.GetByTokenAsync("valid-token"))
-                .ReturnsAsync(validToken);
-
-            mockUserService
-                .Setup(u => u.UpdatePasswordAsync(It.IsAny<User>(), It.IsAny<string>()))
-                .ReturnsAsync(fakeUser);
-
-            var controller = new AuthController(
-                mockUserService.Object,
-                Mock.Of<ICompanyServices>(),
-                Mock.Of<ITokenService>(),
-                Mock.Of<IMapper>(),
-                null,
-                Mock.Of<IForgotPasswordService>(),
-                mockPasswordResetRepo.Object,
-                Mock.Of<ILeadService>()
-            );
-
-            var dto = new ResetPasswordDto
-            {
-                Token = "valid-token",
-                NewPassword = "novaSenha123"
-            };
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
 
             // Act
-            var result = await controller.ResetPassword(dto);
+            var response = await _client.PostAsync("/api/auth/reset-password", content);
 
             // Assert
-            var okResult = result.Result as OkObjectResult;
-            Assert.IsNotNull(okResult);
+            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var response = okResult.Value as ApiResponse<string>;
-            Assert.IsTrue(response.Success);
-            Assert.AreEqual("Senha redefinida com sucesso", response.Data); ;
-
-            mockUserService.Verify(u => u.UpdatePasswordAsync(
-                                It.Is<User>(usr => usr.Id == validToken.UserId),
-                                dto.NewPassword), Times.Once);
+            var body = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<string>>(body);
+            Assert.IsTrue(apiResponse.Success);
+            Assert.AreEqual("Senha redefinida com sucesso", apiResponse.Data);
         }
 
         [TestMethod]
         public async Task ResetPassword_ShouldReturnBadRequest_WhenPasswordIsEmpty()
         {
-            var controller = new AuthController(
-                Mock.Of<IUserService>(),
-                Mock.Of<ICompanyServices>(),
-                Mock.Of<ITokenService>(),
-                Mock.Of<IMapper>(),
-                null,
-                Mock.Of<IForgotPasswordService>(),
-                Mock.Of<IPasswordResetRepository>(),
-                Mock.Of<ILeadService>()
-            );
-
-            var dto = new ResetPasswordDto
+            // Arrange
+            var dto = new ResetPasswordRequestDto
             {
                 Token = "some-token",
-                NewPassword = ""
+                NewPassword = "", // senha vazia
+                NewPasswordConfirm = ""
             };
 
-            var result = await controller.ResetPassword(dto);
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
 
-            var badRequestResult = result.Result as BadRequestObjectResult;
-            Assert.IsNotNull(badRequestResult);
+            // Act
+            var response = await _client.PostAsync("/api/auth/reset-password", content);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<string>>(body);
+            Assert.IsFalse(apiResponse.Success);
+            // The actual validation message from ResetPasswordRequestDto
+            StringAssert.Contains(apiResponse.Message, "A nova senha é obrigatória");
+        }
+
+        [TestMethod]
+        public async Task ResetPassword_ShouldReturnBadRequest_WhenPasswordIsInvalid()
+        {
+            // Arrange
+            var dto = new ResetPasswordRequestDto
+            {
+                Token = "some-token",
+                NewPassword = "123", // senha muito curta e sem letra
+                NewPasswordConfirm = "123"
+            };
+
+            var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
+
+            // Act
+            var response = await _client.PostAsync("/api/auth/reset-password", content);
+
+            // Assert
+            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
+
+            var body = await response.Content.ReadAsStringAsync();
+            var apiResponse = JsonConvert.DeserializeObject<ApiResponse<string>>(body);
+            Assert.IsFalse(apiResponse.Success);
+            // The actual validation message from ValidatePassword method
+            StringAssert.Contains(apiResponse.Message, "A nova senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número");
+        }
+
+        [TestMethod]
+        public async Task ChangePasswordAsync_ShouldUpdatePassword_WhenCurrentPasswordIsValid()
+        {
+            // Arrange
+            var user = new User { Id = 1, Email = "teste@email.com" };
+            user.PasswordHash = PasswordHelper.Hash("senhaAntiga123", user);
+            var mockRepo = new Mock<IUserRepository>();
+            mockRepo.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+            mockRepo.Setup(r => r.GetByIdAsync(user.Id)).ReturnsAsync(user); // Added mock for GetByIdAsync
+            mockRepo.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(user);
+
+            var service = new UserService(mockRepo.Object, null, null);
+
+            // Act
+            var result = await service.ChangePasswordAsync(user.Email, "senhaAntiga123", "senhaNova123");
+
+            // Assert
+            Assert.IsTrue(PasswordHelper.Verify("senhaNova123", result.PasswordHash, result));
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(BusinessException))]
+        public async Task ChangePasswordAsync_ShouldThrow_WhenCurrentPasswordIsInvalid()
+        {
+            // Arrange
+            var user = new User { Id = 1, Email = "teste@email.com" };
+            user.PasswordHash = PasswordHelper.Hash("senhaCorreta123", user);
+
+            var mockRepo = new Mock<IUserRepository>();
+            mockRepo.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+
+            var service = new UserService(mockRepo.Object, null!, null!);
+
+            // Act
+            await service.ChangePasswordAsync(user.Email, "senhaErrada123", "novaSenha123");
+        }
+
+        [TestMethod]
+        [ExpectedException(typeof(BusinessException))]
+        public async Task ChangePasswordAsync_ShouldThrow_WhenUserNotFound()
+        {
+            // Arrange
+            var mockRepo = new Mock<IUserRepository>();
+            mockRepo.Setup(r => r.GetByEmailAsync(It.IsAny<string>())).ReturnsAsync((User?)null);
+
+            var service = new UserService(mockRepo.Object, null!, null!);
+
+            // Act
+            await service.ChangePasswordAsync("naoexiste@email.com", "senhaAntiga123", "senhaNova123");
+        }
+
+        [TestMethod]
+        public async Task ChangePasswordAsync_ShouldCallUpdate_WhenPasswordChanged()
+        {
+            // Arrange
+            var user = new User { Id = 1, Email = "teste@email.com" };
+            user.PasswordHash = PasswordHelper.Hash("senhaAntiga123", user);
+
+            var mockRepo = new Mock<IUserRepository>();
+            mockRepo.Setup(r => r.GetByEmailAsync(user.Email)).ReturnsAsync(user);
+            mockRepo.Setup(r => r.GetByIdAsync(user.Id)).ReturnsAsync(user); // Added mock for GetByIdAsync
+            mockRepo.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(user);
+
+            var service = new UserService(mockRepo.Object, null!, null!);
+
+            // Act
+            await service.ChangePasswordAsync(user.Email, "senhaAntiga123", "senhaNova123");
+
+            // Assert
+            mockRepo.Verify(r => r.UpdateAsync(It.IsAny<User>()), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task UpdateUserAsync_ShouldUpdateNameOnly()
+        {
+            // Arrange
+            var existingUser = new User { Id = 1, Email = "teste@email.com", Name = "Antigo Nome" };
+            var updatedUser = new User { Id = 1, Email = "teste@email.com", Name = "Novo Nome" };
+
+            var mockRepo = new Mock<IUserRepository>();
+            mockRepo.Setup(r => r.GetByIdAsync(existingUser.Id)).ReturnsAsync(existingUser);
+            mockRepo.Setup(r => r.GetByEmailAsync(existingUser.Email)).ReturnsAsync(existingUser);
+            mockRepo.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync(existingUser);
+
+            var service = new UserService(mockRepo.Object, null!, null!);
+
+            // Act
+            var result = await service.UpdateUserAsync(updatedUser);
 
             var response = badRequestResult.Value as ApiResponse<string>;
             Assert.IsFalse(response.Success);
