@@ -5,6 +5,7 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Domain.Services;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Microsoft.Extensions.Options;

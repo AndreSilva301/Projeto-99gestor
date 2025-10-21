@@ -1,6 +1,6 @@
 ﻿using System.Reflection.Metadata;
 
-namespace ManiaDeLimpeza.Domain.Persistence;
+namespace ManiaDeLimpeza.Domain.Services;
 public interface IEmailServices 
 {
     Task SendForgetPasswordEmail(string email, string token);

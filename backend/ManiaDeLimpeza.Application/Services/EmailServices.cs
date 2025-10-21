@@ -1,5 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Interfaces;
-using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Domain.Services;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
