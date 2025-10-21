@@ -12,4 +12,7 @@ public interface ICompanyServices
     Task<Company> UpdateCompanyAsync(Company company);
     Task<Company> DeleteCompanyAsync(int companyId);
     Task<Company> GetByCnpjAsync (string cnpj);
+    Task<Company?> GetByIdAsync(int id, User currentUser);
+    Task<IEnumerable<Company>> GetAllAsync(User currentUser);
+    
 }

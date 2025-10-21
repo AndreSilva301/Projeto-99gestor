@@ -7,9 +7,11 @@ namespace ManiaDeLimpeza.Application.Services;
 public class CompanyServices : ICompanyServices, IScopedDependency
 {
     private readonly ICompanyRepository _companyRepository;
-    public CompanyServices(ICompanyRepository companyRepository)
+    private readonly IUserRepository _userRepository;
+    public CompanyServices(ICompanyRepository companyRepository, IUserRepository userRepository)
     {
         _companyRepository = companyRepository;
+        _userRepository = userRepository;
     }
     public async Task<Company> GetByCnpjAsync(string cnpj)
     {
@@ -67,5 +69,40 @@ public class CompanyServices : ICompanyServices, IScopedDependency
         }
         await _companyRepository.DeleteAsync(existingCompany);
         return existingCompany;
+    }
+    public async Task<IEnumerable<Company>> GetAllAsync(User currentUser)
+    {
+        try
+        {
+            if (currentUser.Profile == UserProfile.SystemAdmin)
+                return await _companyRepository.GetAllAsync();
+
+            var company = await _companyRepository.GetByIdAsync(currentUser.CompanyId);
+            return company is not null ? new[] { company } : Enumerable.Empty<Company>();
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("Erro ao buscar empresas.", ex);
+        }
+    }
+
+    public async Task<Company?> GetByIdAsync(int id, User currentUser)
+    {
+        try
+        {
+            if (currentUser.Profile != UserProfile.SystemAdmin && currentUser.CompanyId != id)
+                throw new UnauthorizedAccessException("Acesso não autorizado.");
+
+            var company = await _companyRepository.GetByIdAsync(id);
+
+            if (company is null)
+                throw new KeyNotFoundException($"Empresa com ID {id} não encontrada.");
+
+            return company;
+        }
+        catch (Exception ex) when (ex is not UnauthorizedAccessException and not KeyNotFoundException)
+        {
+            throw new ApplicationException($"Erro ao buscar empresa com ID {id}.", ex);
+        }
     }
 }
