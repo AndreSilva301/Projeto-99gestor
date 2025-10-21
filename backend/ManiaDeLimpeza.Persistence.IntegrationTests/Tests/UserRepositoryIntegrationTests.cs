@@ -21,6 +21,20 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             await context.Database.ExecuteSqlRawAsync("DELETE FROM [Users]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Companies]");
+        }
+
+        private async Task<Company> CreateTestCompanyAsync(ApplicationDbContext context)
+        {
+            var company = new Company
+            {
+                Name = "Test Company",
+                CNPJ = "12345678000199"
+            };
+            
+            context.Companies.Add(company);
+            await context.SaveChangesAsync();
+            return company;
         }
 
         [TestMethod]
@@ -28,8 +42,16 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
-            var user1 = new User { Name = "Test A", Email = "a@example.com", PasswordHash = "123" };
+            var user1 = new User 
+            { 
+                Name = "Test A", 
+                Email = "a@example.com", 
+                PasswordHash = "123",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
+            };
 
             await repo.AddAsync(user1);
 
@@ -39,16 +61,30 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.AreEqual(user1.Email, all.First().Email);
         }
 
-
         [TestMethod]
         [ExpectedException(typeof(DbUpdateException))]
         public async Task AddUser_WithDuplicateEmail_ShouldThrowException()
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
-            var user1 = new User { Name = "Test A", Email = "a@example.com", PasswordHash = "123" };
-            var user2 = new User { Name = "Test B", Email = "a@example.com", PasswordHash = "456" };
+            var user1 = new User 
+            { 
+                Name = "Test A", 
+                Email = "a@example.com", 
+                PasswordHash = "123",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
+            };
+            var user2 = new User 
+            { 
+                Name = "Test B", 
+                Email = "a@example.com", 
+                PasswordHash = "456",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
+            };
 
             await repo.AddAsync(user1);
             await repo.AddAsync(user2); // should fail due to unique constraint
@@ -59,12 +95,15 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var user = new User
             {
                 Name = "Auto-ID Test",
                 Email = "autogen@example.com",
-                PasswordHash = "secret"
+                PasswordHash = "secret",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.AddAsync(user);
@@ -77,12 +116,15 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var user = new User
             {
                 Name = "Auto-ID Test",
                 Email = SampleEmail,
-                PasswordHash = "secret"
+                PasswordHash = "secret",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.AddAsync(user);
@@ -93,21 +135,22 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.AreEqual(user.Name, repoUser.Name);
             Assert.AreEqual(user.Email, repoUser.Email);
             Assert.AreEqual(user.PasswordHash, repoUser.PasswordHash);
-
         }
-
 
         [TestMethod]
         public async Task GetByEmailAsync_FailToRetrieveUser()
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var user = new User
             {
                 Name = "Auto-ID Test",
                 Email = SampleEmail,
-                PasswordHash = "secret"
+                PasswordHash = "secret",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.AddAsync(user);
@@ -117,18 +160,20 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.IsNull(repoUser);
         }
 
-
         [TestMethod]
         public async Task UpdateAsync_SuccessfullyUpdate()
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var user = new User
             {
                 Name = "Auto-ID Test",
                 Email = SampleEmail,
-                PasswordHash = "secret"
+                PasswordHash = "secret",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.AddAsync(user);
@@ -144,7 +189,6 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.AreEqual(differentName, repoUser.Name);
             Assert.AreEqual(user.Email, repoUser.Email);
             Assert.AreEqual(user.PasswordHash, repoUser.PasswordHash);
-
         }
 
         [TestMethod]
@@ -152,12 +196,15 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var originalUser = new User
             {
                 Name = "Original",
                 Email = "nopass@example.com",
-                PasswordHash = "original123"
+                PasswordHash = "original123",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.AddAsync(originalUser);
@@ -169,7 +216,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 Id = originalUser.Id,
                 Name = "Updated Name",
                 Email = "updated@example.com",
-                PasswordHash = "" // should NOT overwrite password
+                PasswordHash = "", // should NOT overwrite password
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.UpdateAsync(updateUser);
@@ -186,12 +235,15 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new UserRepository(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var originalUser = new User
             {
                 Name = "Original",
                 Email = "withpass@example.com",
-                PasswordHash = "original123"
+                PasswordHash = "original123",
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.AddAsync(originalUser);
@@ -202,7 +254,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 Id = originalUser.Id,
                 Name = "Updated Name",
                 Email = "withpass@example.com",
-                PasswordHash = newPassword // should overwrite password
+                PasswordHash = newPassword, // should overwrite password
+                CompanyId = company.Id,
+                Profile = UserProfile.Admin
             };
 
             await repo.UpdateAsync(updateUser);
@@ -213,7 +267,5 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.AreEqual("Updated Name", updatedUser!.Name);
             Assert.AreEqual(newPassword, updatedUser.PasswordHash, "Password should be updated");
         }
-
-
     }
 }

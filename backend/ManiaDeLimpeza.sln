@@ -18,8 +18,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Persistence.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Api.IntegrationTests", "ManiaDeLimpeza.Api.IntegrationTests\ManiaDeLimpeza.Api.IntegrationTests.csproj", "{DAE895D7-06BD-4B00-937C-E49CBE5C9362}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ManiaDeLimpeza.Persistence.UnitTest", "ManiaDeLimpeza.Persistence.UnitTest\ManiaDeLimpeza.Persistence.UnitTest.csproj", "{B8E4C2F2-5A8D-4E6A-9B3C-8D5F2E1A7C6F}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{02EA681E-C7D8-13C7-8484-4AC65E1B71E8}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{16B56F3F-06A8-4B42-AD54-916BC4115AFA}"
@@ -62,10 +60,6 @@ Global
 		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DAE895D7-06BD-4B00-937C-E49CBE5C9362}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B8E4C2F2-5A8D-4E6A-9B3C-8D5F2E1A7C6F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B8E4C2F2-5A8D-4E6A-9B3C-8D5F2E1A7C6F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B8E4C2F2-5A8D-4E6A-9B3C-8D5F2E1A7C6F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B8E4C2F2-5A8D-4E6A-9B3C-8D5F2E1A7C6F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -79,7 +73,6 @@ Global
 		{12A8CAB3-3506-49CE-A3F2-CE2A7E7D992F} = {02EA681E-C7D8-13C7-8484-4AC65E1B71E8}
 		{952AF777-D741-4003-9594-77C4BFC9A485} = {16B56F3F-06A8-4B42-AD54-916BC4115AFA}
 		{DAE895D7-06BD-4B00-937C-E49CBE5C9362} = {16B56F3F-06A8-4B42-AD54-916BC4115AFA}
-		{B8E4C2F2-5A8D-4E6A-9B3C-8D5F2E1A7C6F} = {16B56F3F-06A8-4B42-AD54-916BC4115AFA}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {102ACE92-4EB3-401D-890B-8ACC78512903}

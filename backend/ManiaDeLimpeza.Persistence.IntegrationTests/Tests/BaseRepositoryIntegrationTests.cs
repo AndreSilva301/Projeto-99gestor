@@ -23,7 +23,22 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         public async Task Cleanup()
         {
             using var context = TestDbContextFactory.CreateContext();
-            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Clients]");
+            // Fix table name - should be Customers not Clients
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Customers]");
+            await context.Database.ExecuteSqlRawAsync("DELETE FROM [Companies]");
+        }
+
+        private async Task<Company> CreateTestCompanyAsync(ApplicationDbContext context)
+        {
+            var company = new Company
+            {
+                Name = "Test Company",
+                CNPJ = "12345678000199"
+            };
+            
+            context.Companies.Add(company);
+            await context.SaveChangesAsync();
+            return company;
         }
 
         [TestMethod]
@@ -31,11 +46,13 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new BaseRepositoryImpl<Customer>(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var client = new Customer
             {
                 Name = "Maria",
-                Email = "maria@example.com"
+                Email = "maria@example.com",
+                CompanyId = company.Id // Add required CompanyId
             };
 
             await repo.AddAsync(client);
@@ -48,11 +65,13 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new BaseRepositoryImpl<Customer>(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var client = new Customer
             {
                 Name = "João",
-                Email = "joao@example.com"
+                Email = "joao@example.com",
+                CompanyId = company.Id // Add required CompanyId
             };
 
             await repo.AddAsync(client);
@@ -67,9 +86,10 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new BaseRepositoryImpl<Customer>(context);
+            var company = await CreateTestCompanyAsync(context);
 
-            await repo.AddAsync(new Customer { Name = "A", Email = "a@example.com" });
-            await repo.AddAsync(new Customer { Name = "B", Email = "b@example.com" });
+            await repo.AddAsync(new Customer { Name = "A", Email = "a@example.com", CompanyId = company.Id });
+            await repo.AddAsync(new Customer { Name = "B", Email = "b@example.com", CompanyId = company.Id });
 
             var all = await repo.GetAllAsync();
 
@@ -81,11 +101,13 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new BaseRepositoryImpl<Customer>(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var client = new Customer
             {
                 Name = "Lucas",
-                Email = "lucas@example.com"
+                Email = "lucas@example.com",
+                CompanyId = company.Id // Add required CompanyId
             };
 
             await repo.AddAsync(client);
@@ -102,11 +124,13 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var context = TestDbContextFactory.CreateContext();
             var repo = new BaseRepositoryImpl<Customer>(context);
+            var company = await CreateTestCompanyAsync(context);
 
             var client = new Customer
             {
                 Name = "To Remove",
-                Email = "remove@example.com"
+                Email = "remove@example.com",
+                CompanyId = company.Id // Add required CompanyId
             };
 
             await repo.AddAsync(client);
@@ -116,12 +140,12 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             Assert.IsNull(deleted);
         }
 
-
         [TestMethod]
         public async Task Client_FullLifecycle_WithOwnedAddressAndPhone_ShouldSucceed()
         {
             using var context = TestDbContextFactory.CreateContext();
             var clientRepo = new BaseRepositoryImpl<Customer>(context);
+            var company = await CreateTestCompanyAsync(context);
 
             // 1. Add client with full data
             var client = new Customer
@@ -130,6 +154,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 Email = "ana@example.com",
                 DateTime = new DateTime(1990, 5, 21),
                 Observations = "VIP client",
+                CompanyId = company.Id, // Add required CompanyId
                 Address = new Address
                 {
                     Street = "123 Main St",

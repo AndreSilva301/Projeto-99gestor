@@ -53,7 +53,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             _userRepositoryMock.Setup(repo => repo.AddAsync(It.IsAny<User>()))
                                .ReturnsAsync((User u) => { u.Id = 1; return u; });
 
-            // ActOLTAR ESSE PAR
+            // Act
             var result = await _userService.CreateUserAsync(user, "plaintext");  
 
             // Assert
@@ -63,40 +63,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 u.PasswordHash.StartsWith("AQAAAA") // identity hash format
             )), Times.Once);
         }
-
-        [TestMethod]
-        public async Task GetByCredentialsAsync_WhenPasswordMatchesAndUserIsActive_ShouldNotReturnUser()
-        {
-            //// Arrange
-            //var password = "secret";
-            //var user = new User { Email = "test@example.com", PasswordHash = PasswordHelper.Hash(password, new User()), IsActive = true };
-
-            //_userRepositoryMock.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync(user);
-
-            //// Act
-            //var result = await _userService.GetByCredentialsAsync(user.Email, password);
-
-            //// Assert
-            //Assert.IsNotNull(result);
-            //Assert.AreEqual(user.Email, result!.Email);
-        }
-
-        [TestMethod]
-        public async Task GetByCredentialsAsync_WhenPasswordMatchesAndUserIsInactive_ShouldNotReturnUser()
-        {
-            //// Arrange
-            //var password = "secret";
-            //var user = new User { Email = "test@example.com", PasswordHash = PasswordHelper.Hash(password, new User()), IsActive = false };
-
-            //_userRepositoryMock.Setup(repo => repo.GetByEmailAsync(user.Email)).ReturnsAsync(user);
-
-            //// Act & Assert
-            //var ex = await Assert.ThrowsExceptionAsync<BusinessException>(async () =>
-            //{
-            //    await _userService.GetByCredentialsAsync(user.Email, password);
-            //});
-        }
-
 
         [TestMethod]
         public async Task GetByCredentialsAsync_ShouldReturnNull_WhenPasswordDoesNotMatch()

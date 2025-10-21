@@ -38,18 +38,18 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<Quote> CreateAsync(QuoteDto quoteDto, User user)
         {
+            var client = await _customerRepository.GetByIdAsync(quoteDto.ClientId);
+            if (client == null)
+            {
+                throw new ArgumentException("Client not found");
+            }
+
             var quote = _mapper.Map<Quote>(quoteDto);
             quote.CreatedAt = DateTime.UtcNow;
             quote.UserId = user.Id;
             quote.TotalPrice = quote.QuoteItems.Sum(li => li.TotalValue);
             if (quote.CashDiscount.HasValue)
                 quote.TotalPrice -= quote.CashDiscount.Value;
-
-            var client = await _customerRepository.GetByIdAsync(quote.CostumerId);
-            if (client == null)
-            {
-                throw new ArgumentException("Client not found");
-            }
 
             await _quoteRepository.AddAsync(quote);
             return quote;
