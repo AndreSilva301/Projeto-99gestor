@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,5 +15,5 @@ public interface ICompanyServices
     Task<Company> GetByCnpjAsync (string cnpj);
     Task<Company?> GetByIdAsync(int id, User currentUser);
     Task<IEnumerable<Company>> GetAllAsync(User currentUser);
-    
+    Task<Company?> UpdateCompanyAsync(int id, UpdateCompanyDto dto, User currentUser);
 }

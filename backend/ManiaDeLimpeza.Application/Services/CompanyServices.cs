@@ -1,4 +1,6 @@
-﻿using ManiaDeLimpeza.Application.Interfaces;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Dtos.Mappers;
+using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
@@ -7,11 +9,9 @@ namespace ManiaDeLimpeza.Application.Services;
 public class CompanyServices : ICompanyServices, IScopedDependency
 {
     private readonly ICompanyRepository _companyRepository;
-    private readonly IUserRepository _userRepository;
     public CompanyServices(ICompanyRepository companyRepository, IUserRepository userRepository)
     {
         _companyRepository = companyRepository;
-        _userRepository = userRepository;
     }
     public async Task<Company> GetByCnpjAsync(string cnpj)
     {
@@ -72,37 +72,34 @@ public class CompanyServices : ICompanyServices, IScopedDependency
     }
     public async Task<IEnumerable<Company>> GetAllAsync(User currentUser)
     {
-        try
-        {
-            if (currentUser.Profile == UserProfile.SystemAdmin)
-                return await _companyRepository.GetAllAsync();
+        if (currentUser.Profile == UserProfile.SystemAdmin)
+            return await _companyRepository.GetAllAsync();
 
-            var company = await _companyRepository.GetByIdAsync(currentUser.CompanyId);
-            return company is not null ? new[] { company } : Enumerable.Empty<Company>();
-        }
-        catch (Exception ex)
-        {
-            throw new ApplicationException("Erro ao buscar empresas.", ex);
-        }
+        var company = await _companyRepository.GetByIdAsync(currentUser.CompanyId);
+        return company is not null ? new[] { company } : Enumerable.Empty<Company>();
+
     }
 
     public async Task<Company?> GetByIdAsync(int id, User currentUser)
     {
-        try
-        {
-            if (currentUser.Profile != UserProfile.SystemAdmin && currentUser.CompanyId != id)
-                throw new UnauthorizedAccessException("Acesso não autorizado.");
+        if (currentUser.Profile != UserProfile.SystemAdmin && currentUser.CompanyId != id)
+            throw new UnauthorizedAccessException("Acesso não autorizado.");
 
-            var company = await _companyRepository.GetByIdAsync(id);
+        return await _companyRepository.GetByIdAsync(id);
+    }
 
-            if (company is null)
-                throw new KeyNotFoundException($"Empresa com ID {id} não encontrada.");
+    public async Task<Company?> UpdateCompanyAsync(int id, UpdateCompanyDto dto, User currentUser)
+    {
+        if (!currentUser.IsAdminOrSysAdmin(id))
+            throw new UnauthorizedAccessException("Acesso não autorizado.");
 
-            return company;
-        }
-        catch (Exception ex) when (ex is not UnauthorizedAccessException and not KeyNotFoundException)
-        {
-            throw new ApplicationException($"Erro ao buscar empresa com ID {id}.", ex);
-        }
+        var company = await _companyRepository.GetByIdAsync(id);
+        if (company == null)
+            return null;
+
+        company.UpdateFromDto(dto);
+
+        await _companyRepository.UpdateAsync(company);
+        return company;
     }
 }

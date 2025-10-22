@@ -23,6 +23,15 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
         public async Task<User> AddAsync(User user)
         {
+            var existingUser = await _context.Users
+        .AsNoTracking()
+        .FirstOrDefaultAsync(u => u.Email == user.Email);
+
+            if (existingUser != null)
+            {
+                return existingUser;
+            }
+
             var userEntityEntry = await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
             return userEntityEntry.Entity;
