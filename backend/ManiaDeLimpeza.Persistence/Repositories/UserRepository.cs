@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -22,6 +23,15 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
         public async Task<User> AddAsync(User user)
         {
+            var existingUser = await _context.Users
+        .AsNoTracking()
+        .FirstOrDefaultAsync(u => u.Email == user.Email);
+
+            if (existingUser != null)
+            {
+                return existingUser;
+            }
+
             var userEntityEntry = await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
             return userEntityEntry.Entity;
@@ -70,5 +80,6 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         {
             return await _context.Users.FindAsync(id);
         }
+       
     }
 }

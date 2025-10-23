@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -41,6 +42,7 @@ namespace ManiaDeLimpeza.Persistence
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.ApplyConfiguration(new CompanyConfiguration());
             base.OnModelCreating(modelBuilder);
             // Fluent API config if needed
 
@@ -148,6 +150,7 @@ namespace ManiaDeLimpeza.Persistence
                 entity.Property(qi => qi.UnitPrice).HasColumnType("decimal(18,2)");
                 entity.Property(qi => qi.TotalValue).HasColumnType("decimal(18,2)");
             });
+           
         }
     }
 }
