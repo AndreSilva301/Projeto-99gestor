@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ManiaDeLimpeza.Application.Common;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManiaDeLimpeza.Application.Dtos;
 public class UpdateCompanyDto
@@ -8,10 +9,8 @@ public class UpdateCompanyDto
 
     public string? CNPJ { get; set; }
 
-    [Required]
     public AddressDto Address { get; set; } = new AddressDto();
 
-    [Required]
     public PhoneDto Phone { get; set; } = new PhoneDto();
 
     public IEnumerable<string> Validate()
@@ -21,9 +20,10 @@ public class UpdateCompanyDto
         if (string.IsNullOrWhiteSpace(Name))
             errors.Add("O nome da empresa é obrigatório.");
 
-        if (Address == null)
-            errors.Add("O endereço é obrigatório.");
-        else
+        if (!string.IsNullOrWhiteSpace(CNPJ) && !StringUtils.IsValidCNPJ(CNPJ))
+            errors.Add("O CNPJ informado é inválido.");
+
+        if (Address != null)
         {
             if (string.IsNullOrWhiteSpace(Address.Street))
                 errors.Add("Rua é obrigatória.");
@@ -39,18 +39,15 @@ public class UpdateCompanyDto
                 errors.Add("CEP é obrigatório.");
         }
 
-        if (Phone == null)
-        {
-            errors.Add("O telefone é obrigatório.");
-        }
-        else
-        {
-            var hasMobile = !string.IsNullOrWhiteSpace(Phone.Mobile);
-            var hasLandline = !string.IsNullOrWhiteSpace(Phone.Landline);
+        var hasMobile = !string.IsNullOrWhiteSpace(Phone.Mobile);
+        var hasLandline = !string.IsNullOrWhiteSpace(Phone.Landline);
 
-            if (!hasMobile && !hasLandline)
-                errors.Add("É necessário informar pelo menos um telefone (celular ou fixo).");
-        }
+        if (hasMobile && !StringUtils.IsValidPhone(Phone.Mobile))
+            errors.Add("O número de celular informado é inválido.");
+
+        if (hasLandline && !StringUtils.IsValidPhone(Phone.Landline))
+            errors.Add("O número de telefone fixo informado é inválido.");
+
         return errors;
     }
     public bool IsValid() => !Validate().Any();
