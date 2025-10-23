@@ -41,4 +41,27 @@ public static class StringUtils
         int digitCount = phone.Count(char.IsDigit);
         return digitCount >= 8 && digitCount <= 11;
     }
+    public static bool IsValidCNPJ(this string cnpj)
+    {
+        if (string.IsNullOrWhiteSpace(cnpj))
+            return false;
+        cnpj = Regex.Replace(cnpj, @"[^\d]", "");
+        if (cnpj.Length != 14)
+            return false;
+        int[] multipliers1 = { 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+        int[] multipliers2 = { 6, 5, 4, 3, 2, 9, 8, 7, 6, 5, 4, 3, 2 };
+        string tempCnpj = cnpj.Substring(0, 12);
+        int sum = 0;
+        for (int i = 0; i < 12; i++)
+            sum += int.Parse(tempCnpj[i].ToString()) * multipliers1[i];
+        int remainder = sum % 11;
+        int firstDigit = remainder < 2 ? 0 : 11 - remainder;
+        tempCnpj += firstDigit;
+        sum = 0;
+        for (int i = 0; i < 13; i++)
+            sum += int.Parse(tempCnpj[i].ToString()) * multipliers2[i];
+        remainder = sum % 11;
+        int secondDigit = remainder < 2 ? 0 : 11 - remainder;
+        return cnpj.EndsWith(firstDigit.ToString() + secondDigit.ToString());
+    }
 }

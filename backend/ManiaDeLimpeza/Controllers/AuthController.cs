@@ -84,7 +84,7 @@ public class AuthController : ControllerBase
         {
             await transaction?.RollbackAsync();
 
-            return BadRequest(ApiResponseHelper.ErrorResponse(
+            return Ok(ApiResponseHelper.ErrorResponse(
                 new List<string> { ex.Message },
                 "User registration failed"
             ));

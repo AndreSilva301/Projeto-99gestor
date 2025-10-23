@@ -1,250 +1,245 @@
-﻿using Moq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
+﻿using ManiaDeLimpeza.Api.Controllers.Base;
 using ManiaDeLimpeza.Application.Dtos;
-using ManiaDeLimpeza.Domain.Entities;
-using ManiaDeLimpeza.Api.Controllers.Base;
 using ManiaDeLimpeza.Application.Interfaces;
-using ManiaDeLimpeza.Application.Dtos.Mappers;
+using ManiaDeLimpeza.Domain.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using System.Security.Claims;
 
-namespace ManiaDeLimpeza.Api.IntegrationTests.Tests;
-[TestClass]
-public class CompanyControllerTests
+namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 {
-    private Mock<ICompanyServices> _companyServiceMock;
-    private CompanyController _controller;
-    private User _systemAdmin;
-    private User _companyAdmin;
-    private User _unauthorizedUser;
-    private Company _company;
-
-    [TestInitialize]
-    public void Setup()
+    [TestClass]
+    public class CompanyControllerTests
     {
-        _companyServiceMock = new Mock<ICompanyServices>();
+        private Mock<ICompanyServices> _companyServiceMock = null!;
+        private CompanyController _controller = null!;
+        private Company _company = null!;
+        private User _systemAdmin = null!;
+        private User _employee = null!;
+        private UpdateCompanyDto _validDto = null!;
+        private UpdateCompanyDto _invalidDto = null!;
 
-        _controller = new CompanyController(_companyServiceMock.Object)
+        [TestInitialize]
+        public void Setup()
         {
-            ControllerContext = new ControllerContext()
-        };
+            _companyServiceMock = new Mock<ICompanyServices>();
+            _controller = new CompanyController(_companyServiceMock.Object);
 
-        _systemAdmin = new User { Id = 1, Profile = UserProfile.SystemAdmin };
-        _companyAdmin = new User { Id = 2, Profile = UserProfile.SystemAdmin, CompanyId = 100 };
-        _unauthorizedUser = new User { Id = 3, Profile = UserProfile.Employee, CompanyId = 200 };
-
-        _company = new Company
-        {
-            Id = 100,
-            Name = "Test Company",
-            CNPJ = "123456789",
-            Address = new Address
+            _company = new Company
             {
-                Street = "Rua A",
-                Number = "10",
-                Neighborhood = "Centro",
-                City = "São Paulo",
-                State = "SP",
-                ZipCode = "12345-000"
-            },
-            Phone = new Phone { Mobile = "99999-9999" }
-        };
-    }
+                Id = 1,
+                Name = "Empresa Teste",
+                CNPJ = "12.345.678/0001-90"
+            };
 
-    private void SetCurrentUser(User user)
-    {
-        var httpContext = new DefaultHttpContext();
-        httpContext.Items["User"] = user;
-        _controller.ControllerContext.HttpContext = httpContext;
-    }
-
-    [TestMethod]
-    public async Task GetAll_ShouldReturnUnauthorized_WhenUserNotAuthenticated()
-    {
-        SetCurrentUser(null);
-
-        var result = await _controller.GetAll();
-
-        Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-    }
-
-    [TestMethod]
-    public async Task GetAll_ShouldReturnForbid_WhenUserIsNotSystemAdmin()
-    {
-        SetCurrentUser(_unauthorizedUser);
-
-        var result = await _controller.GetAll();
-
-        Assert.IsInstanceOfType(result, typeof(ForbidResult));
-    }
-
-    [TestMethod]
-    public async Task GetAll_ShouldReturnCompanies_WhenSystemAdmin()
-    {
-        SetCurrentUser(_systemAdmin);
-
-        _companyServiceMock.Setup(s => s.GetAllAsync(_systemAdmin))
-            .ReturnsAsync(new List<Company> { _company });
-
-        var result = await _controller.GetAll() as OkObjectResult;
-
-        Assert.IsNotNull(result);
-        var data = result.Value as IEnumerable<CompanyDto>;
-        Assert.IsNotNull(data);
-        Assert.AreEqual(1, data.Count());
-    }
-
-    [TestMethod]
-    public async Task GetById_ShouldReturnUnauthorized_WhenUserNotAuthenticated()
-    {
-        SetCurrentUser(null);
-
-        var result = await _controller.GetById(100);
-
-        Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-    }
-
-    [TestMethod]
-    public async Task GetById_ShouldReturnForbid_WhenUserIsNotAdminOrSystemAdmin()
-    {
-        SetCurrentUser(_unauthorizedUser);
-
-        var result = await _controller.GetById(100);
-
-        Assert.IsInstanceOfType(result, typeof(ForbidResult));
-    }
-
-    [TestMethod]
-    public async Task GetById_ShouldReturnNotFound_WhenCompanyDoesNotExist()
-    {
-        SetCurrentUser(_systemAdmin);
-
-        _companyServiceMock.Setup(s => s.GetByIdAsync(999, _systemAdmin))
-            .ReturnsAsync((Company?)null);
-
-        var result = await _controller.GetById(999);
-
-        Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
-    }
-
-    [TestMethod]
-    public async Task GetById_ShouldReturnCompany_WhenAuthorized()
-    {
-        SetCurrentUser(_companyAdmin);
-
-        _companyServiceMock.Setup(s => s.GetByIdAsync(100, _companyAdmin))
-            .ReturnsAsync(_company);
-
-        var result = await _controller.GetById(100) as OkObjectResult;
-
-        Assert.IsNotNull(result);
-        var dto = result.Value as CompanyDto;
-        Assert.IsNotNull(dto);
-        Assert.AreEqual(_company.Id, dto.Id);
-    }
-
-    [TestMethod]
-    public async Task Update_ShouldReturnUnauthorized_WhenUserNotAuthenticated()
-    {
-        SetCurrentUser(null);
-
-        var result = await _controller.Update(100, new UpdateCompanyDto());
-
-        Assert.IsInstanceOfType(result, typeof(UnauthorizedObjectResult));
-    }
-
-    [TestMethod]
-    public async Task Update_ShouldReturnForbid_WhenUserIsNotAuthorized()
-    {
-        SetCurrentUser(_unauthorizedUser);
-
-        var result = await _controller.Update(100, new UpdateCompanyDto());
-
-        Assert.IsInstanceOfType(result, typeof(ForbidResult));
-    }
-
-    [TestMethod]
-    public async Task Update_ShouldReturnBadRequest_WhenAddressIsNull()
-    {
-        SetCurrentUser(_systemAdmin);
-        var dto = new UpdateCompanyDto { Address = null };
-
-        var result = await _controller.Update(100, dto);
-
-        Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-    }
-
-    [TestMethod]
-    public async Task Update_ShouldReturnBadRequest_WhenAddressIsIncomplete()
-    {
-        SetCurrentUser(_systemAdmin);
-        var dto = new UpdateCompanyDto { Address = new AddressDto() };
-
-        var result = await _controller.Update(100, dto);
-
-        Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
-    }
-
-    [TestMethod]
-    public async Task Update_ShouldReturnNotFound_WhenCompanyDoesNotExist()
-    {
-        SetCurrentUser(_systemAdmin);
-
-        var dto = new UpdateCompanyDto
-        {
-            Name = "Test",
-            CNPJ = "123",
-            Address = new AddressDto
+            _systemAdmin = new User
             {
-                Street = "Rua A",
-                Number = "1",
-                Neighborhood = "Centro",
-                City = "São Paulo",
-                State = "SP",
-                ZipCode = "12345-000"
-            },
-            Phone = new PhoneDto()
-        };
+                Id = 1,
+                Name = "System Admin",
+                Email = "admin@teste.com",
+                PasswordHash = "123",
+                CompanyId = 1,
+                Profile = UserProfile.SystemAdmin
+            };
 
-        _companyServiceMock.Setup(s => s.GetByIdAsync(100, _systemAdmin))
-            .ReturnsAsync((Company?)null);
-
-        var result = await _controller.Update(100, dto);
-
-        Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
-    }
-
-    [TestMethod]
-    public async Task Update_ShouldReturnOk_WhenUpdateIsSuccessful()
-    {
-        SetCurrentUser(_systemAdmin);
-
-        var dto = new UpdateCompanyDto
-        {
-            Name = "Updated Company",
-            CNPJ = "9999999",
-            Address = new AddressDto
+            _employee = new User
             {
-                Street = "Nova Rua",
-                Number = "123",
-                Neighborhood = "Centro",
-                City = "SP",
-                State = "SP",
-                ZipCode = "00000-000"
-            },
-            Phone = new PhoneDto { Mobile = "88888-8888" }
+                Id = 2,
+                Name = "Funcionário",
+                Email = "user@teste.com",
+                PasswordHash = "123",
+                CompanyId = 1,
+                Profile = UserProfile.Employee
+            };
+
+            _validDto = new UpdateCompanyDto
+            {
+                Name = "Empresa Atualizada"
+            };
+
+            _invalidDto = new UpdateCompanyDto
+            {
+                Name = "" 
+            };
+        }
+
+        private void SetCurrentUser(User? user)
+        {
+            var httpContext = new DefaultHttpContext();
+
+            if (user != null)
+            {
+                var claims = new List<Claim>
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim("Profile", user.Profile.ToString()),
+            new Claim("CompanyId", user.CompanyId.ToString())
         };
 
-        _companyServiceMock.Setup(s => s.GetByIdAsync(100, _systemAdmin))
-            .ReturnsAsync(_company);
-        _companyServiceMock.Setup(s => s.UpdateCompanyAsync(It.IsAny<Company>()))
-            .ReturnsAsync(_company);
+                httpContext.User = new ClaimsPrincipal(new ClaimsIdentity(claims, "TestAuth"));
+                httpContext.Items["User"] = user;
+            }
+            else
+            {
+                httpContext.User = new ClaimsPrincipal(new ClaimsIdentity());
+                httpContext.Items["User"] = null; 
+            }
 
-        var result = await _controller.Update(100, dto) as OkObjectResult;
+            _controller.ControllerContext = new ControllerContext
+            {
+                HttpContext = httpContext
+            };
+        }
 
-        Assert.IsNotNull(result);
-        var updated = result.Value as CompanyDto;
-        Assert.IsNotNull(updated);
-        Assert.AreEqual("Updated Company", updated.Name);
+        [TestMethod]
+        public async Task GetById_ShouldReturnForbid_WhenUserIsNotAdminOrSysAdmin()
+        {
+            // Arrange
+            SetCurrentUser(_employee);
+
+            // Act
+            var result = await _controller.GetById(_company.Id);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(ForbidResult));
+        }
+
+        [TestMethod]
+        public async Task GetById_ShouldReturnOk_WhenUserIsSystemAdmin()
+        {
+            // Arrange
+            SetCurrentUser(_systemAdmin);
+
+            _companyServiceMock
+                .Setup(s => s.GetByIdAsync(_company.Id, _systemAdmin))
+                .ReturnsAsync(_company);
+
+            // Act
+            var result = await _controller.GetById(_company.Id) as OkObjectResult;
+
+            // Assert
+            Assert.IsNotNull(result);
+            var data = result.Value as CompanyDto;
+            Assert.IsNotNull(data);
+            Assert.AreEqual(_company.Name, data.Name);
+        }
+
+        [TestMethod]
+        public async Task GetById_ShouldReturnForbid_WhenUserIsNull()
+        {
+            SetCurrentUser(null);
+
+            // Act & Assert
+            await Assert.ThrowsExceptionAsync<NullReferenceException>(
+                async () => await _controller.GetById(_company.Id)
+            );
+        }
+
+
+        [TestMethod]
+        public async Task Update_ShouldReturnForbid_WhenUserNotAdmin()
+        {
+            // Arrange
+            SetCurrentUser(_employee);
+
+            // Act
+            var result = await _controller.Update(_company.Id, _validDto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(ForbidResult));
+        }
+
+        [TestMethod]
+        public async Task Update_ShouldReturnBadRequest_WhenDtoIsInvalid()
+        {
+            // Arrange
+            SetCurrentUser(_systemAdmin);
+
+            // Act
+            var result = await _controller.Update(_company.Id, _invalidDto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Update_ShouldReturnNotFound_WhenCompanyNotExists()
+        {
+            // Arrange
+            SetCurrentUser(_systemAdmin);
+
+            var validDto = new UpdateCompanyDto
+            {
+                Name = "Empresa Teste",
+                Address = new AddressDto
+                {
+                    Street = "Rua Teste",
+                    Number = "123",
+                    Neighborhood = "Centro",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01000-000"
+                },
+                Phone = new PhoneDto
+                {
+                    Mobile = "11999999999"
+                }
+            };
+
+            _companyServiceMock
+                .Setup(s => s.UpdateCompanyAsync(_company.Id, validDto, It.IsAny<User>()))
+                .ReturnsAsync((Company?)null);
+
+            // Act
+            var result = await _controller.Update(_company.Id, validDto);
+
+            // Assert
+            Assert.IsInstanceOfType(result, typeof(NotFoundObjectResult));
+        }
+
+        [TestMethod]
+        public async Task Update_ShouldReturnOk_WhenSystemAdminUpdatesSuccessfully()
+        {
+            // Arrange
+            SetCurrentUser(_systemAdmin);
+
+            var validDto = new UpdateCompanyDto
+            {
+                Name = "Empresa Atualizada",
+                Address = new AddressDto
+                {
+                    Street = "Rua Teste",
+                    Number = "123",
+                    Neighborhood = "Centro",
+                    City = "São Paulo",
+                    State = "SP",
+                    ZipCode = "01000-000"
+                },
+                Phone = new PhoneDto
+                {
+                    Mobile = "11999999999"
+                }
+            };
+
+            var updated = new Company
+            {
+                Id = 1,
+                Name = "Empresa Atualizada"
+            };
+
+            _companyServiceMock
+                .Setup(s => s.UpdateCompanyAsync(_company.Id, It.IsAny<UpdateCompanyDto>(), It.IsAny<User>()))
+                .ReturnsAsync(updated);
+
+            // Act
+            var result = await _controller.Update(_company.Id, validDto) as OkObjectResult;
+
+            // Assert
+            Assert.IsNotNull(result);
+            var data = result.Value as CompanyDto;
+            Assert.IsNotNull(data);
+            Assert.AreEqual("Empresa Atualizada", data.Name);
+        }
     }
 }

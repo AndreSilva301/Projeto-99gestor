@@ -36,18 +36,18 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
-        public bool IsSystemAdmin(User user)
-        => user.Profile == UserProfile.SystemAdmin;
+        public bool IsSystemAdmin()
+     => Profile == UserProfile.SystemAdmin;
 
-        public bool IsCompanyAdmin(User user, int companyId)
-            => user.Profile == UserProfile.SystemAdmin && user.CompanyId == companyId;
+        public bool IsCompanyAdmin(int companyId)
+            => Profile == UserProfile.Admin && CompanyId == companyId;
 
         public bool IsAdminOrSysAdmin(int? companyId = null)
         {
             if (Profile == UserProfile.SystemAdmin)
                 return true;
 
-            if (Profile == UserProfile.SystemAdmin && companyId.HasValue && CompanyId == companyId)
+            if (Profile == UserProfile.Admin && companyId.HasValue && CompanyId == companyId)
                 return true;
 
             return false;
