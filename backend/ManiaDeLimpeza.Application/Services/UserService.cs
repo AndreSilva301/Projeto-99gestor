@@ -16,7 +16,7 @@ namespace ManiaDeLimpeza.Application.Services
         private readonly IMapper _mapper;
 
         public UserService(
-            IUserRepository userRepository, 
+            IUserRepository userRepository,
             ICompanyServices companyServices,
             IMapper mapper)
         {
@@ -29,7 +29,7 @@ namespace ManiaDeLimpeza.Application.Services
         {
             var existingUser = await _userRepository.GetByEmailAsync(user.Email);
 
-            if(existingUser != null)
+            if (existingUser != null)
             {
                 throw new BusinessException("A user with this email already exists.");
             }
@@ -117,6 +117,50 @@ namespace ManiaDeLimpeza.Application.Services
             existingUser.Name = updatedUser.Name;
 
             return await _userRepository.UpdateAsync(existingUser);
+        }
+
+        public async Task<IEnumerable<User>> GetUsersByCompanyIdAsync(int companyId, bool includeInactive = false)
+        {
+            var allUsers = await _userRepository.GetAllAsync();
+            var users = allUsers.Where(u => u.CompanyId == companyId);
+
+            if (!includeInactive)
+                users = users.Where(u => u.Profile != UserProfile.Inactive);
+
+            return users;
+        }
+
+        public async Task<User?> CreateEmployeeAsync(string name, string email, int companyId)
+        {
+            var user = new User
+            {
+                Name = name,
+                Email = email,
+                CompanyId = companyId,
+                Profile = UserProfile.Employee,
+                PasswordHash = PasswordHelper.Hash(Guid.NewGuid().ToString("N")[..8], new User())
+            };
+
+            return await _userRepository.AddAsync(user);
+        }
+
+        public async Task<User?> DeactivateUserAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+
+            user.Profile = UserProfile.Inactive;
+            return await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task<User?> ReactivateUserAsync(int userId)
+        {
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null) return null;
+
+            // Define o perfil padrão de volta
+            user.Profile = UserProfile.Employee;
+            return await _userRepository.UpdateAsync(user);
         }
     }
 }
