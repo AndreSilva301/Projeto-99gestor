@@ -2,5 +2,6 @@
 public enum UserProfile
 {
     Admin = 1,
-    Employee = 2
+    Employee = 2,
+    SystemAdmin = 3
 }

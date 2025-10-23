@@ -10,9 +10,12 @@ public class Company
     public string Name { get; set; } = string.Empty;
 
     public string? CNPJ { get; set; } 
+    public Address Address { get; set; } = new Address();
+    public Phone Phone { get; set; } = new Phone();
 
     public DateTime DateTime { get; set; } = DateTime.UtcNow;
 
     public List<User> Users { get; set; } = new(); 
     public List<Customer> Costumers { get; set; } = new();
+
 }

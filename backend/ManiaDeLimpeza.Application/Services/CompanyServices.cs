@@ -1,4 +1,6 @@
-﻿using ManiaDeLimpeza.Application.Interfaces;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Application.Dtos.Mappers;
+using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
@@ -7,7 +9,7 @@ namespace ManiaDeLimpeza.Application.Services;
 public class CompanyServices : ICompanyServices, IScopedDependency
 {
     private readonly ICompanyRepository _companyRepository;
-    public CompanyServices(ICompanyRepository companyRepository)
+    public CompanyServices(ICompanyRepository companyRepository, IUserRepository userRepository)
     {
         _companyRepository = companyRepository;
     }
@@ -67,5 +69,37 @@ public class CompanyServices : ICompanyServices, IScopedDependency
         }
         await _companyRepository.DeleteAsync(existingCompany);
         return existingCompany;
+    }
+    public async Task<IEnumerable<Company>> GetAllAsync(User currentUser)
+    {
+        if (currentUser.Profile == UserProfile.SystemAdmin)
+            return await _companyRepository.GetAllAsync();
+
+        var company = await _companyRepository.GetByIdAsync(currentUser.CompanyId);
+        return company is not null ? new[] { company } : Enumerable.Empty<Company>();
+
+    }
+
+    public async Task<Company?> GetByIdAsync(int id, User currentUser)
+    {
+        if (currentUser.Profile != UserProfile.SystemAdmin && currentUser.CompanyId != id)
+            throw new UnauthorizedAccessException("Acesso não autorizado.");
+
+        return await _companyRepository.GetByIdAsync(id);
+    }
+
+    public async Task<Company?> UpdateCompanyAsync(int id, UpdateCompanyDto dto, User currentUser)
+    {
+        if (!currentUser.IsAdminOrSysAdmin(id))
+            throw new UnauthorizedAccessException("Acesso não autorizado.");
+
+        var company = await _companyRepository.GetByIdAsync(id);
+        if (company == null)
+            return null;
+
+        company.UpdateFromDto(dto);
+
+        await _companyRepository.UpdateAsync(company);
+        return company;
     }
 }
