@@ -13,7 +13,7 @@ public class UpdatePasswordDto : IBasicDto
     {
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Email))
+        if (!Email.IsValidEmail())
             errors.Add("E-mail é obrigatório.");
         else if (!Email.IsValidEmail())
             errors.Add("E-mail inválido.");

@@ -44,52 +44,26 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register(RegisterUserRequestDto dto)
     {
-        IDbContextTransaction transaction = null;
+        var errors = dto.Validate();
+        if (errors.Count > 0)
+            return BadRequest(ApiResponseHelper.ErrorResponse(errors, "User registration failed"));
 
-        try
-        {
-            var errors = dto.Validate();
+        var company = dto.ToCompany();
+        var createdCompany = await _companyServices.CreateCompanyAsync(company);
 
-            if (errors.Count > 0)
-            {
-                return BadRequest(ApiResponseHelper.ErrorResponse(
-                    errors,
-                    "User registration failed"
-                ));
-            }
+        var user = dto.ToUser();
+        user.CompanyId = createdCompany.Id;
 
-            transaction = await _dbContext.Database.BeginTransactionAsync();
+        var createdUser = await _userService.CreateUserAsync(user, dto.Password);
 
-            var company = dto.ToCompany();
-            company = await _companyServices.CreateCompanyAsync(company);
+        var token = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
+        var result = new AuthResponseDto(createdUser, token);
 
-            var user = dto.ToUser();
-            user.CompanyId = company.Id;
-
-            var createdUser = await _userService.CreateUserAsync(user, dto.Password);
-
-            await transaction.CommitAsync();
-
-            var bearerToken = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
-            var result = new AuthResponseDto(createdUser, bearerToken);
-            
-            var response = ApiResponseHelper.SuccessResponse(result, "User registered successfully");
-
-            return Created("/User", response);
-        }
-        catch (Exception ex)
-        {
-            await transaction?.RollbackAsync();
-
-            return Ok(ApiResponseHelper.ErrorResponse(
-                new List<string> { ex.Message },
-                "User registration failed"
-            ));
-        }
+        return Created("/User", ApiResponseHelper.SuccessResponse(result, "User registered successfully"));
     }
 
     [HttpPost("login")]

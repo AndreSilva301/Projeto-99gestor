@@ -22,7 +22,7 @@ public class CreateEmployeeDto : IBasicDto
         if (string.IsNullOrWhiteSpace(Name))
             errors.Add("O nome é obrigatório.");
 
-        if (!StringUtils.IsValidEmail(Email))
+        if (!Email.IsValidEmail())
             errors.Add("O e-mail informado é inválido.");
 
         if (!Enum.IsDefined(typeof(UserProfile), ProfileType))
