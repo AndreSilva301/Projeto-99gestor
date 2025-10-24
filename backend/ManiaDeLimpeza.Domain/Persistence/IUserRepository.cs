@@ -15,5 +15,6 @@ namespace ManiaDeLimpeza.Domain.Persistence
         Task<User> UpdateAsync(User user);
         Task DeleteAsync(int userId);
         Task<User?> GetByIdAsync(int id);
+        Task<IEnumerable<User>> GetByCompanyIdAsync(int companyId, bool includeInactive = false);
     }
 }

@@ -174,11 +174,26 @@ public class AuthController : ControllerBase
     [HttpPost("update-password")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ApiResponse<string>>> UpdatePassword()
+    public async Task<ActionResult<ApiResponse<string>>> UpdatePassword([FromBody] UpdatePasswordDto dto)
     {
-        //Reset password quando o usuário tem a senha antiga.
-        //Recebe email, senha antiga, senha nova, confirmação da senha nova.
-        throw new NotImplementedException();
+        var errors = dto.Validate();
+        if (errors.Count > 0)
+            return BadRequest(ApiResponseHelper.ErrorResponse(errors, "Erro de validação."));
+
+        try
+        {
+            await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
+            return Ok(ApiResponseHelper.SuccessResponse("Senha atualizada com sucesso.", "Operação concluída."));
+        }
+        catch (BusinessException ex)
+        {
+            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message, "Falha ao atualizar senha."));
+        }
+        catch (Exception)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                ApiResponseHelper.ErrorResponse("Erro inesperado ao atualizar senha.", "Erro interno"));
+        }
     }
 
     [HttpPost("capture")]

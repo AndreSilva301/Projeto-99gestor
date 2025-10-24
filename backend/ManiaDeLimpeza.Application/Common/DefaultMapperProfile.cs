@@ -27,6 +27,7 @@ namespace ManiaDeLimpeza.Application.Common
 
             CreateMap<LineItemDto, QuoteItem>();
             CreateMap<QuoteItem, LineItemDto>();
+            CreateMap<User, UserListDto>();
         }
     }
 }

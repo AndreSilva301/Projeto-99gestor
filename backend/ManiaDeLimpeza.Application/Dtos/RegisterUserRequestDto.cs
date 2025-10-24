@@ -1,5 +1,4 @@
 ﻿using ManiaDeLimpeza.Application.Common;
-using ManiaDeLimpeza.Domain.Interfaces;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
 using System;
 using System.Collections.Generic;
