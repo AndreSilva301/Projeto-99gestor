@@ -27,6 +27,7 @@ const Icon = ({ name, size = 'md', className = '', style = {}, ...props }) => {
     'person-badge': 'fas fa-id-badge',
     'building': 'fas fa-building',
     'gear': 'fas fa-cog',
+    'cog': 'fas fa-cog',
     'box-arrow-right': 'fas fa-sign-out-alt',
     'clipboard-check': 'fas fa-clipboard-check',
     'person-circle': 'fas fa-user-circle',
@@ -44,6 +45,7 @@ const Icon = ({ name, size = 'md', className = '', style = {}, ...props }) => {
     // Action and status icons
     'arrow-up': 'fas fa-arrow-up',
     'arrow-down': 'fas fa-arrow-down',
+    'arrow-right': 'fas fa-arrow-right',
     'clock': 'fas fa-clock',
     'check-circle': 'fas fa-check-circle',
     'lightning-charge-fill': 'fas fa-bolt',
@@ -63,15 +65,25 @@ const Icon = ({ name, size = 'md', className = '', style = {}, ...props }) => {
     'eye': 'fas fa-eye',
     'trash': 'fas fa-trash',
     'times': 'fas fa-times',
+    'x': 'fas fa-times',
     'save': 'fas fa-save',
+    'check': 'fas fa-check',
     'envelope': 'fas fa-envelope',
     'location-dot': 'fas fa-map-marker-alt',
+    'map-pin': 'fas fa-map-marker-alt',
     'triangle-exclamation': 'fas fa-exclamation-triangle',
+    'alert-circle': 'fas fa-exclamation-circle',
     'chevron-left': 'fas fa-chevron-left',
     'chevron-right': 'fas fa-chevron-right',
     'inbox': 'fas fa-inbox',
     'comments': 'fas fa-comments',
     'arrow-left': 'fas fa-arrow-left',
+    
+    // Security and other icons
+    'shield-check': 'fas fa-shield-alt',
+    'link': 'fas fa-link',
+    'card-text': 'fas fa-id-card',
+    'refresh-cw': 'fas fa-sync-alt',
     
     // Additional common icons
     'home': 'fas fa-home',

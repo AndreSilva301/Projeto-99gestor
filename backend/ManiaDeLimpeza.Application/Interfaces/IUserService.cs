@@ -16,5 +16,11 @@ namespace ManiaDeLimpeza.Application.Interfaces
         Task<User?> UpdatePasswordAsync(User user, string newPassword);
         Task<User?> GetByIdAsync(int id);
         Task<User> ChangePasswordAsync(string email, string currentPassword, string newPassword);
+        Task<IEnumerable<User>> GetUsersByCompanyIdAsync(int companyId, bool includelnactive = false);
+        Task<User?> CreateEmployeeAsync(string name, string email, int companyId);
+        Task<User?> UpdateUserAsync(User user);
+        Task<User?> DeactivateUserAsync(int userId);
+        Task<User?> ReactivateUserAsync(int userId);
+
     }
 }
