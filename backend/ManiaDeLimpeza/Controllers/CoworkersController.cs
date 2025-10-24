@@ -31,7 +31,7 @@ public class CoworkersController : AuthBaseController
             return Forbid("Acesso negado. Apenas administradores podem listar colaboradores.");
 
         var users = await _userService.GetUsersByCompanyIdAsync(currentUser.CompanyId, includeInactive);
-        var result = users.Select(u => new UserListDto(u));
+        var result = users.Select(u => new UserLightDto(u));
         return Ok(result);
     }
 
@@ -51,7 +51,7 @@ public class CoworkersController : AuthBaseController
         if (created == null)
             throw new BusinessException("Erro ao criar colaborador.");
 
-        var result = _mapper.Map<UserListDto>(created);
+        var result = _mapper.Map<UserLightDto>(created);
 
         return Ok(result);
     }
@@ -80,7 +80,7 @@ public class CoworkersController : AuthBaseController
             user.Profile = dto.Profile.Value;
 
         var updated = await _userService.UpdateUserAsync(user);
-        var result = _mapper.Map<UserListDto>(updated);
+        var result = _mapper.Map<UserLightDto>(updated);
 
         return Ok(result);
     }
@@ -101,9 +101,10 @@ public class CoworkersController : AuthBaseController
         if (!currentUser.IsSystemAdmin() && user.CompanyId != currentUser.CompanyId)
             return Forbid("Usuário não pertence à sua empresa.");
 
-        await _userService.DeactivateUserAsync(id);
+        var modifiedUser = await _userService.DeactivateUserAsync(id);
+        var userListDto = new UserLightDto(modifiedUser);
 
-        return Ok("Usuário desativado com sucesso.");
+        return Ok(userListDto);
     }
 
     [HttpPost("{id}/reactivate")]
@@ -115,14 +116,16 @@ public class CoworkersController : AuthBaseController
             return Forbid("Apenas administradores podem reativar colaboradores.");
 
         var user = await _userService.GetByIdAsync(id);
+       
         if (user == null)
             return NotFound("Usuário não encontrado.");
 
         if (!currentUser.IsSystemAdmin() && user.CompanyId != currentUser.CompanyId)
             return Forbid("Usuário não pertence à sua empresa.");
 
-        await _userService.ReactivateUserAsync(id);
+        var modifiedUser = await _userService.ReactivateUserAsync(id);
+        var userListDto = new UserLightDto(modifiedUser);
 
-        return Ok("Usuário reativado com sucesso.");
+        return Ok(userListDto);
     }
 }

@@ -1,4 +1,4 @@
-﻿using ManiaDeLimpeza.Api.Controllers.Base;
+﻿using ManiaDeLimpeza.Api.Controllers;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;

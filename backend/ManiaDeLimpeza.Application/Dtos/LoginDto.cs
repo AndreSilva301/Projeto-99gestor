@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Interfaces;
 using ManiaDeLimpeza.Domain.Persistence;
 using System;
 using System.Collections.Generic;
@@ -22,12 +23,10 @@ public class LoginDto : IBasicDto
     {
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Email))
+        if (!Email.IsValidEmail())
             errors.Add("E-mail é obrigatório.");
-        else if (!Email.IsValidEmail())
-            errors.Add("E-mail inválido.");
 
-        if (string.IsNullOrWhiteSpace(Password))
+        if (!Password.IsValidPassword())
             errors.Add("Senha é obrigatória.");
 
         return errors;

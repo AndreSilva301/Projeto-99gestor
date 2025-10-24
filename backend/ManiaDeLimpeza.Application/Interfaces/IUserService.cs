@@ -28,10 +28,10 @@ namespace ManiaDeLimpeza.Application.Interfaces
 
         #region UPDATE
 
-        Task<User?> UpdateUserAsync(User user);
-        Task<User?> UpdatePasswordAsync(User user, string newPassword);
-        Task DeactivateUserAsync(int userId);
-        Task ReactivateUserAsync(int userId);
+        Task<User> UpdateUserAsync(User user);
+        Task<User> UpdatePasswordAsync(User user, string newPassword);
+        Task<User> DeactivateUserAsync(int userId);
+        Task<User> ReactivateUserAsync(int userId);
         Task<User> ChangePasswordAsync(string email, string currentPassword, string newPassword);
 
         #endregion

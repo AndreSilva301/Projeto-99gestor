@@ -1,4 +1,6 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Interfaces;
 using System.Globalization;
 
 namespace ManiaDeLimpeza.Application.Dtos;
@@ -20,9 +22,7 @@ public class CreateEmployeeDto : IBasicDto
         if (string.IsNullOrWhiteSpace(Name))
             errors.Add("O nome é obrigatório.");
 
-        if (string.IsNullOrWhiteSpace(Email))
-            errors.Add("O e-mail é obrigatório.");
-        else if (!Email.Contains("@") || !Email.Contains("."))
+        if (!StringUtils.IsValidEmail(Email))
             errors.Add("O e-mail informado é inválido.");
 
         if (!Enum.IsDefined(typeof(UserProfile), ProfileType))

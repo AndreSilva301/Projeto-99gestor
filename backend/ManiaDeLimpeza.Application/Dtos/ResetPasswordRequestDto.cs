@@ -16,7 +16,7 @@ public class ResetPasswordRequestDto : IBasicDto
         {
             errors.Add("A nova senha é obrigatória.");
         }
-        else if (!NewPassword.ValidatePassword())  // Fixed: negation added
+        else if (!NewPassword.IsValidPassword())  // Fixed: negation added
         {
             errors.Add("A nova senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
         }

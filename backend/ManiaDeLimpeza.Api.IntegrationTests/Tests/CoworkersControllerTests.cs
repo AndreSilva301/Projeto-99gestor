@@ -3,6 +3,7 @@ using ManiaDeLimpeza.Api.Controllers;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -128,13 +129,13 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 .Setup(s => s.GetUsersByCompanyIdAsync(_adminUser.CompanyId, false))
                 .ReturnsAsync(users);
 
-            var mapped = new List<UserListDto>
+            var mapped = new List<UserLightDto>
             {
-        new UserListDto { Id = 2, Name = "João", Email = "joao@empresa.com", Profile = UserProfile.Employee }
+        new UserLightDto { Id = 2, Name = "João", Email = "joao@empresa.com", Profile = UserProfile.Employee }
             };
 
             _mapperMock
-                .Setup(m => m.Map<IEnumerable<UserListDto>>(It.IsAny<IEnumerable<User>>()))
+                .Setup(m => m.Map<IEnumerable<UserLightDto>>(It.IsAny<IEnumerable<User>>()))
                 .Returns(mapped);
 
             // Act
@@ -144,7 +145,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.IsNotNull(result, "O método não retornou OkObjectResult — possivelmente retornou ForbidResult.");
             Assert.AreEqual(200, result.StatusCode);
 
-            var data = result.Value as IEnumerable<UserListDto>;
+            var data = result.Value as IEnumerable<UserLightDto>;
             Assert.IsNotNull(data);
             Assert.AreEqual(1, data.Count());
             Assert.AreEqual("João", data.First().Name);
@@ -183,10 +184,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             };
 
             // Act
-            var result = await _controller.CreateEmployee(invalidDto);
-
-            // Assert
-            Assert.IsInstanceOfType(result, typeof(BadRequestObjectResult));
+            await Assert.ThrowsExceptionAsync<BusinessException>(() => _controller.CreateEmployee(invalidDto));
         }
 
         [TestMethod]
@@ -210,8 +208,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
                 .ReturnsAsync(createdUser);
 
             _mapperMock
-                .Setup(m => m.Map<UserListDto>(createdUser))
-                .Returns(new UserListDto
+                .Setup(m => m.Map<UserLightDto>(createdUser))
+                .Returns(new UserLightDto
                 {
                     Id = createdUser.Id,
                     Name = createdUser.Name,
@@ -227,7 +225,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.IsNotNull(result, "Esperava-se um OkObjectResult, mas o resultado foi nulo (provavelmente um Forbid ou erro interno).");
             Assert.AreEqual(200, result.StatusCode, "O código de status deveria ser 200 (OK).");
 
-            var data = result.Value as UserListDto;
+            var data = result.Value as UserLightDto;
             Assert.IsNotNull(data, "O corpo da resposta deveria conter um UserListDto.");
             Assert.AreEqual("Novo Colaborador", data.Name);
             Assert.AreEqual("novo@empresa.com", data.Email);
@@ -257,8 +255,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             _userServiceMock.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(user);
             _userServiceMock.Setup(s => s.DeactivateUserAsync(2)).ReturnsAsync(user);
 
-            _mapperMock.Setup(m => m.Map<UserListDto>(It.IsAny<User>()))
-                       .Returns((User u) => new UserListDto { Id = u.Id, Name = u.Name, Email = u.Email, Profile = u.Profile });
+            _mapperMock.Setup(m => m.Map<UserLightDto>(It.IsAny<User>()))
+                       .Returns((User u) => new UserLightDto { Id = u.Id, Name = u.Name, Email = u.Email, Profile = u.Profile });
 
             // Act
             var actionResult = await _controller.Deactivate(2);
@@ -268,7 +266,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.IsNotNull(result, "Esperava OkObjectResult (provavelmente veio Forbid ou Unauthorized).");
             Assert.AreEqual(200, result.StatusCode);
 
-            var dto = result.Value as UserListDto;
+            var dto = result.Value as UserLightDto;
             Assert.IsNotNull(dto);
             Assert.AreEqual(2, dto.Id);
             Assert.AreEqual("Colaborador", dto.Name);
@@ -294,8 +292,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             _userServiceMock.Setup(s => s.GetByIdAsync(2)).ReturnsAsync(user);
             _userServiceMock.Setup(s => s.ReactivateUserAsync(2)).ReturnsAsync(user);
 
-            _mapperMock.Setup(m => m.Map<UserListDto>(It.IsAny<User>()))
-                       .Returns((User u) => new UserListDto
+            _mapperMock.Setup(m => m.Map<UserLightDto>(It.IsAny<User>()))
+                       .Returns((User u) => new UserLightDto
                        {
                            Id = u.Id,
                            Name = u.Name,
@@ -311,7 +309,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             Assert.IsNotNull(result, "Esperava OkObjectResult — provavelmente veio Forbid ou Unauthorized.");
             Assert.AreEqual(200, result.StatusCode);
 
-            var dto = result.Value as UserListDto;
+            var dto = result.Value as UserLightDto;
             Assert.IsNotNull(dto);
             Assert.AreEqual(2, dto.Id);
             Assert.AreEqual("Colaborador", dto.Name);

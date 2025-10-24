@@ -64,18 +64,19 @@ public class AuthController : ControllerBase
 
             transaction = await _dbContext.Database.BeginTransactionAsync();
 
-            var company = new Company { Name = dto.CompanyName };
+            var company = dto.ToCompany();
             company = await _companyServices.CreateCompanyAsync(company);
 
-            var user = _mapper.Map<User>(dto);
+            var user = dto.ToUser();
             user.CompanyId = company.Id;
 
             var createdUser = await _userService.CreateUserAsync(user, dto.Password);
 
             await transaction.CommitAsync();
 
-            var result = _mapper.Map<AuthResponseDto>(createdUser);
-            result.BearerToken = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
+            var bearerToken = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
+            var result = new AuthResponseDto(createdUser, bearerToken);
+            
             var response = ApiResponseHelper.SuccessResponse(result, "User registered successfully");
 
             return Created("/User", response);
@@ -177,23 +178,15 @@ public class AuthController : ControllerBase
     public async Task<ActionResult<ApiResponse<string>>> UpdatePassword([FromBody] UpdatePasswordDto dto)
     {
         var errors = dto.Validate();
+        
         if (errors.Count > 0)
-            return BadRequest(ApiResponseHelper.ErrorResponse(errors, "Erro de validação."));
+        {
+            throw new BusinessException(string.Join(", ", errors));
+        }
 
-        try
-        {
-            await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
-            return Ok(ApiResponseHelper.SuccessResponse("Senha atualizada com sucesso.", "Operação concluída."));
-        }
-        catch (BusinessException ex)
-        {
-            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message, "Falha ao atualizar senha."));
-        }
-        catch (Exception)
-        {
-            return StatusCode(StatusCodes.Status500InternalServerError,
-                ApiResponseHelper.ErrorResponse("Erro inesperado ao atualizar senha.", "Erro interno"));
-        }
+        await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
+        return Ok(ApiResponseHelper.SuccessResponse("Senha atualizada com sucesso.", "Operação concluída."));
+
     }
 
     [HttpPost("capture")]
@@ -201,20 +194,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<Lead>>> CaptureLead([FromBody] LeadCaptureRequestDto dto)
     {
-        try
-        {
-            var lead = await _leadService.CaptureLeadAsync(dto);
-
-            if (lead != null)
-            {
-                return Ok(ApiResponseHelper.SuccessResponse(lead));
-            }
-
-            return Ok(ApiResponseHelper.SuccessResponse<Lead>(null));
-        }
-        catch (BusinessException ex)
-        {
-            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
-        }
+        var lead = await _leadService.CaptureLeadAsync(dto);
+        return Ok(ApiResponseHelper.SuccessResponse(lead));
     }
 }

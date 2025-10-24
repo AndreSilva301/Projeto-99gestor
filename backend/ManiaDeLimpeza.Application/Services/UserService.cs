@@ -49,7 +49,7 @@ namespace ManiaDeLimpeza.Application.Services
             if (string.IsNullOrWhiteSpace(currentPassword))
                 throw new BusinessException("A senha atual é obrigatória.");
 
-            if (!StringUtils.ValidatePassword(newPassword))
+            if (!StringUtils.IsValidPassword(newPassword))
                 throw new BusinessException("A nova senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
 
             var user = await _userRepository.GetByEmailAsync(email);
@@ -76,7 +76,7 @@ namespace ManiaDeLimpeza.Application.Services
             return user;
         }
 
-        public async Task<User?> UpdatePasswordAsync(User user, string newPassword)
+        public async Task<User> UpdatePasswordAsync(User user, string newPassword)
         {
             if (user == null || user.Id <= 0)
                 throw new BusinessException("Usuário inválido.");
@@ -95,7 +95,7 @@ namespace ManiaDeLimpeza.Application.Services
             return await _userRepository.GetByIdAsync(id);
         }
 
-        public async Task<User?> UpdateUserAsync(User updatedUser)
+        public async Task<User> UpdateUserAsync(User updatedUser)
         {
             if (updatedUser == null)
                 throw new BusinessException("Usuário inválido.");
@@ -132,7 +132,7 @@ namespace ManiaDeLimpeza.Application.Services
             return await _userRepository.AddAsync(user);
         }
 
-        public async Task DeactivateUserAsync(int userId)
+        public async Task<User> DeactivateUserAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId)
                 ?? throw new BusinessException("Usuário não encontrado.");
@@ -140,15 +140,19 @@ namespace ManiaDeLimpeza.Application.Services
             user.Profile = UserProfile.Inactive;
 
             await _userRepository.UpdateAsync(user);
+
+            return user;
         }
 
-        public async Task ReactivateUserAsync(int userId)
+        public async Task<User> ReactivateUserAsync(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId)
                 ?? throw new BusinessException("Usuário não encontrado.");
 
             user.Profile = UserProfile.Employee;
             await _userRepository.UpdateAsync(user);
+
+            return user;
         }
     }
 }

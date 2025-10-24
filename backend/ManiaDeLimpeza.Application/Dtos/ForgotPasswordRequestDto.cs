@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Interfaces;
 
 namespace ManiaDeLimpeza.Application.Dtos;
 public class ForgotPasswordRequestDto : IBasicDto
