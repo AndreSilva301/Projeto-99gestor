@@ -40,7 +40,7 @@ namespace ManiaDeLimpeza.Application.Services
 
             return createdUser;
         }
-
+        
         public async Task<User> ChangePasswordAsync(string email, string currentPassword, string newPassword)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -62,12 +62,6 @@ namespace ManiaDeLimpeza.Application.Services
 
             return await UpdatePasswordAsync(user, newPassword);
         }
-
-        public async Task<User?> GetByEmailAsync(string email)
-        {
-            return await _userRepository.GetByEmailAsync(email);
-        }
-
         public async Task<User?> GetByCredentialsAsync(string email, string password)
         {
             var user = await _userRepository.GetByEmailAsync(email);

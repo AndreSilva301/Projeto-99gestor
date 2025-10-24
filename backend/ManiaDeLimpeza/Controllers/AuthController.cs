@@ -170,6 +170,17 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+
+    [HttpPost("update-password")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<string>>> UpdatePassword()
+    {
+        //Reset password quando o usuário tem a senha antiga.
+        //Recebe email, senha antiga, senha nova, confirmação da senha nova.
+        throw new NotImplementedException();
+    }
+
     [HttpPost("capture")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
