@@ -9,4 +9,15 @@ public class UserListDto
     public UserProfile Profile { get; set; }
     public DateTime CreatedDate { get; set; }
     public bool IsActive => Profile != UserProfile.Inactive;
+
+    public UserListDto() { }
+
+    public UserListDto(User user)
+    {
+        Id = user.Id;
+        Name = user.Name;
+        Email = user.Email;
+        Profile = user.Profile;
+        CreatedDate = user.CreatedDate;
+    }
 }    

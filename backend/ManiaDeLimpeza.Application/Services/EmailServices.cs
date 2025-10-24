@@ -30,7 +30,7 @@ public class EmailServices : IEmailServices, IScopedDependency
         var body = $@"
 Olá {name},
 
-Você foi convidado para acessar o sistema do 99Gestor.
+Você foi convidado para acessar o sistema do Mania de Limpeza.
 
 Perfil: {userProfile}
 E-mail de acesso: {email}
@@ -39,7 +39,7 @@ Senha temporária: {temporaryPassword}
 Por favor, acesse o sistema e altere sua senha no primeiro login.
 
 Atenciosamente,
-Equipe 99Gestor
+Equipe Mania de Limpeza
 ";
 
         _logger.LogInformation("[Simulação] Enviando convite de acesso...");

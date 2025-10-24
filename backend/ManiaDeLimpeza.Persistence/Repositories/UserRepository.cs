@@ -71,5 +71,16 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         {
             return await _context.Users.FindAsync(id);
         }
+
+        public async Task<IEnumerable<User>> GetByCompanyIdAsync(int companyId, bool includeInactive = false)
+        {
+            var query = _context.Users
+                .Where(u => u.CompanyId == companyId);
+
+            if (!includeInactive)
+                query = query.Where(u => u.Profile != UserProfile.Inactive);
+
+            return await query.ToListAsync();
+        }
     }
 }

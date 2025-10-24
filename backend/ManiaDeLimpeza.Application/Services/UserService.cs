@@ -115,13 +115,7 @@ namespace ManiaDeLimpeza.Application.Services
 
         public async Task<IEnumerable<User>> GetUsersByCompanyIdAsync(int companyId, bool includeInactive = false)
         {
-            var allUsers = await _userRepository.GetAllAsync();
-            var users = allUsers.Where(u => u.CompanyId == companyId);
-
-            if (!includeInactive)
-                users = users.Where(u => u.Profile != UserProfile.Inactive);
-
-            return users;
+            return await _userRepository.GetByCompanyIdAsync(companyId, includeInactive);
         }
 
         public async Task<User?> CreateEmployeeAsync(string name, string email, int companyId)
@@ -138,23 +132,23 @@ namespace ManiaDeLimpeza.Application.Services
             return await _userRepository.AddAsync(user);
         }
 
-        public async Task<User?> DeactivateUserAsync(int userId)
+        public async Task DeactivateUserAsync(int userId)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) return null;
+            var user = await _userRepository.GetByIdAsync(userId)
+                ?? throw new BusinessException("Usuário não encontrado.");
 
             user.Profile = UserProfile.Inactive;
-            return await _userRepository.UpdateAsync(user);
+
+            await _userRepository.UpdateAsync(user);
         }
 
-        public async Task<User?> ReactivateUserAsync(int userId)
+        public async Task ReactivateUserAsync(int userId)
         {
-            var user = await _userRepository.GetByIdAsync(userId);
-            if (user == null) return null;
+            var user = await _userRepository.GetByIdAsync(userId)
+                ?? throw new BusinessException("Usuário não encontrado.");
 
-            // Define o perfil padrão de volta
             user.Profile = UserProfile.Employee;
-            return await _userRepository.UpdateAsync(user);
+            await _userRepository.UpdateAsync(user);
         }
     }
 }
