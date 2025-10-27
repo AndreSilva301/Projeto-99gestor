@@ -16,4 +16,6 @@ public class CustomerRelationship
     public string Description { get; set; } = string.Empty;
 
     public DateTime DateTime { get; set; } = DateTime.UtcNow;
+    public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
+    public DateTime? UpdatedDate { get; set; }
 }
