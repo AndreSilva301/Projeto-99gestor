@@ -18,4 +18,5 @@ public class CustomerRelationship
     public DateTime DateTime { get; set; } = DateTime.UtcNow;
     public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedDate { get; set; }
+    public bool IsDeleted { get; set; } = false; // IsDeleted para nao trazer registros apagados
 }
