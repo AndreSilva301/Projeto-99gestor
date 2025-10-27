@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Interfaces;
 using ManiaDeLimpeza.Infrastructure.Exceptions;
 using System;
@@ -17,6 +18,28 @@ namespace ManiaDeLimpeza.Application.Dtos
         public string Password { get; set; } = string.Empty;
         public string ConfirmPassword { get; set; } = string.Empty;
         public bool AcceptTerms { get; set; }
+
+        public User ToUser()
+        {
+            return new User
+            {
+                Name = this.Name,
+                Email = this.Email,
+                Profile = Domain.Entities.UserProfile.Admin,
+            };
+        }
+
+        public Company ToCompany()
+        {
+            return new Company
+            {
+                Name = this.CompanyName,
+                Phone = new Phone()
+                {
+                    Mobile = this.Phone
+                }
+            };
+        }
 
         public bool IsValid()
         {
@@ -43,7 +66,7 @@ namespace ManiaDeLimpeza.Application.Dtos
             {
                 errors.Add("Senha é obrigatória.");
             }
-            else if (!Password.ValidatePassword())  
+            else if (!Password.IsValidPassword())  
             {
                 errors.Add("A senha deve ter pelo menos 8 caracteres, contendo ao menos uma letra e um número.");
             }

@@ -1,11 +1,12 @@
-﻿using ManiaDeLimpeza.Application.Dtos;
+﻿using ManiaDeLimpeza.Api.Controllers.Base;
+using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Dtos.Mappers;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ManiaDeLimpeza.Api.Controllers.Base;
+namespace ManiaDeLimpeza.Api.Controllers;
 [Route("api/[controller]")]
 [ApiController]
 public class CompanyController : AuthBaseController

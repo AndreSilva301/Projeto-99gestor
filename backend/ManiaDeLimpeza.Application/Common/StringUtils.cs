@@ -21,7 +21,7 @@ public static class StringUtils
         return EmailRegex.IsMatch(email.Trim());
     }
 
-    public static bool ValidatePassword(this string password)
+    public static bool IsValidPassword(this string password)
     {
         if (string.IsNullOrWhiteSpace(password))
             return false;
@@ -41,6 +41,7 @@ public static class StringUtils
         int digitCount = phone.Count(char.IsDigit);
         return digitCount >= 8 && digitCount <= 11;
     }
+
     public static bool IsValidCNPJ(this string cnpj)
     {
         if (string.IsNullOrWhiteSpace(cnpj))

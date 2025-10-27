@@ -44,51 +44,26 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status201Created)]
     [ProducesResponseType(typeof(ApiResponse<AuthResponseDto>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<AuthResponseDto>>> Register(RegisterUserRequestDto dto)
     {
-        IDbContextTransaction transaction = null;
+        var errors = dto.Validate();
+        if (errors.Count > 0)
+            return BadRequest(ApiResponseHelper.ErrorResponse(errors, "User registration failed"));
 
-        try
-        {
-            var errors = dto.Validate();
+        var company = dto.ToCompany();
+        var createdCompany = await _companyServices.CreateCompanyAsync(company);
 
-            if (errors.Count > 0)
-            {
-                return BadRequest(ApiResponseHelper.ErrorResponse(
-                    errors,
-                    "User registration failed"
-                ));
-            }
+        var user = dto.ToUser();
+        user.CompanyId = createdCompany.Id;
 
-            transaction = await _dbContext.Database.BeginTransactionAsync();
+        var createdUser = await _userService.CreateUserAsync(user, dto.Password);
 
-            var company = new Company { Name = dto.CompanyName };
-            company = await _companyServices.CreateCompanyAsync(company);
+        var token = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
+        var result = new AuthResponseDto(createdUser, token);
 
-            var user = _mapper.Map<User>(dto);
-            user.CompanyId = company.Id;
-
-            var createdUser = await _userService.CreateUserAsync(user, dto.Password);
-
-            await transaction.CommitAsync();
-
-            var result = _mapper.Map<AuthResponseDto>(createdUser);
-            result.BearerToken = _tokenService.GenerateToken(createdUser.Id.ToString(), createdUser.Email);
-            var response = ApiResponseHelper.SuccessResponse(result, "User registered successfully");
-
-            return Created("/User", response);
-        }
-        catch (Exception ex)
-        {
-            await transaction?.RollbackAsync();
-
-            return Ok(ApiResponseHelper.ErrorResponse(
-                new List<string> { ex.Message },
-                "User registration failed"
-            ));
-        }
+        return Created("/User", ApiResponseHelper.SuccessResponse(result, "User registered successfully"));
     }
 
     [HttpPost("login")]
@@ -170,25 +145,30 @@ public class AuthController : ControllerBase
         return Ok(response);
     }
 
+
+    [HttpPost("update-password")]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<ApiResponse<string>>> UpdatePassword([FromBody] UpdatePasswordDto dto)
+    {
+        var errors = dto.Validate();
+        
+        if (errors.Count > 0)
+        {
+            throw new BusinessException(string.Join(", ", errors));
+        }
+
+        await _userService.ChangePasswordAsync(dto.Email, dto.CurrentPassword, dto.NewPassword);
+        return Ok(ApiResponseHelper.SuccessResponse("Senha atualizada com sucesso.", "Operação concluída."));
+
+    }
+
     [HttpPost("capture")]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ApiResponse<Lead>>> CaptureLead([FromBody] LeadCaptureRequestDto dto)
     {
-        try
-        {
-            var lead = await _leadService.CaptureLeadAsync(dto);
-
-            if (lead != null)
-            {
-                return Ok(ApiResponseHelper.SuccessResponse(lead));
-            }
-
-            return Ok(ApiResponseHelper.SuccessResponse<Lead>(null));
-        }
-        catch (BusinessException ex)
-        {
-            return BadRequest(ApiResponseHelper.ErrorResponse(ex.Message));
-        }
+        var lead = await _leadService.CaptureLeadAsync(dto);
+        return Ok(ApiResponseHelper.SuccessResponse(lead));
     }
 }

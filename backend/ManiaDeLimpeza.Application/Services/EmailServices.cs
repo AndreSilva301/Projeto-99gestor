@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Services;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,13 @@ public class EmailServices : IEmailServices, IScopedDependency
     {
         _logger.LogInformation("[Simulação] E-mail de recuperação de senha enviado para: {email}", email);
         _logger.LogInformation("[Simulação] Link de redefinição: {token}", token);
+
+        return Task.CompletedTask;
+    }
+
+    public Task SendingAnInvitation(string name, string email, UserProfile userProfile)
+    {
+        _logger.LogInformation("[Simulação] Enviando convite de acesso...");
 
         return Task.CompletedTask;
     }

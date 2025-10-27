@@ -1,7 +1,7 @@
 using ManiaDeLimpeza.Application.Interfaces;
 using System.Security.Claims;
 
-namespace ManiaDeLimpeza.Api.Auth
+namespace ManiaDeLimpeza.Api.Middleware
 {
     public class UserFetchMiddleware
     {
