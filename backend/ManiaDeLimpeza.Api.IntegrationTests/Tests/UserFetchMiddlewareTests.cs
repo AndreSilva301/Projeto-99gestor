@@ -1,4 +1,4 @@
-using ManiaDeLimpeza.Api.Auth;
+using ManiaDeLimpeza.Api.Middleware;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using Microsoft.AspNetCore.Http;

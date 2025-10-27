@@ -10,6 +10,7 @@ using ManiaDeLimpeza.Api.Extensions;
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.Repositories;
+using ManiaDeLimpeza.Api.Middleware;
 
 namespace ManiaDeLimpeza;
 
@@ -97,9 +98,10 @@ public class Program
 
         app.UseHttpsRedirection();
         // IMPORTANT: Add authentication before authorization
-        app.UseAuthentication(); 
+        app.UseAuthentication();
         // Middleware to fetch user from DB
-        app.UseMiddleware<UserFetchMiddleware>(); 
+        app.UseMiddleware<ErrorHandlerMiddleware>();
+        app.UseMiddleware<UserFetchMiddleware>();
         app.UseAuthorization();
         app.MapControllers();
         app.Run();
