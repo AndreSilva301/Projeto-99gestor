@@ -10,12 +10,10 @@ namespace ManiaDeLimpeza.Application.Interfaces
 {
     public interface ICustomerService
     {
-        Task<Customer?> GetByIdAsync(int id);
-        Task<IEnumerable<Customer>> GetAllAsync();
-        Task AddAsync(Customer customer);
-        Task UpdateAsync(Customer customer);
-        Task DeleteAsync(Customer customer);
-        Task<List<Customer>> SearchAsync(string searchTerm);
-        Task<PagedResult<Customer>> PaginatedSearchAsync(string searchTerm, int page, int pageSize);
+        Task<CustomerDto> CreateAsync(CustomerCreateDto dto, int currentUserId);
+        Task<CustomerDto> UpdateAsync(int customerId, CustomerUpdateDto dto, int currentUserId);
+        Task SoftDeleteAsync(int customerId, int currentUserId);
+        Task<CustomerDto?> GetByIdAsync(int customerId, int currentUserId);
+        Task<PagedResult<CustomerListItemDto>> SearchAsync(string? searchTerm, int page, int pageSize, int companyId);
     }
 }
