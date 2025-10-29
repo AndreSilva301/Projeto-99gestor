@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Api.Controllers.Base;
+using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
@@ -23,72 +24,75 @@ namespace ManiaDeLimpeza.Api.Controllers
         }
 
         [HttpPost("{id:int}/relationships")]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<CustomerRelationshipDto>>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<CustomerRelationshipDto>>), StatusCodes.Status400BadRequest)]
         public async Task<ActionResult<IEnumerable<CustomerRelationshipDto>>> AddOrUpdateRelationships(
             int id,
             [FromBody] IEnumerable<CustomerRelationshipCreateOrUpdateDto> relationships)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
             {
-                var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
-                if (customer == null)
-                    return NotFound();
+                var errors = ModelState.Values
+                    .SelectMany(v => v.Errors)
+                    .Select(e => e.ErrorMessage)
+                    .ToList();
 
-                if (customer.CompanyId != CurrentCompanyId)
-                    return Forbid();
-
-                var result = await _relationshipService.AddOrUpdateRelationshipsAsync(id, relationships, CurrentUserId);
-                return CreatedAtAction(nameof(GetRelationships), new { id }, result);
+                return BadRequest(ApiResponseHelper.ErrorResponse(errors, "Validation failed."));
             }
-            catch (BusinessException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-        }
 
-        [HttpGet("{id:int}/relationships")]
-        public async Task<ActionResult<IEnumerable<CustomerRelationshipDto>>> GetRelationships(int id)
-        {
             var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
             if (customer == null)
-                return NotFound();
+                return NotFound(ApiResponseHelper.ErrorResponse("Customer not found."));
 
             if (customer.CompanyId != CurrentCompanyId)
                 return Forbid();
 
-            var result = await _relationshipService.ListRelationshipsAsync(id);
-            return Ok(result.OrderByDescending(r => r.DateTime));
+            var result = await _relationshipService.AddOrUpdateRelationshipsAsync(id, relationships, CurrentUserId);
+
+            return CreatedAtAction(
+                nameof(GetRelationships),
+                new { id },
+                ApiResponseHelper.SuccessResponse(result, "Relationships created or updated successfully."));
         }
+
+        [HttpGet("{id}/relationships")]
+        [ProducesResponseType(typeof(ApiResponse<IEnumerable<CustomerRelationshipDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<IEnumerable<CustomerRelationshipDto>>>> GetRelationships(int id)
+        {
+            var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
+
+            if (customer == null || customer.CompanyId != CurrentCompanyId)
+                return BadRequest(ApiResponseHelper.ErrorResponse("Invalid customer or access denied."));
+
+            var result = await _relationshipService.ListRelationshipsAsync(id);
+            var ordered = result.OrderByDescending(r => r.DateTime);
+
+            return Ok(ApiResponseHelper.SuccessResponse(ordered, "Relationships retrieved successfully."));
+        }
+
 
         [HttpDelete("{id:int}/relationships")]
-        public async Task<ActionResult> DeleteRelationships(int id, [FromBody] IEnumerable<int> relationshipIds)
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<object>>> DeleteRelationships(int id, [FromBody] IEnumerable<int> relationshipIds)
         {
             if (relationshipIds == null || !relationshipIds.Any())
-                return BadRequest("Nenhum relacionamento foi informado.");
+                return BadRequest(ApiResponseHelper.ErrorResponse("No relationship IDs were provided."));
 
-            try
-            {
-                var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
-                if (customer == null)
-                    return NotFound();
+            var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
 
-                if (customer.CompanyId != CurrentCompanyId)
-                    return Forbid();
+            if (customer == null || customer.CompanyId != CurrentCompanyId)
+                return BadRequest(ApiResponseHelper.ErrorResponse("Invalid customer or access denied."));
 
-                var valid = await _relationshipService.ValidateOwnershipAsync(id, relationshipIds);
-                if (!valid)
-                    return BadRequest("Um ou mais relacionamentos não pertencem ao cliente informado.");
+            var valid = await _relationshipService.ValidateOwnershipAsync(id, relationshipIds);
+            if (!valid)
+                return BadRequest(ApiResponseHelper.ErrorResponse("One or more relationships do not belong to this customer."));
 
-                await _relationshipService.DeleteRelationshipsAsync(id, relationshipIds);
-                return NoContent();
-            }
-            catch (BusinessException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            await _relationshipService.DeleteRelationshipsAsync(id, relationshipIds);
+            return NoContent();
         }
+
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<CustomerDto>> GetById(int id)
