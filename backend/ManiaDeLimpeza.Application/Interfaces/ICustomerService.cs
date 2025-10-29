@@ -15,5 +15,8 @@ namespace ManiaDeLimpeza.Application.Interfaces
         Task SoftDeleteAsync(int customerId, int currentUserId);
         Task<CustomerDto?> GetByIdAsync(int customerId, int currentUserId);
         Task<PagedResult<CustomerListItemDto>> SearchAsync(string? searchTerm, int page, int pageSize, int companyId);
+        Task<IEnumerable<CustomerRelationshipDto>> AddOrUpdateRelationshipsAsync(int customerId, IEnumerable<CustomerRelationshipCreateOrUpdateDto> dtos, int currentUserId);
+        Task<IEnumerable<CustomerRelationshipDto>> ListRelationshipsAsync(int customerId,int currentUserId);
+        Task DeleteRelationshipsAsync( int customerId, IEnumerable<int> relationshipIds, int currentUserId);
     }
 }

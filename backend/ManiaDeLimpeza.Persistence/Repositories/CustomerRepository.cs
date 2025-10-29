@@ -56,7 +56,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         {
             return await _context.CustomerRelationships
                 .AsNoTracking()
-                .Where(r => r.CostumerId == customerId && !r.IsDeleted)
+                .Where(r => r.CustomerId == customerId && !r.IsDeleted)
                 .OrderByDescending(r => r.DateTime)
                 .ToListAsync();
         }
@@ -78,10 +78,10 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             var results = new List<CustomerRelationship>();
             foreach (var rel in relationships)
             {
-                rel.CostumerId = customerId;
+                rel.CustomerId = customerId;
                 if (rel.Id > 0)
                 {
-                    var existing = await _context.CustomerRelationships.FirstOrDefaultAsync(r => r.Id == rel.Id && r.CostumerId == customerId);
+                    var existing = await _context.CustomerRelationships.FirstOrDefaultAsync(r => r.Id == rel.Id && r.CustomerId == customerId);
                     if (existing != null)
                     {
                         existing.Description = rel.Description;
@@ -104,7 +104,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         public async Task DeleteRelationshipsAsync(IEnumerable<int> relationshipIds, int customerId)
         {
             var relationships = await _context.CustomerRelationships
-                .Where(r => relationshipIds.Contains(r.Id) && r.CostumerId == customerId)
+                .Where(r => relationshipIds.Contains(r.Id) && r.CustomerId == customerId)
                 .ToListAsync();
 
             _context.CustomerRelationships.RemoveRange(relationships);

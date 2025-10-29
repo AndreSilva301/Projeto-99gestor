@@ -8,9 +8,9 @@ public class CustomerRelationship
     public int Id { get; set; }
 
     [Required]
-    public int CostumerId { get; set; }
-    [ForeignKey(nameof(CostumerId))]
-    public Customer Costumer { get; set; } = null!;
+    public int CustomerId { get; set; }
+    [ForeignKey(nameof(CustomerId))]
+    public Customer Customer { get; set; } = null!;
 
     [MaxLength(500)]
     public string Description { get; set; } = string.Empty;

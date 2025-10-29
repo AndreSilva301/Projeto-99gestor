@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Persistence;
-public interface ICustomerRelationshipRepository
+public interface ICustomerRelationshipRepository 
 {
     Task<CustomerRelationship?> GetByIdAsync(int id);
     Task<IEnumerable<CustomerRelationship>> ListByCustomerIdAsync(int customerId);
     Task AddAsync(CustomerRelationship entity);
     Task UpdateAsync(CustomerRelationship entity);
+    Task<IEnumerable<CustomerRelationship>> GetByCustomerIdAsync(int customerId);
+    Task DeleteRelationshipsAsync(IEnumerable<int> relationshipIds);
 }
