@@ -26,10 +26,15 @@ namespace ManiaDeLimpeza.Api.Middleware
                 _logger.LogWarning(ex, "Business exception occurred: {Message}", ex.Message);
                 await HandleBusinessExceptionAsync(context, ex);
             }
+            catch (KeyNotFoundException ex)
+            {
+                _logger.LogWarning(ex, "Entity not found: {Message}", ex.Message);
+                await HandleNotFoundExceptionAsync(context, ex);
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An unhandled exception occurred");
-                throw;
+                await HandleUnexpectedExceptionAsync(context, ex);
             }
         }
 
@@ -41,6 +46,44 @@ namespace ManiaDeLimpeza.Api.Middleware
             var response = new
             {
                 message = exception.Message,
+                success = false
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            await context.Response.WriteAsync(jsonResponse);
+        }
+
+        private static async Task HandleNotFoundExceptionAsync(HttpContext context, KeyNotFoundException exception)
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.NotFound;
+
+            var response = new
+            {
+                message = exception.Message,
+                success = false
+            };
+
+            var jsonResponse = JsonSerializer.Serialize(response, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+
+            await context.Response.WriteAsync(jsonResponse);
+        }
+
+        private static async Task HandleUnexpectedExceptionAsync(HttpContext context, Exception exception)
+        {
+            context.Response.ContentType = "application/json";
+            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+
+            var response = new
+            {
+                message = "An unexpected error occurred.",
                 success = false
             };
 
