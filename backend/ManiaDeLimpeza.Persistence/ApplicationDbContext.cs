@@ -98,8 +98,8 @@ namespace ManiaDeLimpeza.Persistence
 
                 // Customer (1) -> (N) CustomerRelationship
                 entity.HasMany(c => c.CostumerRelationships)
-                    .WithOne(cr => cr.Costumer)
-                    .HasForeignKey(cr => cr.CostumerId)
+                    .WithOne(cr => cr.Customer)
+                    .HasForeignKey(cr => cr.CustomerId)
                     .OnDelete(DeleteBehavior.Cascade);
 
                 // Customer (1) -> (N) Quote

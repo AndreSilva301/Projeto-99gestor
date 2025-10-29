@@ -76,7 +76,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             // Adicionar relacionamento
             var rel = new CustomerRelationship
             {
-                CostumerId = cliente.Id,
+                CustomerId = cliente.Id,
                 Description = "Primeiro relacionamento"
             };
             var resultAdd = await repo.AddOrUpdateRelationshipsAsync(cliente.Id, new[] { rel });
@@ -113,12 +113,12 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             var rel1 = new CustomerRelationship
             {
-                CostumerId = cliente.Id,
+                CustomerId = cliente.Id,
                 Description = "Relacionamento A"
             };
             var rel2 = new CustomerRelationship
             {
-                CostumerId = cliente.Id,
+                CustomerId = cliente.Id,
                 Description = "Relacionamento B"
             };
             await repo.AddOrUpdateRelationshipsAsync(cliente.Id, new[] { rel1, rel2 });

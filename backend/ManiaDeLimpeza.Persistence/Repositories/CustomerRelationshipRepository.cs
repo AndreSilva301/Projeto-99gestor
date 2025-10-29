@@ -22,7 +22,7 @@ public class CustomerRelationshipRepository : ICustomerRelationshipRepository, I
     public async Task<IEnumerable<CustomerRelationship>> ListByCustomerIdAsync(int customerId)
     {
         return await _context.CustomerRelationships
-            .Where(r => r.CostumerId == customerId && !r.IsDeleted)
+            .Where(r => r.CustomerId == customerId && !r.IsDeleted)
             .ToListAsync();
     }
 
@@ -35,6 +35,24 @@ public class CustomerRelationshipRepository : ICustomerRelationshipRepository, I
     public async Task UpdateAsync(CustomerRelationship entity)
     {
         _context.CustomerRelationships.Update(entity);
+        await _context.SaveChangesAsync();
+    }
+    public async Task<IEnumerable<CustomerRelationship>> GetByCustomerIdAsync(int customerId)
+    {
+        return await _context.CustomerRelationships
+            .Where(r => r.CustomerId == customerId && !r.IsDeleted)
+            .ToListAsync();
+    }
+
+    public async Task DeleteRelationshipsAsync(IEnumerable<int> relationshipIds)
+    {
+        var entities = await _context.CustomerRelationships
+            .Where(r => relationshipIds.Contains(r.Id))
+            .ToListAsync();
+
+        foreach (var entity in entities)
+            entity.IsDeleted = true;
+
         await _context.SaveChangesAsync();
     }
 }

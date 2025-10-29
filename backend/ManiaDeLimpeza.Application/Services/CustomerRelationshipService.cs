@@ -43,7 +43,7 @@ public class CustomerRelationshipService : ICustomerRelationshipService, IScoped
             {
                 entity = new CustomerRelationship
                 {
-                    CostumerId = customerId,
+                    CustomerId = customerId,
                     Description = rel.Description,
                     DateTime = DateTime.UtcNow,
                     CreatedDate = DateTime.UtcNow
