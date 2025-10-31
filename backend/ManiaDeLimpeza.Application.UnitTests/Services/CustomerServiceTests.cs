@@ -14,7 +14,6 @@ public class CustomerServiceTests
     private Mock<IUserRepository> _userRepositoryMock = null!;
     private Mock<IMapper> _mapperMock = null!;
     private CustomerService _customerService = null!;
-
     [TestInitialize]
     public void Setup()
     {
@@ -52,7 +51,7 @@ public class CustomerServiceTests
         _mapperMock.Setup(m => m.Map<CustomerDto>(entity)).Returns(mappedDto);
 
         // Act
-        var result = await _customerService.CreateAsync(dto, user.Id);
+        var result = await _customerService.CreateAsync(dto, user.CompanyId);
 
         // Assert
         Assert.IsNotNull(result);
@@ -94,7 +93,7 @@ public class CustomerServiceTests
         _mapperMock.Setup(m => m.Map<CustomerDto>(existing)).Returns(mappedDto);
 
         // Act
-        var result = await _customerService.UpdateAsync(existing.Id, dto, user.Id);
+        var result = await _customerService.UpdateAsync(existing.Id, dto, user.CompanyId);
 
         // Assert
         Assert.AreEqual("Novo Nome", result.Name);
@@ -128,7 +127,7 @@ public class CustomerServiceTests
         _customerRepositoryMock.Setup(r => r.GetByIdAsync(customer.Id)).ReturnsAsync(customer);
 
         // Act
-        await _customerService.SoftDeleteAsync(customer.Id, user.Id);
+        await _customerService.SoftDeleteAsync(customer.Id, user.CompanyId);
 
         // Assert
         _customerRepositoryMock.Verify(r => r.SoftDeleteAsync(customer.Id), Times.Once);

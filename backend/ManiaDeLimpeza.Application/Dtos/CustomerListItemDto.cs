@@ -13,11 +13,11 @@ public class CustomerListItemDto : IBasicDto
     {
         var errors = new List<string>();
         if (string.IsNullOrWhiteSpace(Name))
-            errors.Add("Name is required.");
+            errors.Add("Nome é obrigatório.");
         if (Name?.Length > 255)
-            errors.Add("Name maximum length is 255 characters.");
+            errors.Add("O nome pode ter no máximo 255 caracteres.");
         if (!Phone?.Mobile.IsValidPhone() ?? true)
-            errors.Add("Phone number is not valid.");
+            errors.Add("Número de telefone inválido.");
         return errors;
     }
 

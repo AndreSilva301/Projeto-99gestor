@@ -141,7 +141,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             await repo.AddAsync(new Customer { Name = "EmpresaA 2", CompanyId = empresaA.Id, Email = "a2@a.com", Phone = new Phone { Mobile = "219" } });
             await repo.AddAsync(new Customer { Name = "EmpresaB 1", CompanyId = empresaB.Id, Email = "b1@b.com", Phone = new Phone { Mobile = "319" } });
 
-            var paginaA = await repo.GetPagedByCompanyAsync(empresaA.Id, page: 1, pageSize: 10, searchTerm: null);
+            var paginaA = await repo.GetPagedByCompanyAsync(empresaA.Id, page: 1, pageSize: 10, searchTerm: null, orderBy: "Name", direction: "Desc");
             Assert.AreEqual(2, paginaA.Items.Count);
             Assert.IsTrue(paginaA.Items.All(c => c.CompanyId == empresaA.Id));
         }
@@ -164,7 +164,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             await repo.SoftDeleteAsync(cliente.Id);
 
-            var ativos = await repo.GetPagedByCompanyAsync(empresa.Id, page: 1, pageSize: 10, searchTerm: null);
+            var ativos = await repo.GetPagedByCompanyAsync(empresa.Id, page: 1, pageSize: 10, searchTerm: null, orderBy: "Name", direction: "asc");
             Assert.IsFalse(ativos.Items.Any(c => c.Id == cliente.Id));
         }
     }

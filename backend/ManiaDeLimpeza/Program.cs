@@ -17,20 +17,20 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
 
-        // ?? Register repositories and services
+        // Register repositories and services
         builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
         builder.Services.AddMarkedDependencies();
 
-        // ?? AutoMapper
+        // Configure AutoMapper
         builder.Services.AddAutoMapper(typeof(DefaultMapperProfile).Assembly);
 
-        // ?? CORS configuration
+        // Configure CORS
         builder.Services.AddConfiguredCors(builder.Configuration);
 
-        // ?? Controllers
+        // Add Controllers
         builder.Services.AddControllers();
 
-        // ?? Swagger configuration
+        // Configure Swagger
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
@@ -85,7 +85,7 @@ public class Program
         builder.Services.AddJwtAuthentication(authOptions.JwtSecret);
         builder.Services.AddAuthorization();
 
-        // ?? Build the app
+        //  Build the app
         var app = builder.Build();
 
         app.UseCors("DefaultCorsPolicy");

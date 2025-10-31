@@ -10,7 +10,6 @@ namespace ManiaDeLimpeza.Application.Services
 {
     public class CustomerService : ICustomerService, IScopedDependency
     {
-        private readonly ICustomerRelationshipRepository _relationshipRepository;
         private readonly ICustomerRepository _customerRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
@@ -19,23 +18,20 @@ namespace ManiaDeLimpeza.Application.Services
         public CustomerService(
             ICustomerRepository customerRepository,
             IUserRepository userRepository,
-            ICustomerRelationshipRepository relationshipRepository,
             IMapper mapper)
         {
             _customerRepository = customerRepository;
             _userRepository = userRepository;
-            _relationshipRepository = relationshipRepository;
             _mapper = mapper;
         }
 
-        public async Task<CustomerDto> CreateAsync(CustomerCreateDto dto, int currentUserId)
+        public async Task<CustomerDto> CreateAsync(CustomerCreateDto dto, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             if (!dto.IsValid())
                 throw new BusinessException(string.Join(", ", dto.Validate()));
 
             var entity = _mapper.Map<Customer>(dto);
-            entity.CompanyId = user.CompanyId;
+            entity.CompanyId = companyId;
             entity.CreatedDate = DateTime.UtcNow;
 
             await _customerRepository.AddAsync(entity); 
@@ -51,19 +47,18 @@ namespace ManiaDeLimpeza.Application.Services
                     relationship.CustomerId = entity.Id;
                     relationship.CreatedDate = DateTime.UtcNow;
 
-                    await _relationshipRepository.AddAsync(relationship);
+                    await _customerRepository.AddOrUpdateRelationshipsAsync(entity.Id, new List<CustomerRelationship> { relationship });
                 }
             }
 
             return _mapper.Map<CustomerDto>(entity);
         }
 
-        public async Task<CustomerDto> UpdateAsync(int customerId, CustomerUpdateDto dto, int currentUserId)
+        public async Task<CustomerDto> UpdateAsync(int customerId, CustomerUpdateDto dto, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             var existing = await _customerRepository.GetbyIdWithRelationshipAsync(customerId);
 
-            if (existing.CompanyId != user.CompanyId)
+            if (existing.CompanyId != companyId)
                 throw new BusinessException("Cliente não pertence à empresa do usuário.");
 
             if (!dto.IsValid())
@@ -77,31 +72,29 @@ namespace ManiaDeLimpeza.Application.Services
             return _mapper.Map<CustomerDto>(existing);
         }
 
-        public async Task SoftDeleteAsync(int customerId, int currentUserId)
+        public async Task SoftDeleteAsync(int customerId, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             var existing = await _customerRepository.GetByIdAsync(customerId);
 
-            if (existing.CompanyId != user.CompanyId)
+            if (existing.CompanyId != companyId)
                 throw new BusinessException("Cliente não pertence à empresa do usuário.");
 
             await _customerRepository.SoftDeleteAsync(customerId);
         }
 
-        public async Task<CustomerDto?> GetByIdAsync(int customerId, int currentUserId)
+        public async Task<CustomerDto?> GetByIdAsync(int customerId, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             var customer = await _customerRepository.GetbyIdWithRelationshipAsync(customerId);
 
-            if (customer.CompanyId != user.CompanyId)
+            if (customer.CompanyId != companyId)
                 return null;
 
             return _mapper.Map<CustomerDto>(customer);
         }
 
-        public async Task<PagedResult<CustomerListItemDto>> SearchAsync(string? searchTerm, int page, int pageSize, int companyId)
+        public async Task<PagedResult<CustomerListItemDto>> SearchAsync(string? searchTerm, int page, int pageSize, int companyId, string? orderBy = "Name", string direction = "asc")
         {
-            var result = await _customerRepository.GetPagedByCompanyAsync(companyId, page, pageSize, searchTerm ?? "");
+            var result = await _customerRepository.GetPagedByCompanyAsync(companyId, page, pageSize, searchTerm ?? "", orderBy ?? "Name", direction.ToLower() == "desc" ? "desc" : "asc");
 
             return new PagedResult<CustomerListItemDto>
             {
@@ -110,83 +103,72 @@ namespace ManiaDeLimpeza.Application.Services
             };
         }
 
-        public async Task<IEnumerable<CustomerRelationshipDto>> AddOrUpdateRelationshipsAsync( int customerId, IEnumerable<CustomerRelationshipCreateOrUpdateDto> dtos, int currentUserId)
+        public async Task<IEnumerable<CustomerRelationshipDto>> AddOrUpdateRelationshipsAsync(int customerId, IEnumerable<CustomerRelationshipDto> dtos, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             var customer = await _customerRepository.GetByIdAsync(customerId)
-                ?? throw new BusinessException("Customer não encontrado.");
+         ?? throw new BusinessException("Customer não encontrado.");
 
-            if (customer.CompanyId != user.CompanyId)
+            if (customer.CompanyId != companyId)
                 throw new BusinessException("Customer não pertence à sua empresa.");
 
-            var results = new List<CustomerRelationship>();
+            var invalidDtos = dtos.Where(d => !d.IsValid()).ToList();
+            if (invalidDtos.Any())
+                throw new BusinessException($"Dados inválidos: {string.Join(", ", invalidDtos.SelectMany(d => d.Validate()))}");
+
+            var relationships = new List<CustomerRelationship>();
 
             foreach (var dto in dtos)
             {
-                if (!dto.IsValid())
-                    throw new BusinessException($"Dados inválidos: {string.Join(", ", dto.Validate())}");
+                var entity = _mapper.Map<CustomerRelationship>(dto);
 
-                CustomerRelationship entity;
+                entity.CustomerId = customerId;
 
                 if (dto.Id > 0)
                 {
-                    entity = await _relationshipRepository.GetByIdAsync(dto.Id)
-                        ?? throw new BusinessException($"Relationship {dto.Id} não encontrado.");
-
-                    if (entity.CustomerId != customerId)
-                        throw new BusinessException($"Relationship {dto.Id} não pertence ao Customer {customerId}.");
-
-                    _mapper.Map(dto, entity);
                     entity.UpdatedDate = DateTime.UtcNow;
-
-                    await _relationshipRepository.UpdateAsync(entity);
                 }
                 else
                 {
-                    entity = _mapper.Map<CustomerRelationship>(dto);
-                    entity.CustomerId = customerId;
                     entity.CreatedDate = DateTime.UtcNow;
-
-                    await _relationshipRepository.AddAsync(entity);
                 }
 
-                results.Add(entity);
+                relationships.Add(entity);
             }
 
-            return results.Select(_mapper.Map<CustomerRelationshipDto>);
+            var updatedRelationships = await _customerRepository.AddOrUpdateRelationshipsAsync(customerId, relationships);
+
+            return relationships.Select(_mapper.Map<CustomerRelationshipDto>);
         }
 
-        public async Task<IEnumerable<CustomerRelationshipDto>> ListRelationshipsAsync(int customerId, int currentUserId)
+        public async Task<IEnumerable<CustomerRelationshipDto>> ListRelationshipsAsync(int customerId, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             var customer = await _customerRepository.GetByIdAsync(customerId)
                 ?? throw new BusinessException("Customer não encontrado.");
 
-            if (customer.CompanyId != user.CompanyId)
+            if (customer.CompanyId != companyId)
                 throw new BusinessException("Customer não pertence à sua empresa.");
 
-            var relationships = await _relationshipRepository.GetByCustomerIdAsync(customerId);
+            var relationships = await _customerRepository.GetRelationshipsByCustomerAsync(customerId);
             return relationships
                 .OrderByDescending(r => r.DateTime)
                 .Select(_mapper.Map<CustomerRelationshipDto>);
         }
 
-        public async Task DeleteRelationshipsAsync(int customerId, IEnumerable<int> relationshipIds, int currentUserId)
+        public async Task DeleteRelationshipsAsync(int customerId, IEnumerable<int> relationshipIds, int companyId)
         {
-            var user = await _userRepository.GetByIdAsync(currentUserId);
             var customer = await _customerRepository.GetByIdAsync(customerId)
                 ?? throw new BusinessException("Customer não encontrado.");
 
-            if (customer.CompanyId != user.CompanyId)
+            if (customer.CompanyId != companyId)
                 throw new BusinessException("Customer não pertence à sua empresa.");
 
-            var relationships = await _relationshipRepository.GetByCustomerIdAsync(customerId);
+            var relationships = await _customerRepository.GetRelationshipsByCustomerAsync(customerId);
             var invalidIds = relationshipIds.Except(relationships.Select(r => r.Id)).ToList();
 
             if (invalidIds.Any())
                 throw new BusinessException($"Os relationships [{string.Join(", ", invalidIds)}] não pertencem ao customer {customerId}.");
 
-            await _relationshipRepository.DeleteRelationshipsAsync(relationshipIds);
+            await _customerRepository.DeleteRelationshipsAsync(relationshipIds, customerId);
         }
     }
 }

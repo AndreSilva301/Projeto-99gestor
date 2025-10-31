@@ -152,7 +152,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 Name = "Ana Silva",
                 Email = "ana@example.com",
-                DateTimeCustomer = new DateTime(1990, 5, 21),
+                CreatedDate = new DateTime(1990, 5, 21),
                 Observations = "VIP client",
                 CompanyId = company.Id, // Add required CompanyId
                 Address = new Address

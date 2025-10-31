@@ -1,41 +1,95 @@
-﻿using ManiaDeLimpeza.Api.IntegrationTests.Tools;
+﻿
 using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Infrastructure.Helpers;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Text;
-
 
 namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
 {
     [TestClass]
     public class CustomerControllerTests
     {
-        private readonly HttpClient _client;
-        private readonly WebApplicationFactory<Program> _factory;
+        private WebApplicationFactory<Program> _factory;
+        private HttpClient _client;
+        private string _token;
 
-        public CustomerControllerTests()
+        [TestInitialize]
+        public async Task Setup()
         {
             _factory = new WebApplicationFactory<Program>();
             _client = _factory.CreateClient();
+
+            using (var scope = _factory.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.EnsureCreated();
+
+                if (!db.Users.Any(u => u.Email == "admin@teste.com"))
+                {
+                    var user = new User
+                    {
+                        Email = "admin@teste.com",
+                        Name = "Administrador",
+                        CompanyId = 1
+                    };
+
+                    user.PasswordHash = PasswordHelper.Hash("123456", user);
+
+                    db.Users.Add(user);
+                    db.SaveChanges();
+                }
+            }
+
+            var loginContent = new StringContent(JsonConvert.SerializeObject(new
+            {
+                Email = "admin@teste.com",
+                Password = "123456"
+            }), Encoding.UTF8, "application/json");
+
+            var loginResponse = await _client.PostAsync("/api/auth/login", loginContent);
+            var responseString = await loginResponse.Content.ReadAsStringAsync();
+
+            if (!loginResponse.IsSuccessStatusCode)
+                Assert.Fail($"Login falhou: {loginResponse.StatusCode} - {responseString}");
+
+            dynamic loginResult = JsonConvert.DeserializeObject(responseString);
+
+            _token = loginResult.data?.bearerToken?.ToString()
+                  ?? loginResult.data?.BearerToken?.ToString();
+
+            Assert.IsFalse(string.IsNullOrEmpty(_token), "Token JWT não retornado pelo login.");
+
+            _client.DefaultRequestHeaders.Authorization =
+                new AuthenticationHeaderValue("Bearer", _token);
         }
-       
+
+        [TestCleanup]
+        public void Cleanup()
+        {
+            using var scope = _factory.Services.CreateScope();
+            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            db.Database.EnsureDeleted();
+        }
+
         [TestMethod]
         public async Task CreateCustomer_ShouldReturnCreated()
         {
-            // Arrange
-            var dto = new CustomerCreateDto
+            var dto = new
             {
                 Name = "Cliente Teste",
-                Phone = new PhoneDto
+                Phone = new
                 {
                     Mobile = "11999999999",
                     Landline = "1133334444"
-                },  
+                },
                 Email = "cliente@teste.com",
-                Address = new AddressDto
+                Address = new
                 {
                     Street = "Rua Teste",
                     Number = "123",
@@ -46,11 +100,11 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(dto), Encoding.UTF8, "application/json");
-
-            // Act
             var response = await _client.PostAsync("/api/customer", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-            // Assert
+            Console.WriteLine("Create Response: " + responseBody);
+
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
 
             using var scope = _factory.Services.CreateScope();
@@ -67,7 +121,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            var customer = new Domain.Entities.Customer
+            var customer = new Customer
             {
                 CompanyId = 1,
                 Name = "Cliente Existente",
@@ -76,10 +130,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             db.Customers.Add(customer);
             db.SaveChanges();
 
-            // Act
             var response = await _client.GetAsync($"/api/customer/{customer.Id}");
 
-            // Assert
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             var json = await response.Content.ReadAsStringAsync();
@@ -91,10 +143,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestMethod]
         public async Task GetById_WhenCustomerDoesNotExist_ShouldReturnNotFound()
         {
-            // Act
             var response = await _client.GetAsync("/api/customer/99999");
-
-            // Assert
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -104,7 +153,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            var existing = new Domain.Entities.Customer
+            var existing = new Customer
             {
                 CompanyId = 1,
                 Name = "Antigo Nome",
@@ -120,11 +169,11 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             };
 
             var content = new StringContent(JsonConvert.SerializeObject(updateDto), Encoding.UTF8, "application/json");
-
-            // Act
             var response = await _client.PutAsync($"/api/customer/{existing.Id}", content);
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-            // Assert
+            Console.WriteLine("Update Response: " + responseBody);
+
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
             db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -138,7 +187,7 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            var customer = new Domain.Entities.Customer
+            var customer = new Customer
             {
                 CompanyId = 1,
                 Name = "Deletável",
@@ -147,10 +196,11 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             db.Customers.Add(customer);
             db.SaveChanges();
 
-            // Act
             var response = await _client.DeleteAsync($"/api/customer/{customer.Id}");
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-            // Assert
+            Console.WriteLine("Delete Response: " + responseBody);
+
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
 
             db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -164,21 +214,20 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
             using var scope = _factory.Services.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
 
-            db.Customers.Add(new Domain.Entities.Customer { CompanyId = 1, Name = "Carlos Lima", Email = "carlos@teste.com" });
-            db.Customers.Add(new Domain.Entities.Customer { CompanyId = 1, Name = "Carla Souza", Email = "carla@teste.com" });
+            db.Customers.Add(new Customer { CompanyId = 1, Name = "Carlos Lima", Email = "carlos@teste.com" });
+            db.Customers.Add(new Customer { CompanyId = 1, Name = "Carla Souza", Email = "carla@teste.com" });
             db.SaveChanges();
 
-            // Act
             var response = await _client.GetAsync("/api/customer/search?term=Car&page=1&pageSize=10");
+            var responseBody = await response.Content.ReadAsStringAsync();
 
-            // Assert
+            Console.WriteLine("Search Response: " + responseBody);
+
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var json = await response.Content.ReadAsStringAsync();
-            var result = JsonConvert.DeserializeObject<PagedResult<CustomerListItemDto>>(json);
+            var result = JsonConvert.DeserializeObject<PagedResult<CustomerListItemDto>>(responseBody);
             Assert.IsNotNull(result);
             Assert.IsTrue(result.Items.Any());
         }
     }
 }
-

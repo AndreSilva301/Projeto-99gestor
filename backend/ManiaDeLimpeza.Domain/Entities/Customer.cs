@@ -33,7 +33,6 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public List<CustomerRelationship> CostumerRelationships { get; set; } = new();
         public List<Quote> Quotes { get; set; } = new();
-        public DateTime? DateTimeCustomer { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedDate { get; set; }
         public bool IsDeleted { get; set; } = false;

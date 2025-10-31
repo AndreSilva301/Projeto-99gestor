@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
+   
     public class CustomerRepository : BaseRepository<Customer>, ICustomerRepository, IScopedDependency
     {
         protected readonly ApplicationDbContext _context;
@@ -18,12 +19,12 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         public async Task<Customer?> GetbyIdWithRelationshipAsync(int id)
         {
             return await _context.Customers
-                .AsNoTracking()
-                .Include(c => c.CostumerRelationships.Where(r => !r.IsDeleted))
-                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
+                 .AsNoTracking()
+                 .Include(c => c.CostumerRelationships)
+                 .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<PagedResult<Customer>> GetPagedByCompanyAsync(int companyId, int page, int pageSize, string? searchTerm)
+        public async Task<PagedResult<Customer>> GetPagedByCompanyAsync(int companyId, int page, int pageSize, string? searchTerm, string orderBy, string direction)
         {
             var query = _context.Customers
                 .AsNoTracking()
@@ -31,14 +32,24 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                string lowered = searchTerm.Trim().ToLower();
-                query = query.Where(c => c.Name.ToLower().Contains(lowered) || c.Email.ToLower().Contains(lowered));
+                string lowered = searchTerm.Trim().ToLowerInvariant();
+                lowered = RemoveAccents(lowered);
+
+                query = query.Where(c =>
+                        RemoveAccents(c.Name.ToLower()).Contains(lowered)
+                     || RemoveAccents(c.Email.ToLower()).Contains(lowered));
             }
+
+            var validColumns = new[] { "Name", "Email", "CreatedDate", "UpdatedDate" };
+            orderBy = validColumns.Contains(orderBy) ? orderBy : "Name";
+
+            query = direction.ToLower() == "desc"
+                ? query.OrderByDescending(c => EF.Property<object>(c, orderBy))
+                : query.OrderBy(c => EF.Property<object>(c, orderBy));
 
             int totalItems = await query.CountAsync();
 
             var items = await query
-                .OrderByDescending(c => c.CreatedDate)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
@@ -56,7 +67,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         {
             return await _context.CustomerRelationships
                 .AsNoTracking()
-                .Where(r => r.CustomerId == customerId && !r.IsDeleted)
+                .Where(r => r.CustomerId == customerId)
                 .OrderByDescending(r => r.DateTime)
                 .ToListAsync();
         }
@@ -113,11 +124,10 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
         public async Task<List<Customer>> SearchAsync(string searchTerm)
         {
-            return await BuildScoredQuery(searchTerm)
-                .ToListAsync();
+            return await BuildScoredQuery(searchTerm).ToListAsync();
         }
 
-        public async Task<PagedResult<Customer>> SearchPagedAsync(string searchTerm, int page, int pageSize)
+        public async Task<PagedResult<Customer>> SearchPagedAsync(string searchTerm, int page, int pageSize, int companyId, string? orderBy = "Name", string direction = "asc")
         {
             var scoredQuery = BuildScoredQuery(searchTerm);
 
@@ -136,8 +146,6 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 Items = items
             };
         }
-
-        
 
         private IQueryable<Customer> BuildScoredQuery(string searchTerm)
         {
@@ -162,6 +170,26 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 .OrderByDescending(x => x.MatchScore)
                 .Select(x => x.Client)
                 .AsQueryable();
+        }
+
+        private static string RemoveAccents(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+                return text;
+
+            var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
+            var stringBuilder = new System.Text.StringBuilder();
+
+            foreach (var c in normalizedString)
+            {
+                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
+                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
+                {
+                    stringBuilder.Append(c);
+                }
+            }
+
+            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC);
         }
     }
 }
