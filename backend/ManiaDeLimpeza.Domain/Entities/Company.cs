@@ -1,4 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using System.ComponentModel.Design;
 
 namespace ManiaDeLimpeza.Domain.Entities;
 public class Company
@@ -15,7 +17,5 @@ public class Company
 
     public DateTime DateTime { get; set; } = DateTime.UtcNow;
 
-    public List<User> Users { get; set; } = new(); 
-    public List<Customer> Customers { get; set; } = new();
-
+    public List<User> Users { get; set; } = new();
 }

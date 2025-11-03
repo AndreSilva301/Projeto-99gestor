@@ -14,11 +14,11 @@ public class CustomerRelationshipUpdateDto : IBasicDto
     {
         var errors = new List<string>();
         if (Id < 0)
-            errors.Add("Id is requerided;");
+            errors.Add("O ID é solicitado novamente;");
         if (string.IsNullOrWhiteSpace(Description))
-            errors.Add("Description is requerided;");
+            errors.Add("É necessária uma descrição;");
         if (Description.Length > 500)
-            errors.Add("Description maximum length is 500 characters;");
+            errors.Add("A descrição deve ter no máximo 500 caracteres;");
         return errors;
     }
     public bool IsValid() => Validate().Count == 0;

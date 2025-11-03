@@ -13,41 +13,35 @@ namespace ManiaDeLimpeza.Api.Controllers
     public class CustomerController : AuthBaseController
     {
         private readonly ICustomerService _customerService;
-        private readonly ICustomerRelationshipService _relationshipService;
 
-        public CustomerController(
-            ICustomerService customerService,
-            ICustomerRelationshipService relationshipService)
+        public CustomerController(ICustomerService customerService)
         {
             _customerService = customerService;
-            _relationshipService = relationshipService;
         }
 
         [HttpPost("{id:int}/relationships")]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<CustomerRelationshipDto>>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<IEnumerable<CustomerRelationshipDto>>), StatusCodes.Status400BadRequest)]
-        public async Task<ActionResult<IEnumerable<CustomerRelationshipDto>>> AddOrUpdateRelationships(
-            int id,
-            [FromBody] IEnumerable<CustomerRelationshipCreateOrUpdateDto> relationships)
+        public async Task<ActionResult<IEnumerable<CustomerRelationshipDto>>> AddOrUpdateRelationships(int id, [FromBody] IEnumerable<CustomerRelationshipDto> relationships)
         {
-            if (!ModelState.IsValid)
+            var invalidDtos = relationships.Where(r => !r.IsValid()).ToList();
+            if (invalidDtos.Any())
             {
-                var errors = ModelState.Values
-                    .SelectMany(v => v.Errors)
-                    .Select(e => e.ErrorMessage)
+                var validationErrors = invalidDtos
+                    .SelectMany(r => r.Validate())
                     .ToList();
 
-                return BadRequest(ApiResponseHelper.ErrorResponse(errors, "Validation failed."));
+                return BadRequest(ApiResponseHelper.ErrorResponse(validationErrors, "Validation failed."));
             }
 
-            var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
+            var customer = await _customerService.GetByIdAsync(id, CurrentCompanyId);
             if (customer == null)
                 return NotFound(ApiResponseHelper.ErrorResponse("Customer not found."));
 
             if (customer.CompanyId != CurrentCompanyId)
                 return Forbid();
 
-            var result = await _relationshipService.AddOrUpdateRelationshipsAsync(id, relationships, CurrentUserId);
+            var result = await _customerService.AddOrUpdateRelationshipsAsync(id, relationships, CurrentCompanyId);
 
             return CreatedAtAction(
                 nameof(GetRelationships),
@@ -65,7 +59,7 @@ namespace ManiaDeLimpeza.Api.Controllers
             if (customer == null || customer.CompanyId != CurrentCompanyId)
                 return BadRequest(ApiResponseHelper.ErrorResponse("Invalid customer or access denied."));
 
-            var result = await _relationshipService.ListRelationshipsAsync(id);
+            var result = await _customerService.ListRelationshipsAsync(id, CurrentCompanyId);
             var ordered = result.OrderByDescending(r => r.DateTime);
 
             return Ok(ApiResponseHelper.SuccessResponse(ordered, "Relationships retrieved successfully."));
@@ -85,17 +79,14 @@ namespace ManiaDeLimpeza.Api.Controllers
             if (customer == null || customer.CompanyId != CurrentCompanyId)
                 return BadRequest(ApiResponseHelper.ErrorResponse("Invalid customer or access denied."));
 
-            var valid = await _relationshipService.ValidateOwnershipAsync(id, relationshipIds);
-            if (!valid)
-                return BadRequest(ApiResponseHelper.ErrorResponse("One or more relationships do not belong to this customer."));
-
-            await _relationshipService.DeleteRelationshipsAsync(id, relationshipIds);
-            return NoContent();
+            await _customerService.DeleteRelationshipsAsync(id, relationshipIds, CurrentCompanyId);
+            return Ok(ApiResponseHelper.SuccessResponse("Relationships deleted successfully."));
         }
 
-
         [HttpGet("{id:int}")]
-        public async Task<ActionResult<CustomerDto>> GetById(int id)
+        [ProducesResponseType(typeof(ApiResponse<CustomerDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<ApiResponse<CustomerDto>>> GetById(int id)
         {
             var customer = await _customerService.GetByIdAsync(id, CurrentUserId);
             if (customer == null)
@@ -105,34 +96,40 @@ namespace ManiaDeLimpeza.Api.Controllers
         }
 
         [HttpGet("search")]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<CustomerListItemDto>>), StatusCodes.Status200OK)]
         public async Task<ActionResult<PagedResult<CustomerListItemDto>>> Search(
             [FromQuery] string? term,
             [FromQuery] int page = 1,
             [FromQuery] int pageSize = 10)
         {
             var results = await _customerService.SearchAsync(term, page, pageSize, CurrentCompanyId);
-            return Ok(results);
+            return Ok(ApiResponseHelper.SuccessResponse(results, "Customers retrieved successfully."));
         }
 
         [HttpPost]
-        public async Task<ActionResult<CustomerDto>> Create([FromBody] CustomerCreateDto dto)
+        [ProducesResponseType(typeof(ApiResponse<CustomerDto>), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<CustomerDto>>> Create([FromBody] CustomerCreateDto dto)
         {
             var created = await _customerService.CreateAsync(dto, CurrentUserId);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult<CustomerDto>> Update(int id, [FromBody] CustomerUpdateDto dto)
+        [ProducesResponseType(typeof(ApiResponse<CustomerDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        public async Task<ActionResult<ApiResponse<CustomerDto>>> Update(int id, [FromBody] CustomerUpdateDto dto)
         {
             var updated = await _customerService.UpdateAsync(id, dto, CurrentUserId);
-            return Ok(updated);
+            return Ok(ApiResponseHelper.SuccessResponse(updated, "Customer updated successfully."));
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<object>>> Delete(int id)
         {
             await _customerService.SoftDeleteAsync(id, CurrentUserId);
-            return NoContent();
+            return Ok(ApiResponseHelper.SuccessResponse<object>(null, "Customer deleted successfully."));
         }
     }
 }
