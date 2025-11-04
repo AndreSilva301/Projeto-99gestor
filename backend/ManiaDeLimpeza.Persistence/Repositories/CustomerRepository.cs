@@ -32,12 +32,12 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                string lowered = searchTerm.Trim().ToLowerInvariant();
-                lowered = RemoveAccents(lowered);
-
                 query = query.Where(c =>
-                        RemoveAccents(c.Name.ToLower()).Contains(lowered)
-                     || RemoveAccents(c.Email.ToLower()).Contains(lowered));
+                    EF.Functions.Collate(c.Name, "SQL_Latin1_General_CP1_CI_AI")
+                        .Contains(EF.Functions.Collate(searchTerm, "SQL_Latin1_General_CP1_CI_AI"))
+                    || EF.Functions.Collate(c.Email, "SQL_Latin1_General_CP1_CI_AI")
+                        .Contains(EF.Functions.Collate(searchTerm, "SQL_Latin1_General_CP1_CI_AI"))
+                );
             }
 
             var validColumns = new[] { "Name", "Email", "CreatedDate", "UpdatedDate" };
