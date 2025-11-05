@@ -1,16 +1,13 @@
+using ManiaDeLimpeza.Api.Auth;
+using ManiaDeLimpeza.Api.Extensions;
+using ManiaDeLimpeza.Api.Middleware;
+using ManiaDeLimpeza.Application.Common;
+using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.DependencyInjection;
+using ManiaDeLimpeza.Infrastructure.Repositories;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.EntityFrameworkCore;
-using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using AutoMapper;
-using ManiaDeLimpeza.Application.Common;
-using ManiaDeLimpeza.Api.Auth;
-using ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.OpenApi.Models;
-using ManiaDeLimpeza.Api.Extensions;
-using ManiaDeLimpeza.Api.Response;
-using ManiaDeLimpeza.Domain.Persistence;
-using ManiaDeLimpeza.Infrastructure.Repositories;
-using ManiaDeLimpeza.Api.Middleware;
 
 namespace ManiaDeLimpeza;
 
@@ -19,25 +16,29 @@ public class Program
     private static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
 
-        // Register services (DI)
+        // Register repositories and services
+        builder.Services.AddScoped<ICompanyRepository, CompanyRepository>();
         builder.Services.AddMarkedDependencies();
 
-        // Include Automapper
+        // Configure AutoMapper
         builder.Services.AddAutoMapper(typeof(DefaultMapperProfile).Assembly);
 
-        // Add CORS using the extension
+        // Configure CORS
         builder.Services.AddConfiguredCors(builder.Configuration);
 
-        // Add controllers
+        // Add Controllers
         builder.Services.AddControllers();
 
-        // Swagger configuration
+        // Configure Swagger
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen(options =>
         {
-            options.SwaggerDoc("v1", new OpenApiInfo { Title = "ManiaDeLimpeza API", Version = "v1" });
+            options.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "ManiaDeLimpeza API",
+                Version = "v1"
+            });
 
             var securityScheme = new OpenApiSecurityScheme
             {
@@ -50,30 +51,29 @@ public class Program
             };
 
             options.AddSecurityDefinition("Bearer", securityScheme);
-
             options.AddSecurityRequirement(new OpenApiSecurityRequirement
-            {
                 {
-                    new OpenApiSecurityScheme
                     {
-                        Reference = new OpenApiReference
+                        new OpenApiSecurityScheme
                         {
-                            Type = ReferenceType.SecurityScheme,
-                            Id = "Bearer"
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "bearer",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header
                         },
-                        Scheme = "bearer",
-                        Name = "Bearer",
-                        In = ParameterLocation.Header
-                    },
-                    new List<string>()
-                }
-            });
-        }); 
+                        new List<string>()
+                    }
+                });
+        });
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
         builder.Services.Configure<ResetPasswordOptions>(
-     builder.Configuration.GetSection(ResetPasswordOptions.SECTION));
+            builder.Configuration.GetSection(ResetPasswordOptions.SECTION));
 
         builder.Services.Configure<AuthOptions>(
             builder.Configuration.GetSection(AuthOptions.SECTION));
@@ -85,7 +85,7 @@ public class Program
         builder.Services.AddJwtAuthentication(authOptions.JwtSecret);
         builder.Services.AddAuthorization();
 
-        // Build the app
+        //  Build the app
         var app = builder.Build();
 
         app.UseCors("DefaultCorsPolicy");
@@ -97,10 +97,9 @@ public class Program
         }
 
         app.UseHttpsRedirection();
-        // IMPORTANT: Add authentication before authorization
-        app.UseAuthentication();
-        // Middleware to fetch user from DB
+
         app.UseMiddleware<ErrorHandlerMiddleware>();
+        app.UseAuthentication();
         app.UseMiddleware<UserFetchMiddleware>();
         app.UseAuthorization();
         app.MapControllers();

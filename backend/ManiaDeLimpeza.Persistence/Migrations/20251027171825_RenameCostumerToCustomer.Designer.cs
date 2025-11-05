@@ -4,6 +4,7 @@ using ManiaDeLimpeza.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManiaDeLimpeza.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251027171825_RenameCostumerToCustomer")]
+    partial class RenameCostumerToCustomer
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,6 +64,9 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DateTimeCustomer")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Email")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -95,11 +101,11 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<int>("CostumerId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
-
-                    b.Property<int>("CustomerId")
-                        .HasColumnType("int");
 
                     b.Property<DateTime>("DateTime")
                         .HasColumnType("datetime2");
@@ -109,12 +115,15 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("UpdatedDate")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CustomerId");
+                    b.HasIndex("CostumerId");
 
                     b.ToTable("CustomerRelationships");
                 });
@@ -371,7 +380,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Customer", b =>
                 {
                     b.HasOne("ManiaDeLimpeza.Domain.Entities.Company", "Company")
-                        .WithMany()
+                        .WithMany("Costumers")
                         .HasForeignKey("CompanyId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -450,13 +459,13 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.CustomerRelationship", b =>
                 {
-                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Customer", "Customer")
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Customer", "Costumer")
                         .WithMany("CostumerRelationships")
-                        .HasForeignKey("CustomerId")
+                        .HasForeignKey("CostumerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Customer");
+                    b.Navigation("Costumer");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.PasswordResetToken", b =>
@@ -511,6 +520,8 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Company", b =>
                 {
+                    b.Navigation("Costumers");
+
                     b.Navigation("Users");
                 });
 
