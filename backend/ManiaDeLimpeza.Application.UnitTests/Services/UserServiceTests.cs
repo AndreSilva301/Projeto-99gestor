@@ -60,7 +60,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             _userRepositoryMock.Verify(repo => repo.AddAsync(It.Is<User>(u =>
                 u.Email == "test@example.com" &&
                 u.PasswordHash != "plaintext" &&
-                u.PasswordHash.StartsWith("AQAAAA") // identity hash format
+                u.PasswordHash.StartsWith("AQAAAA") 
             )), Times.Once);
         }
 

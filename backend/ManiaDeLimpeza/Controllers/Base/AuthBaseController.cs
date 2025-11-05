@@ -57,5 +57,8 @@ namespace ManiaDeLimpeza.Api.Controllers.Base
             }
             return CurrentUser;
         }
+        protected int CurrentUserId => GetCurrentUserId();
+
+        protected int CurrentCompanyId => CurrentUser?.CompanyId ?? 0;
     }
 }

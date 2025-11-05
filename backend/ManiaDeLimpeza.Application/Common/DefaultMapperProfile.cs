@@ -28,8 +28,12 @@ namespace ManiaDeLimpeza.Application.Common
             CreateMap<LineItemDto, QuoteItem>();
             CreateMap<QuoteItem, LineItemDto>();
             CreateMap<User, UserLightDto>();
-
-
+            CreateMap<Customer, CustomerDto>().ReverseMap();
+            CreateMap<CustomerCreateDto, Customer>();
+            CreateMap<CustomerUpdateDto, Customer>();
+            CreateMap<Customer, CustomerListItemDto>();
+            CreateMap<CustomerRelationshipCreateDto, CustomerRelationship>();
+            CreateMap<CustomerRelationship, CustomerRelationshipDto>();
         }
     }
 }
