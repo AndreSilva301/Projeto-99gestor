@@ -100,9 +100,11 @@ namespace ManiaDeLimpeza.Api.Controllers
         public async Task<ActionResult<PagedResult<CustomerListItemDto>>> Search(
             [FromQuery] string? term,
             [FromQuery] int page = 1,
-            [FromQuery] int pageSize = 10)
+            [FromQuery] int pageSize = 10,
+            [FromQuery] string orderby = "Name",
+            [FromQuery] string direction = "asc")
         {
-            var results = await _customerService.SearchAsync(term, page, pageSize, CurrentCompanyId);
+            var results = await _customerService.SearchAsync(term, page, pageSize, CurrentCompanyId, orderby, direction);
             return Ok(ApiResponseHelper.SuccessResponse(results, "Customers retrieved successfully."));
         }
 
