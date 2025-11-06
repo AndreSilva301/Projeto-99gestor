@@ -38,7 +38,7 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<Quote> CreateAsync(QuoteDto quoteDto, User user)
         {
-            var client = await _customerRepository.GetByIdAsync(quoteDto.ClientId);
+            var client = await _customerRepository.GetByIdAsync(quoteDto.CustomerId);
             if (client == null)
             {
                 throw new ArgumentException("Client not found");

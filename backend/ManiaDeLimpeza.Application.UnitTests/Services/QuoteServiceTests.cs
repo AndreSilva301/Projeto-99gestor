@@ -40,7 +40,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             var quoteDto = new QuoteDto
             {
-                ClientId = 99,
+                CustomerId = 99,
                 LineItems = new List<LineItemDto>
                 {
                     new() { Description = "Invalid", Quantity = 1, UnitPrice = 10, Total = 10 }
