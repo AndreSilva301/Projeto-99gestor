@@ -10,7 +10,7 @@ namespace ManiaDeLimpeza.Application.Dtos
         public PaymentMethod PaymentMethod { get; set; }
         public string PaymentConditions { get; set; } = string.Empty;
         public decimal? CashDiscount { get; set; }
-        public List<LineItemDto> LineItems { get; set; } = new();
+        public List<QuoteItemResponseDto> LineItems { get; set; } = new();
     }
 
 }
