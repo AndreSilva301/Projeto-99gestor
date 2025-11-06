@@ -1,14 +1,21 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
-namespace ManiaDeLimpeza.Domain.Persistence
+namespace ManiaDeLimpeza.Domain.Persistence;
+public interface IQuoteRepository : IBaseRepository<Quote>
 {
-    public interface IQuoteRepository : IBaseRepository<Quote>
-    {
-        IQueryable<Quote> Query();
-    }
+    Task<IEnumerable<Quote>> GetAllAsync(
+        int? customerId = null,
+        int? userId = null,
+        DateTime? startDate = null,
+        DateTime? endDate = null,
+        int pageNumber = 1,
+        int pageSize = 10
+    );
+
+    Task<Quote?> GetByIdAsync(int id);
+    Task<Quote> CreateAsync(Quote quote);
+    Task<Quote> UpdateAsync(Quote quote);
+    Task<bool> DeleteAsync(int id);
+    Task<int> CountAsync(int? customerId = null, int? userId = null);
+    Task<bool> ExistsAsync(int id);
 }

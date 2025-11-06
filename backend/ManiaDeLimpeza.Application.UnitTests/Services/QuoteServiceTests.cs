@@ -41,9 +41,9 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var quoteDto = new QuoteDto
             {
                 CustomerId = 99,
-                LineItems = new List<LineItemDto>
+                LineItems = new List<QuoteItemResponseDto>
                 {
-                    new() { Description = "Invalid", Quantity = 1, UnitPrice = 10, Total = 10 }
+                    new() { Description = "Invalid", Quantity = 1, UnitPrice = 10, TotalPrice = 10 }
                 }
             };
 
