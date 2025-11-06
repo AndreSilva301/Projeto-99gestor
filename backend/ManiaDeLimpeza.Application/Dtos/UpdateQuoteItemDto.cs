@@ -1,13 +1,26 @@
 ﻿using ManiaDeLimpeza.Domain.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace ManiaDeLimpeza.Application.Dtos;
 public class UpdateQuoteItemDto : IBasicDto
 {
+    [Required]
     public int Id { get; set; }
+
+    [Required]
     public int QuoteId { get; set; }
+
+    [Required]
+    [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
+
+    [Range(0.01, double.MaxValue)]
     public int Quantity { get; set; }
+
+    [Range(0.01, double.MaxValue)]
     public decimal UnitPrice { get; set; }
+
+    public Dictionary<string, string> CustomFields { get; set; } = new();
 
     public List<string> Validate()
     {
@@ -27,6 +40,22 @@ public class UpdateQuoteItemDto : IBasicDto
 
         if (UnitPrice <= 0)
             errors.Add("O preço unitário deve ser maior que zero.");
+
+
+        foreach (var field in CustomFields)
+        {
+            if (string.IsNullOrWhiteSpace(field.Key))
+                errors.Add("Chaves do campo customizado não podem ser vazias.");
+
+            if (string.IsNullOrWhiteSpace(field.Value))
+                errors.Add("Valores do campo customizado não podem ser vazios.");
+
+            if (field.Key.Length > 50)
+                errors.Add("Chaves do campo customizado não podem ter mais de 50 caracteres.");
+
+            if (field.Value.Length > 200)
+                errors.Add("Valores do campo customizado não podem ter mais de 200 caracteres.");
+        }
 
         return errors;
     }
