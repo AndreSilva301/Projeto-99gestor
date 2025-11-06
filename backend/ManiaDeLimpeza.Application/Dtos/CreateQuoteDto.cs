@@ -1,21 +1,28 @@
-﻿using ManiaDeLimpeza.Domain.Interfaces;
+﻿using ManiaDeLimpeza.Domain;
+using ManiaDeLimpeza.Domain.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
 namespace ManiaDeLimpeza.Application.Dtos;
 public class CreateQuoteDto : IBasicDto
 {
     [Required]
-    public int QuoteId { get; set; }
+    public int CustomerId { get; set; }
 
     [Required]
-    [MaxLength(200)]
-    public string Description { get; set; } = string.Empty;
+    public int UserId { get; set; }
 
-    [Range(0.01, double.MaxValue)]
-    public decimal Quantity { get; set; }
+    [Required]
+    public decimal TotalPrice { get; set; }
 
-    [Range(0.01, double.MaxValue)]
-    public decimal UnitPrice { get; set; }
+    [Required]
+    public PaymentMethod PaymentMethod { get; set; }
+
+    [MaxLength(500)]
+    public string PaymentConditions { get; set; } = string.Empty;
+
+    public decimal? CashDiscount { get; set; }
+
+    public List<CreateQuoteItemDto> Items { get; set; } = new();
 
     public Dictionary<string, string> CustomFields { get; set; } = new();
 
@@ -23,16 +30,19 @@ public class CreateQuoteDto : IBasicDto
     {
         var errors = new List<string>();
 
-        if (string.IsNullOrWhiteSpace(Description))
-            errors.Add("Descrição é obrigatória.");
-        else if (Description.Length > 200)
-            errors.Add("Descrição não pode ter mais de 200 caracteres.");
+        if (CustomerId <= 0)
+            errors.Add("Cliente é obrigatório.");
 
-        if (Quantity <= 0)
-            errors.Add("Quantidade deve ser maior que zero.");
+        if (UserId <= 0)
+            errors.Add("Usuário é obrigatório.");
 
-        if (UnitPrice <= 0)
-            errors.Add("Valor unitário deve ser maior que zero.");
+        if (TotalPrice <= 0)
+            errors.Add("O valor total deve ser maior que zero.");
+
+        if (string.IsNullOrWhiteSpace(PaymentConditions))
+            errors.Add("As condições de pagamento são obrigatórias.");
+        else if (PaymentConditions.Length > 500)
+            errors.Add("As condições de pagamento não podem ter mais de 500 caracteres.");
 
         if (CustomFields != null && CustomFields.Count > 0)
         {
@@ -50,9 +60,18 @@ public class CreateQuoteDto : IBasicDto
             }
         }
 
+        if (Items == null || Items.Count == 0)
+            errors.Add("A cotação deve conter pelo menos um item.");
+
+        foreach (var item in Items)
+        {
+            var itemErrors = item.Validate();
+            if (itemErrors.Count > 0)
+                errors.AddRange(itemErrors);
+        }
+
         return errors;
     }
 
     public bool IsValid() => Validate().Count == 0;
 }
-
