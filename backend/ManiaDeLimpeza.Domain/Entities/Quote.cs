@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
@@ -13,23 +8,27 @@ namespace ManiaDeLimpeza.Domain.Entities
         public int Id { get; set; }
 
         [Required]
-        public int CostumerId { get; set; }
-        [ForeignKey(nameof(CostumerId))]
+        public int CustomerId { get; set; }
+        [ForeignKey(nameof(CustomerId))]
         public Customer Customer { get; set; } = null!;
 
         [Required]
         public int UserId { get; set; }
-
         [ForeignKey(nameof(UserId))]
         public User User { get; set; } = null!;
 
         public List<QuoteItem> QuoteItems { get; set; } = new();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
 
+        [Required]
         public decimal TotalPrice { get; set; }
 
+        [Required]
         public PaymentMethod PaymentMethod { get; set; }
+
+        [MaxLength(500)]
         public string PaymentConditions { get; set; } = string.Empty;
 
         public decimal? CashDiscount { get; set; } // nullable to represent “no discount”

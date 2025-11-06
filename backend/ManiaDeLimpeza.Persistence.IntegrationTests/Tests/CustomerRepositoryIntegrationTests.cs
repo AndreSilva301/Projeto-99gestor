@@ -126,7 +126,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             var buscado = await repo.GetbyIdWithRelationshipAsync(cliente.Id);
 
             Assert.IsNotNull(buscado);
-            Assert.IsTrue(buscado.CostumerRelationships.Count >= 2);
+            Assert.IsTrue(buscado.CustomerRelationships.Count >= 2);
         }
 
         [TestMethod]

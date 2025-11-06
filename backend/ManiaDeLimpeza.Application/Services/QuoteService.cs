@@ -47,7 +47,7 @@ namespace ManiaDeLimpeza.Application.Services
             var quote = _mapper.Map<Quote>(quoteDto);
             quote.CreatedAt = DateTime.UtcNow;
             quote.UserId = user.Id;
-            quote.TotalPrice = quote.QuoteItems.Sum(li => li.TotalValue);
+            quote.TotalPrice = quote.QuoteItems.Sum(li => li.TotalPrice);
             if (quote.CashDiscount.HasValue)
                 quote.TotalPrice -= quote.CashDiscount.Value;
 
@@ -81,7 +81,7 @@ namespace ManiaDeLimpeza.Application.Services
             _mapper.Map(quoteDto, existing);
 
             // Recalculate total
-            existing.TotalPrice = existing.QuoteItems.Sum(li => li.TotalValue);
+            existing.TotalPrice = existing.QuoteItems.Sum(li => li.TotalPrice);
             if (existing.CashDiscount.HasValue)
                 existing.TotalPrice -= existing.CashDiscount.Value;
 

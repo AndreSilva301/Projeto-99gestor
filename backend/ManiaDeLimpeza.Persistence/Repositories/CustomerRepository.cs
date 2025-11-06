@@ -20,7 +20,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         {
             return await _context.Customers
                  .AsNoTracking()
-                 .Include(c => c.CostumerRelationships)
+                 .Include(c => c.CustomerRelationships)
                  .FirstOrDefaultAsync(c => c.Id == id);
         }
 

@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
@@ -14,6 +9,7 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         [Required]
         public int QuoteId { get; set; }
+        [ForeignKey(nameof(QuoteId))]
 
         [Required]
         [MaxLength(500)]
@@ -23,7 +19,7 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public decimal UnitPrice { get; set; }
 
-        public decimal TotalValue { get; set; }
+        public decimal TotalPrice { get; set; }
 
         public string ExtraFields { get; set; } = string.Empty;
     }

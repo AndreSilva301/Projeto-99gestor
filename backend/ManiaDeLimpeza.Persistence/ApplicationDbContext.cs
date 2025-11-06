@@ -97,7 +97,7 @@ namespace ManiaDeLimpeza.Persistence
                 entity.HasIndex(c => c.Name);
 
                 // Customer (1) -> (N) CustomerRelationship
-                entity.HasMany(c => c.CostumerRelationships)
+                entity.HasMany(c => c.CustomerRelationships)
                     .WithOne(cr => cr.Customer)
                     .HasForeignKey(cr => cr.CustomerId)
                     .OnDelete(DeleteBehavior.Cascade);
@@ -105,7 +105,7 @@ namespace ManiaDeLimpeza.Persistence
                 // Customer (1) -> (N) Quote
                 entity.HasMany(c => c.Quotes)
                     .WithOne(q => q.Customer)
-                    .HasForeignKey(q => q.CostumerId)
+                    .HasForeignKey(q => q.CustomerId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
@@ -148,7 +148,7 @@ namespace ManiaDeLimpeza.Persistence
                     .ValueGeneratedOnAdd();
 
                 entity.Property(qi => qi.UnitPrice).HasColumnType("decimal(18,2)");
-                entity.Property(qi => qi.TotalValue).HasColumnType("decimal(18,2)");
+                entity.Property(qi => qi.TotalPrice).HasColumnType("decimal(18,2)");
             });
            
         }

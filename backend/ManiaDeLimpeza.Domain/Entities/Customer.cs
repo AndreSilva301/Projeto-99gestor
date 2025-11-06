@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Linq;
-using System.Net;
-using System.Numerics;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
@@ -31,7 +24,7 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public string? Observations { get; set; }
 
-        public List<CustomerRelationship> CostumerRelationships { get; set; } = new();
+        public List<CustomerRelationship> CustomerRelationships { get; set; } = new();
         public List<Quote> Quotes { get; set; } = new();
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedDate { get; set; }
