@@ -4,6 +4,7 @@ using ManiaDeLimpeza.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManiaDeLimpeza.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251107123641_FixQuoteRelationshipNoInverse")]
+    partial class FixQuoteRelationshipNoInverse
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -44,7 +47,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", (string)null);
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Customer", b =>
@@ -84,7 +87,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.CustomerRelationship", b =>
@@ -116,7 +119,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("CustomerRelationships", (string)null);
+                    b.ToTable("CustomerRelationships");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Lead", b =>
@@ -143,7 +146,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Leads", (string)null);
+                    b.ToTable("Leads");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.PasswordResetToken", b =>
@@ -171,7 +174,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetTokens", (string)null);
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>
@@ -214,7 +217,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Quotes", (string)null);
+                    b.ToTable("Quotes");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.QuoteItem", b =>
@@ -258,7 +261,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("QuoteId1");
 
-                    b.ToTable("QuoteItems", (string)null);
+                    b.ToTable("QuoteItems");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.User", b =>
@@ -300,7 +303,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Company", b =>
@@ -346,7 +349,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasKey("CompanyId");
 
-                            b1.ToTable("Companies", (string)null);
+                            b1.ToTable("Companies");
 
                             b1.WithOwner()
                                 .HasForeignKey("CompanyId");
@@ -367,7 +370,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasKey("CompanyId");
 
-                            b1.ToTable("Companies", (string)null);
+                            b1.ToTable("Companies");
 
                             b1.WithOwner()
                                 .HasForeignKey("CompanyId");
@@ -422,7 +425,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasKey("CustomerId");
 
-                            b1.ToTable("Customers", (string)null);
+                            b1.ToTable("Customers");
 
                             b1.WithOwner()
                                 .HasForeignKey("CustomerId");
@@ -445,7 +448,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasIndex("Mobile");
 
-                            b1.ToTable("Customers", (string)null);
+                            b1.ToTable("Customers");
 
                             b1.WithOwner()
                                 .HasForeignKey("CustomerId");

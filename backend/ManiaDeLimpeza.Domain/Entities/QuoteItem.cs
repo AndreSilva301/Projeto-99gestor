@@ -9,7 +9,8 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         [Required]
         public int QuoteId { get; set; }
-        [ForeignKey(nameof(QuoteId))]
+        
+        public Quote Quote { get; set; } = null!;
 
         [Required]
         [MaxLength(500)]
@@ -22,5 +23,8 @@ namespace ManiaDeLimpeza.Domain.Entities
         public decimal TotalPrice { get; set; }
 
         public string ExtraFields { get; set; } = string.Empty;
+        public int Order { get; set; }
+       
+        public Dictionary<string, string> CustomFields { get; set; } = new();
     }
 }

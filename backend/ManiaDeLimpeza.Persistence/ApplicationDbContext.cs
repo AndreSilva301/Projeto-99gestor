@@ -1,11 +1,6 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Persistence.Configurations;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence
 {
@@ -50,8 +45,7 @@ namespace ManiaDeLimpeza.Persistence
             modelBuilder.Entity<Company>(entity =>
             {
                 entity.HasKey(c => c.Id);
-                entity.Property(c => c.Id)
-                    .ValueGeneratedOnAdd();
+                entity.Property(c => c.Id).ValueGeneratedOnAdd();
 
                 // Company (1) -> (N) User
                 entity.HasMany(c => c.Users)
@@ -70,11 +64,9 @@ namespace ManiaDeLimpeza.Persistence
             modelBuilder.Entity<User>(entity =>
             {
                 entity.HasKey(u => u.Id);
-                entity.Property(u => u.Id)
-                    .ValueGeneratedOnAdd();
+                entity.Property(u => u.Id).ValueGeneratedOnAdd();
 
-                entity.HasIndex(u => u.Email)
-                    .IsUnique();
+                entity.HasIndex(u => u.Email).IsUnique();
             });
 
             //Customer
@@ -121,8 +113,7 @@ namespace ManiaDeLimpeza.Persistence
             modelBuilder.Entity<Quote>(entity =>
             {
                 entity.HasKey(q => q.Id);
-                entity.Property(q => q.Id)
-                    .ValueGeneratedOnAdd();
+                entity.Property(q => q.Id).ValueGeneratedOnAdd();
 
                 entity.Property(q => q.TotalPrice).HasColumnType("decimal(18,2)");
                 entity.Property(q => q.CashDiscount).HasColumnType("decimal(18,2)");
@@ -148,7 +139,7 @@ namespace ManiaDeLimpeza.Persistence
                     .ValueGeneratedOnAdd();
 
                 entity.Property(qi => qi.UnitPrice).HasColumnType("decimal(18,2)");
-                entity.Property(qi => qi.TotalPrice).HasColumnType("decimal(18,2)");
+                entity.Property(qi => qi.TotalPrice).HasColumnType("decimal(18,2)");       
             });
            
         }

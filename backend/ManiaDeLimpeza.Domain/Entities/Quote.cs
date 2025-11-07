@@ -9,12 +9,12 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         [Required]
         public int CustomerId { get; set; }
-        [ForeignKey(nameof(CustomerId))]
+        
         public Customer Customer { get; set; } = null!;
 
         [Required]
         public int UserId { get; set; }
-        [ForeignKey(nameof(UserId))]
+       
         public User User { get; set; } = null!;
 
         public List<QuoteItem> QuoteItems { get; set; } = new();
@@ -31,7 +31,7 @@ namespace ManiaDeLimpeza.Domain.Entities
         [MaxLength(500)]
         public string PaymentConditions { get; set; } = string.Empty;
 
-        public decimal? CashDiscount { get; set; } // nullable to represent “no discount”
+        public decimal? CashDiscount { get; set; } 
 
     }
 }
