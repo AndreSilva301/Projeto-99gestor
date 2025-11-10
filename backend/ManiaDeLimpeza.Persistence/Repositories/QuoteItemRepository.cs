@@ -1,40 +1,90 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Text.Json;
 
 namespace ManiaDeLimpeza.Persistence.Repositories;
-public class QuoteItemConfiguration : IEntityTypeConfiguration<QuoteItem>
+public class QuoteItemRepository : IQuoteItemRepository, IScopedDependency
 {
-    public void Configure(EntityTypeBuilder<QuoteItem> builder)
+    private readonly ApplicationDbContext _context;
+
+    public QuoteItemRepository(ApplicationDbContext context)
     {
-        builder.HasKey(qi => qi.Id);
-        builder.Property(qi => qi.Id).ValueGeneratedOnAdd();
+        _context = context;
+    }
 
-        builder.Property(qi => qi.Description)
-            .IsRequired()
-            .HasMaxLength(500);
+    public async Task<IEnumerable<QuoteItem>> GetByQuoteIdAsync(int quoteId)
+    {
+        bool quoteExists = await _context.Quotes.AnyAsync(q => q.Id == quoteId);
+        if (!quoteExists)
+            throw new KeyNotFoundException($"Quote com ID {quoteId} não foi encontrado.");
 
-        builder.Property(qi => qi.Quantity)
-            .HasPrecision(18, 2);
+        return await _context.QuoteItems
+            .Where(qi => qi.QuoteId == quoteId)
+            .OrderBy(qi => qi.Order)
+            .ToListAsync();
+    }
 
-        builder.Property(qi => qi.UnitPrice)
-            .HasPrecision(18, 2);
+    public async Task<QuoteItem?> GetByIdAsync(int id)
+    {
+        return await _context.QuoteItems.FindAsync(id);
+    }
 
-        builder.Property(qi => qi.TotalPrice)
-            .HasPrecision(18, 2);
+    public async Task<QuoteItem> CreateAsync(QuoteItem item)
+    {
+        bool quoteExists = await _context.Quotes.AnyAsync(q => q.Id == item.QuoteId);
+        if (!quoteExists)
+            throw new KeyNotFoundException($"Quote com ID {item.QuoteId} não foi encontrado.");
 
-        builder.Property(qi => qi.CustomFields)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                v => JsonSerializer.Deserialize<Dictionary<string, string>>(v, (JsonSerializerOptions)null) ?? new Dictionary<string, string>())
-            .HasColumnType("nvarchar(max)");
+        _context.QuoteItems.Add(item);
+        await _context.SaveChangesAsync();
+        return item;
+    }
 
-        builder.HasIndex(qi => qi.QuoteId);
-        builder.HasIndex(qi => qi.Order);
+    public async Task<QuoteItem> UpdateAsync(QuoteItem item)
+    {
+        var existing = await _context.QuoteItems.FindAsync(item.Id);
+        if (existing == null)
+            throw new KeyNotFoundException($"QuoteItem com ID {item.Id} não foi encontrado.");
 
-        builder.HasOne(qi => qi.Quote)
-            .WithMany(q => q.QuoteItems)
-            .HasForeignKey(qi => qi.QuoteId);
+        _context.Entry(existing).CurrentValues.SetValues(item);
+        await _context.SaveChangesAsync();
+
+        return existing;
+    }
+
+    public async Task<bool> DeleteAsync(int id)
+    {
+        var existing = await _context.QuoteItems.FindAsync(id);
+        if (existing == null)
+            return false;
+
+        _context.QuoteItems.Remove(existing);
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    public async Task<bool> ReorderAsync(int quoteId, List<int> itemIdsInOrder)
+    {
+        bool quoteExists = await _context.Quotes.AnyAsync(q => q.Id == quoteId);
+        if (!quoteExists)
+            throw new KeyNotFoundException($"Quote com ID {quoteId} não foi encontrado.");
+
+        var items = await _context.QuoteItems
+            .Where(qi => qi.QuoteId == quoteId && itemIdsInOrder.Contains(qi.Id))
+            .ToListAsync();
+
+        if (items.Count != itemIdsInOrder.Count)
+            throw new InvalidOperationException("Nem todos os itens foram encontrados para reordenação.");
+
+        for (int i = 0; i < itemIdsInOrder.Count; i++)
+        {
+            var item = items.First(qi => qi.Id == itemIdsInOrder[i]);
+            item.Order = i + 1;
+        }
+
+        await _context.SaveChangesAsync();
+        return true;
     }
 }
