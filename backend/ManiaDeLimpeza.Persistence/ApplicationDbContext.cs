@@ -38,6 +38,8 @@ namespace ManiaDeLimpeza.Persistence
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.ApplyConfiguration(new CompanyConfiguration());
+            modelBuilder.ApplyConfiguration(new QuoteItemConfiguration());
+            modelBuilder.ApplyConfiguration(new QuoteConfiguration());
             base.OnModelCreating(modelBuilder);
             // Fluent API config if needed
 
@@ -94,11 +96,7 @@ namespace ManiaDeLimpeza.Persistence
                     .HasForeignKey(cr => cr.CustomerId)
                     .OnDelete(DeleteBehavior.Cascade);
 
-                // Customer (1) -> (N) Quote
-                entity.HasMany(c => c.Quotes)
-                    .WithOne(q => q.Customer)
-                    .HasForeignKey(q => q.CustomerId)
-                    .OnDelete(DeleteBehavior.Restrict);
+                // Note: Customer -> Quote relationship is configured in QuoteConfiguration
             });
 
             //CustomerRelationship
@@ -109,39 +107,6 @@ namespace ManiaDeLimpeza.Persistence
                     .ValueGeneratedOnAdd();
             });
 
-            //Quote
-            modelBuilder.Entity<Quote>(entity =>
-            {
-                entity.HasKey(q => q.Id);
-                entity.Property(q => q.Id).ValueGeneratedOnAdd();
-
-                entity.Property(q => q.TotalPrice).HasColumnType("decimal(18,2)");
-                entity.Property(q => q.CashDiscount).HasColumnType("decimal(18,2)");
-
-                // Quote (N) -> (1) User
-                entity.HasOne(q => q.User)
-                    .WithMany()
-                    .HasForeignKey(q => q.UserId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                // Quote (1) -> (N) QuoteItem
-                entity.HasMany(q => q.QuoteItems)
-                    .WithOne()
-                    .HasForeignKey(qi => qi.QuoteId)
-                    .OnDelete(DeleteBehavior.Cascade);
-            });
-
-            //QuoteItem
-            modelBuilder.Entity<QuoteItem>(entity =>
-            {
-                entity.HasKey(qi => qi.Id);
-                entity.Property(qi => qi.Id)
-                    .ValueGeneratedOnAdd();
-
-                entity.Property(qi => qi.UnitPrice).HasColumnType("decimal(18,2)");
-                entity.Property(qi => qi.TotalPrice).HasColumnType("decimal(18,2)");       
-            });
-           
         }
     }
 }

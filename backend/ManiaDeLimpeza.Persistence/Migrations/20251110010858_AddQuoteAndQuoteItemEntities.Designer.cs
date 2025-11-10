@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ManiaDeLimpeza.Persistence.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20251107124956_FixCascadeDelete")]
-    partial class FixCascadeDelete
+    [Migration("20251110010858_AddQuoteAndQuoteItemEntities")]
+    partial class AddQuoteAndQuoteItemEntities
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -186,6 +186,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("CashDiscount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -203,6 +204,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -212,6 +214,8 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt");
 
                     b.HasIndex("CustomerId");
 
@@ -228,38 +232,38 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CustomFields")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ExtraFields")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
+                        .HasPrecision(18, 2)
                         .HasColumnType("int");
 
                     b.Property<int>("QuoteId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuoteId1")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("QuoteId");
+                    b.HasIndex("Order");
 
-                    b.HasIndex("QuoteId1");
+                    b.HasIndex("QuoteId");
 
                     b.ToTable("QuoteItems");
                 });
@@ -506,15 +510,9 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.QuoteItem", b =>
                 {
-                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", null)
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", "Quote")
                         .WithMany("QuoteItems")
                         .HasForeignKey("QuoteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", "Quote")
-                        .WithMany()
-                        .HasForeignKey("QuoteId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

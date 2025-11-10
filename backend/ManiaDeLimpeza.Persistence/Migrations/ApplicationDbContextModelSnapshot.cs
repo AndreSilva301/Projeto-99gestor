@@ -44,7 +44,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Companies", (string)null);
+                    b.ToTable("Companies");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Customer", b =>
@@ -84,7 +84,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("Name");
 
-                    b.ToTable("Customers", (string)null);
+                    b.ToTable("Customers");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.CustomerRelationship", b =>
@@ -116,7 +116,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("CustomerRelationships", (string)null);
+                    b.ToTable("CustomerRelationships");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Lead", b =>
@@ -143,7 +143,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Leads", (string)null);
+                    b.ToTable("Leads");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.PasswordResetToken", b =>
@@ -171,7 +171,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("PasswordResetTokens", (string)null);
+                    b.ToTable("PasswordResetTokens");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>
@@ -183,6 +183,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("CashDiscount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime>("CreatedAt")
@@ -200,6 +201,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<DateTime?>("UpdatedAt")
@@ -210,11 +212,13 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt");
+
                     b.HasIndex("CustomerId");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Quotes", (string)null);
+                    b.ToTable("Quotes");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.QuoteItem", b =>
@@ -225,40 +229,40 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CustomFields")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ExtraFields")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Order")
                         .HasColumnType("int");
 
                     b.Property<int>("Quantity")
+                        .HasPrecision(18, 2)
                         .HasColumnType("int");
 
                     b.Property<int>("QuoteId")
                         .HasColumnType("int");
 
-                    b.Property<int>("QuoteId1")
-                        .HasColumnType("int");
-
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
 
+                    b.HasIndex("Order");
+
                     b.HasIndex("QuoteId");
 
-                    b.HasIndex("QuoteId1");
-
-                    b.ToTable("QuoteItems", (string)null);
+                    b.ToTable("QuoteItems");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.User", b =>
@@ -300,7 +304,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Users", (string)null);
+                    b.ToTable("Users");
                 });
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Company", b =>
@@ -346,7 +350,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasKey("CompanyId");
 
-                            b1.ToTable("Companies", (string)null);
+                            b1.ToTable("Companies");
 
                             b1.WithOwner()
                                 .HasForeignKey("CompanyId");
@@ -367,7 +371,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasKey("CompanyId");
 
-                            b1.ToTable("Companies", (string)null);
+                            b1.ToTable("Companies");
 
                             b1.WithOwner()
                                 .HasForeignKey("CompanyId");
@@ -422,7 +426,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasKey("CustomerId");
 
-                            b1.ToTable("Customers", (string)null);
+                            b1.ToTable("Customers");
 
                             b1.WithOwner()
                                 .HasForeignKey("CustomerId");
@@ -445,7 +449,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                             b1.HasIndex("Mobile");
 
-                            b1.ToTable("Customers", (string)null);
+                            b1.ToTable("Customers");
 
                             b1.WithOwner()
                                 .HasForeignKey("CustomerId");
@@ -503,15 +507,9 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.QuoteItem", b =>
                 {
-                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", null)
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", "Quote")
                         .WithMany("QuoteItems")
                         .HasForeignKey("QuoteId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Quote", "Quote")
-                        .WithMany()
-                        .HasForeignKey("QuoteId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

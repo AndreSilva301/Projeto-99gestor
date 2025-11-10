@@ -24,15 +24,18 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
 
         builder.HasOne(q => q.Customer)
             .WithMany(cu => cu.Quotes)
-            .HasForeignKey(q => q.CustomerId);
+            .HasForeignKey(q => q.CustomerId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasOne(q => q.User)
             .WithMany()
-            .HasForeignKey(q => q.UserId);
+            .HasForeignKey(q => q.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(q => q.QuoteItems)
             .WithOne(qi => qi.Quote)
-            .HasForeignKey(qi => qi.QuoteId);
+            .HasForeignKey(qi => qi.QuoteId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.HasIndex(q => q.CustomerId);
         builder.HasIndex(q => q.UserId);

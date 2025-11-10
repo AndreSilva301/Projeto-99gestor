@@ -22,7 +22,6 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public decimal TotalPrice { get; set; }
 
-        public string ExtraFields { get; set; } = string.Empty;
         public int Order { get; set; }
        
         public Dictionary<string, string> CustomFields { get; set; } = new();
