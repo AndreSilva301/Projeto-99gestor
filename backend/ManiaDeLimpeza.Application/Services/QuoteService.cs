@@ -269,6 +269,6 @@ namespace ManiaDeLimpeza.Application.Services
             var dtos = _mapper.Map<IEnumerable<QuoteResponseDto>>(items);
             return dtos;
         }
-
+       
     }
 }
