@@ -7,4 +7,6 @@ public class QuoteItemResponseDto
     public int Quantity { get; set; }
     public decimal UnitPrice { get; set; }
     public decimal TotalPrice { get; set; }
+    public int Order { get; set; }
+    public Dictionary<string, string> CustomFields { get; set; } = new();
 }

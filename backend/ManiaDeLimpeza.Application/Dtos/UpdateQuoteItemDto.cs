@@ -61,4 +61,3 @@ public class UpdateQuoteItemDto : IBasicDto
     }
     public bool IsValid() => Validate().Count == 0;
 }
-

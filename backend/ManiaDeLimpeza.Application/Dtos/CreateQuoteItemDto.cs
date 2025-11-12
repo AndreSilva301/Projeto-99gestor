@@ -12,7 +12,7 @@ public class CreateQuoteItemDto : IBasicDto
     public string Description { get; set; } = string.Empty;
 
     [Range(0.01, double.MaxValue)]
-    public decimal Quantity { get; set; }
+    public int Quantity { get; set; }
 
     [Range(0.01, double.MaxValue)]
     public decimal UnitPrice { get; set; }

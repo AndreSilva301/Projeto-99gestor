@@ -16,5 +16,4 @@ public class QuoteResponseDto : QuoteDto
     public decimal? CashDiscount { get; set; }
     public decimal FinalPrice { get; set; }
     public List<QuoteItemResponseDto> Items { get; set; } = new();
-
 }
