@@ -39,7 +39,7 @@ public class QuoteProfile : Profile
                 opt => opt.MapFrom(src => src.Quantity * src.UnitPrice));
 
         // CreateQuoteItemDto → QuoteItem
-        CreateMap<CreateQuoteItemDto, QuoteItem>()
+        CreateMap<CreateQuoteDto, QuoteItem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.QuoteId, opt => opt.Ignore())
             .ForMember(dest => dest.TotalPrice, opt => opt.Ignore()); // Calculado pelo serviço

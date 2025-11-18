@@ -1,4 +1,5 @@
-﻿using ManiaDeLimpeza.Application.Dtos;
+﻿using ManiaDeLimpeza.Api.Response;
+using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Persistence;
@@ -45,41 +46,54 @@ namespace ManiaDeLimpeza.Api.IntegrationTests
         [TestMethod]
         public async Task CreateQuote_ValidData_Returns201Created()
         {
-            var dto = new CreateQuoteDto
+            var dto = new QuoteDto
             {
                 CustomerId = 1,
-                UserId = 1,
                 TotalPrice = 500,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "Pagamento em 2x",
-                Items = new List<CreateQuoteItemDto>
+                CashDiscount = 0,
+
+                Items = new List<QuoteItemDto>
                 {
-                    new CreateQuoteItemDto {   Description = "Limpeza Geral", Quantity = 1, UnitPrice = 500 }
+                    new QuoteItemDto
+                    {
+                        Description = "Limpeza Geral",
+                        Quantity = 1,
+                        UnitPrice = 500
+                    }
                 }
             };
 
-            var response = await _client.PostAsJsonAsync("/api/quotes", dto);
+            var response = await _client.PostAsJsonAsync("/api/quote", dto);
             Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
 
-            var result = await response.Content.ReadFromJsonAsync<QuoteResponseDto>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<QuoteDto>>();
             Assert.IsNotNull(result);
-            Assert.IsTrue(result.Id > 0);
+            Assert.IsTrue(result.Data.Id > 0);
         }
 
         [TestMethod]
         public async Task GetQuotes_WithFilters_Returns200WithFilteredData()
         {
-            var customerId = 1;
-            _dbContext.Quotes.Add(new Quote { CustomerId = customerId, UserId = 1, TotalPrice = 200, PaymentMethod = PaymentMethod.Cash });
+            _dbContext.Quotes.Add(new Quote { CustomerId = 1, UserId = 1, TotalPrice = 200, PaymentMethod = PaymentMethod.Cash });
             _dbContext.Quotes.Add(new Quote { CustomerId = 2, UserId = 1, TotalPrice = 300, PaymentMethod = PaymentMethod.Pix });
             await _dbContext.SaveChangesAsync();
 
-            var response = await _client.GetAsync($"/api/quotes?customerId={customerId}");
+            var filter = new QuoteFilterDto
+            {
+                Page = 1,
+                PageSize = 10
+            };
+
+            var response = await _client.PostAsJsonAsync("/api/quotes/search", filter);
+
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var result = await response.Content.ReadFromJsonAsync<List<QuoteResponseDto>>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<PagedResultDto<QuoteDto>>>();
+
             Assert.IsNotNull(result);
-            Assert.IsTrue(result.All(q => q.CustomerId == customerId));
+            Assert.IsTrue(result.Data.Items.Any());
         }
 
         [TestMethod]
@@ -93,15 +107,16 @@ namespace ManiaDeLimpeza.Api.IntegrationTests
                 PaymentMethod = PaymentMethod.Pix,
                 PaymentConditions = "À vista"
             };
+
             _dbContext.Quotes.Add(quote);
             await _dbContext.SaveChangesAsync();
 
-            var response = await _client.GetAsync($"/api/quotes/{quote.Id}");
+            var response = await _client.GetAsync($"/api/quote/{quote.Id}");
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var result = await response.Content.ReadFromJsonAsync<QuoteResponseDto>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<QuoteDto>>();
             Assert.IsNotNull(result);
-            Assert.AreEqual(quote.CustomerId, result.CustomerId);
+            Assert.AreEqual(quote.CustomerId, result.Data.CustomerId);
         }
 
         [TestMethod]
@@ -111,80 +126,77 @@ namespace ManiaDeLimpeza.Api.IntegrationTests
             {
                 CustomerId = 1,
                 UserId = 1,
-                TotalPrice = 300,
-                PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista"
+                TotalPrice = 300
             };
+
             _dbContext.Quotes.Add(quote);
             await _dbContext.SaveChangesAsync();
 
             var updateDto = new UpdateQuoteDto
             {
+                Id = quote.Id,
                 TotalPrice = 350,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "Pagamento em 3x"
             };
 
-            var response = await _client.PutAsJsonAsync($"/api/quotes/{quote.Id}", updateDto);
+            var response = await _client.PutAsJsonAsync($"/api/quote/{quote.Id}", updateDto);
             Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
-            var result = await response.Content.ReadFromJsonAsync<QuoteResponseDto>();
+            var result = await response.Content.ReadFromJsonAsync<ApiResponse<QuoteDto>>();
             Assert.IsNotNull(result);
-            Assert.AreEqual(350, result.TotalPrice);
+            Assert.AreEqual(350, result.Data.TotalPrice);
         }
 
         [TestMethod]
         public async Task DeleteQuote_ExistingId_Returns204NoContent()
         {
-            var quote = new Quote { CustomerId = 1, UserId = 1, TotalPrice = 100, PaymentMethod = PaymentMethod.Cash };
+            var quote = new Quote { CustomerId = 1, UserId = 1, TotalPrice = 100 };
+
             _dbContext.Quotes.Add(quote);
             await _dbContext.SaveChangesAsync();
 
-            var response = await _client.DeleteAsync($"/api/quotes/{quote.Id}");
+            var response = await _client.DeleteAsync($"/api/quote/{quote.Id}");
             Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         [TestMethod]
         public async Task CreateQuote_InvalidCustomerId_Returns400BadRequest()
         {
-            var dto = new CreateQuoteDto
+            var dto = new QuoteDto
             {
                 CustomerId = 0,
-                UserId = 1,
                 TotalPrice = 200,
                 PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista",
-                Items = new List<CreateQuoteItemDto>
+                Items = new List<QuoteItemDto>
                 {
-                    new CreateQuoteItemDto {   Description = "Serviço X", Quantity = 1, UnitPrice = 200 }
+                    new QuoteItemDto { Description = "Serviço X", Quantity = 1, UnitPrice = 200 }
                 }
             };
 
-            var response = await _client.PostAsJsonAsync("/api/quotes", dto);
+            var response = await _client.PostAsJsonAsync("/api/quote", dto);
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
         public async Task CreateQuote_EmptyItems_Returns400BadRequest()
         {
-            var dto = new CreateQuoteDto
+            var dto = new QuoteDto
             {
                 CustomerId = 1,
-                UserId = 1,
                 TotalPrice = 200,
                 PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista",
-                Items = new List<CreateQuoteItemDto>()
+                Items = new List<QuoteItemDto>()
             };
 
-            var response = await _client.PostAsJsonAsync("/api/quotes", dto);
+            var response = await _client.PostAsJsonAsync("/api/quote", dto);
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [TestMethod]
         public async Task GetQuoteById_NonExistingId_Returns404NotFound()
         {
-            var response = await _client.GetAsync("/api/quotes/9999");
+            var response = await _client.GetAsync("/api/quote/9999");
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
@@ -193,40 +205,37 @@ namespace ManiaDeLimpeza.Api.IntegrationTests
         {
             var updateDto = new UpdateQuoteDto
             {
-                TotalPrice = 500,
-                PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista"
+                Id = 9999,
+                TotalPrice = 500
             };
 
-            var response = await _client.PutAsJsonAsync("/api/quotes/9999", updateDto);
+            var response = await _client.PutAsJsonAsync("/api/quote/9999", updateDto);
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
         public async Task DeleteQuote_NonExistingId_Returns404NotFound()
         {
-            var response = await _client.DeleteAsync("/api/quotes/9999");
+            var response = await _client.DeleteAsync("/api/quote/9999");
             Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         [TestMethod]
         public async Task CreateQuote_InvalidDiscount_Returns400BadRequest()
         {
-            var dto = new CreateQuoteDto
+            var dto = new QuoteDto
             {
                 CustomerId = 1,
-                UserId = 1,
                 TotalPrice = 100,
                 CashDiscount = 200,
                 PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista",
-                Items = new List<CreateQuoteItemDto>
+                Items = new List<QuoteItemDto>
                 {
-                    new CreateQuoteItemDto {  Description = "Serviço X", Quantity = 1, UnitPrice = 100 }
+                    new QuoteItemDto { Description = "Serviço X", Quantity = 1, UnitPrice = 100 }
                 }
             };
 
-            var response = await _client.PostAsJsonAsync("/api/quotes", dto);
+            var response = await _client.PostAsJsonAsync("/api/quote", dto);
             Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }

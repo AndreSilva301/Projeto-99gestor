@@ -22,7 +22,7 @@ public class CreateQuoteDto : IBasicDto
 
     public decimal? CashDiscount { get; set; }
 
-    public List<CreateQuoteItemDto> Items { get; set; } = new();
+    public List<QuoteItemDto> Items { get; set; } = new();
 
     public Dictionary<string, string> CustomFields { get; set; } = new();
 
@@ -36,12 +36,10 @@ public class CreateQuoteDto : IBasicDto
         if (UserId <= 0)
             errors.Add("Usuário é obrigatório.");
 
-        if (TotalPrice <= 0)
+        if (TotalPrice < 0)
             errors.Add("O valor total deve ser maior que zero.");
 
-        if (string.IsNullOrWhiteSpace(PaymentConditions))
-            errors.Add("As condições de pagamento são obrigatórias.");
-        else if (PaymentConditions.Length > 500)
+        if (!string.IsNullOrWhiteSpace(PaymentConditions) && PaymentConditions.Length > 500)
             errors.Add("As condições de pagamento não podem ter mais de 500 caracteres.");
 
         if (CustomFields != null && CustomFields.Count > 0)
@@ -53,9 +51,7 @@ public class CreateQuoteDto : IBasicDto
                 else if (kvp.Key.Length > 50)
                     errors.Add("Chaves do campo customizado não podem ter mais de 50 caracteres.");
 
-                if (string.IsNullOrWhiteSpace(kvp.Value))
-                    errors.Add("Valores do campo customizado não podem ser vazios.");
-                else if (kvp.Value.Length > 200)
+                if (kvp.Value != null && kvp.Value.Length > 200)
                     errors.Add("Valores do campo customizado não podem ter mais de 200 caracteres.");
             }
         }

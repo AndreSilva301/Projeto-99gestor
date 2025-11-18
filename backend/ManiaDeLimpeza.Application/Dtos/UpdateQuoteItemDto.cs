@@ -19,6 +19,8 @@ public class UpdateQuoteItemDto : IBasicDto
 
     [Range(0.01, double.MaxValue)]
     public decimal UnitPrice { get; set; }
+    public int Order { get; set; }
+
 
     public Dictionary<string, string> CustomFields { get; set; } = new();
 
@@ -34,6 +36,8 @@ public class UpdateQuoteItemDto : IBasicDto
 
         if (string.IsNullOrWhiteSpace(Description))
             errors.Add("A descrição é obrigatória.");
+        else if (Description.Length > 200)
+            errors.Add("A descrição não pode ter mais de 200 caracteres.");
 
         if (Quantity <= 0)
             errors.Add("A quantidade deve ser maior que zero.");
@@ -41,19 +45,14 @@ public class UpdateQuoteItemDto : IBasicDto
         if (UnitPrice <= 0)
             errors.Add("O preço unitário deve ser maior que zero.");
 
-
-        foreach (var field in CustomFields)
+        foreach (var kvp in CustomFields)
         {
-            if (string.IsNullOrWhiteSpace(field.Key))
+            if (string.IsNullOrWhiteSpace(kvp.Key))
                 errors.Add("Chaves do campo customizado não podem ser vazias.");
-
-            if (string.IsNullOrWhiteSpace(field.Value))
-                errors.Add("Valores do campo customizado não podem ser vazios.");
-
-            if (field.Key.Length > 50)
+            else if (kvp.Key.Length > 50)
                 errors.Add("Chaves do campo customizado não podem ter mais de 50 caracteres.");
 
-            if (field.Value.Length > 200)
+            if (kvp.Value != null && kvp.Value.Length > 200)
                 errors.Add("Valores do campo customizado não podem ter mais de 200 caracteres.");
         }
 

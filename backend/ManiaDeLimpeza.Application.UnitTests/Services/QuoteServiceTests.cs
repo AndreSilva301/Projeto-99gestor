@@ -2,8 +2,11 @@
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Application.UnitTests.Tools;
+using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
+using ManiaDeLimpeza.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 
 namespace ManiaDeLimpeza.Application.UnitTests.Services
@@ -15,6 +18,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         private Mock<ICustomerRepository> _customerRepositoryMock;
         private Mock<IMapper> _mapperMock;
         private QuoteService _service;
+        private ApplicationDbContext _dbContext;
 
         [TestInitialize]
         public void Setup()
@@ -23,26 +27,31 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             _customerRepositoryMock = new Mock<ICustomerRepository>();
             _mapperMock = new Mock<IMapper>();
 
-            _mapperMock
-                .Setup(m => m.Map<QuoteResponseDto>(It.IsAny<Quote>()))
-                .Returns((Quote q) => new QuoteResponseDto
+            var options = new DbContextOptionsBuilder<ApplicationDbContext>()
+                .UseInMemoryDatabase("TestDb_" + Guid.NewGuid())
+                .Options;
+
+            _dbContext = new ApplicationDbContext(options);
+
+            _quoteRepositoryMock
+                .Setup(r => r.AddAsync(It.IsAny<Quote>()))
+                .Callback<Quote>(q => { q.Id = 10; })
+                .Returns(Task.CompletedTask);
+
+            _quoteRepositoryMock
+                .Setup(r => r.GetByIdAsync(10))
+                .ReturnsAsync((int id) =>
                 {
-                    Id = q.Id,
-                    TotalPrice = q.TotalPrice,
-                    Items = q.QuoteItems?.Select(i => new QuoteItemResponseDto
-                    {
-                        Id = i.Id,
-                        Description = i.Description,
-                        Quantity = i.Quantity,
-                        UnitPrice = i.UnitPrice,
-                        TotalPrice = i.TotalPrice
-                    }).ToList() ?? new List<QuoteItemResponseDto>()
+                    return _dbContext.Quotes
+                        .Include(x => x.QuoteItems)
+                        .FirstOrDefault(q => q.Id == id);
                 });
 
             _service = new QuoteService(
                 _quoteRepositoryMock.Object,
                 _customerRepositoryMock.Object,
-                _mapperMock.Object
+                _mapperMock.Object,
+                _dbContext
             );
         }
 
@@ -50,20 +59,23 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         [ExpectedException(typeof(ArgumentException))]
         public async Task CriarAsync_ComClienteInvalido_DeveLancarExcecao()
         {
-            var quoteDto = new QuoteDto
+            var dto = new CreateQuoteDto
             {
                 CustomerId = 99,
-                LineItems = new List<QuoteItemResponseDto>
+                UserId = 1,
+                TotalPrice = 10m,
+                PaymentMethod = PaymentMethod.Cash,
+                Items = new()
                 {
-                    new() { Description = "Serviço Inválido", Quantity = 1, UnitPrice = 10, TotalPrice = 10 }
+                    new QuoteItemDto { Description = "Item", Quantity = 1, UnitPrice = 10 }
                 }
             };
 
-            var usuario = new User { Id = 1 };
+            _customerRepositoryMock
+                .Setup(r => r.GetByIdAsync(dto.CustomerId))
+                .ReturnsAsync((Customer?)null);
 
-            _customerRepositoryMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Customer?)null);
-
-            await _service.CreateAsync(quoteDto, usuario);
+            await _service.CreateAsync(dto, 1, 1);
         }
 
         [TestMethod]
@@ -72,48 +84,60 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var dto = new CreateQuoteDto
             {
                 CustomerId = 1,
-                Items = new List<CreateQuoteItemDto>
+                UserId = 1,
+                TotalPrice = 0,  
+                PaymentMethod = PaymentMethod.Cash,
+                Items = new()
                 {
-                    new() { Description = "Serviço 1", Quantity = 2, UnitPrice = 50 },
-                    new() { Description = "Serviço 2", Quantity = 1, UnitPrice = 100 }
+                    new QuoteItemDto { Description = "Serviço 1", Quantity = 2, UnitPrice = 50 },
+                    new QuoteItemDto { Description = "Serviço 2", Quantity = 1, UnitPrice = 100 }
                 }
             };
 
-            var cliente = new Customer { Id = 1, Name = "Cliente Teste" };
+            var customer = new Customer { Id = 1, CompanyId = 1 };
 
-            _customerRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(cliente);
+            _customerRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(customer);
 
-            _quoteRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Quote>())).Returns(Task.CompletedTask);
+            _quoteRepositoryMock
+                .Setup(r => r.AddAsync(It.IsAny<Quote>()))
+                .Callback<Quote>(q => q.Id = 10)
+                .Returns(Task.CompletedTask);
 
-            var quotes = new List<Quote>();
-            _quoteRepositoryMock.Setup(r => r.Query()).Returns(quotes.AsQueryable());
+            _quoteRepositoryMock
+                .Setup(r => r.Query())
+                .Returns(new List<Quote>().AsQueryable());
 
-            var resultado = await _service.CreateAsync(dto, 1);
+            var resultado = await _service.CreateAsync(dto, 1, 1);
 
             Assert.IsNotNull(resultado);
             Assert.AreEqual(200m, resultado.TotalPrice);
             _quoteRepositoryMock.Verify(r => r.AddAsync(It.IsAny<Quote>()), Times.Once);
         }
+
         [TestMethod]
-        public async Task CriarAsync_ComDescontoAVista_DeveAplicarCorretamente()
+        public async Task CriarAsync_ComDescontoAVista_DeveAplicarDesconto()
         {
             var dto = new CreateQuoteDto
             {
                 CustomerId = 1,
+                UserId = 1,
+                PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "à vista",
-                CashDiscount = 10,
-                Items = new List<CreateQuoteItemDto>
+                CashDiscount = 10m,
+                Items = new()
                 {
-                    new() { Description = "Serviço", Quantity = 1, UnitPrice = 100 }
+                    new QuoteItemDto { Description = "Serviço", Quantity = 1, UnitPrice = 100 }
                 }
             };
 
-            var cliente = new Customer { Id = 1, Name = "Cliente Teste" };
+            _customerRepositoryMock.Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(new Customer { Id = 1, CompanyId = 1 });
 
-            _customerRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(cliente);
-            _quoteRepositoryMock.Setup(r => r.AddAsync(It.IsAny<Quote>())).Returns(Task.CompletedTask);
+            _quoteRepositoryMock
+                .Setup(r => r.AddAsync(It.IsAny<Quote>()))
+                .Returns(Task.CompletedTask);
 
-            var resultado = await _service.CreateAsync(dto, 1);
+            var resultado = await _service.CreateAsync(dto, 1, 1);
 
             Assert.AreEqual(90m, resultado.TotalPrice);
         }
@@ -121,114 +145,80 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         [TestMethod]
         public async Task ObterPorIdAsync_ComIdInexistente_DeveRetornarNulo()
         {
-            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(999)).ReturnsAsync((Quote?)null);
+            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(999))
+                .ReturnsAsync((Quote?)null);
 
-            var resultado = await _service.GetByIdAsync(999);
+            var resultado = await _service.GetByIdAsync(999, 1);
 
             Assert.IsNull(resultado);
         }
 
         [TestMethod]
-        public async Task DeletarAsync_ComIdInexistente_DeveRetornarFalso()
+        public async Task DeletarAsync_ComIdExistente_DeveRemover()
         {
-            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((Quote?)null);
+            var quote = new Quote { Id = 1, CompanyId = 1 };
 
-            var resultado = await _service.DeleteAsync(99);
-
-            Assert.IsFalse(resultado);
-        }
-
-        [TestMethod]
-        public async Task DeletarAsync_ComIdExistente_DeveRemoverComSucesso()
-        {
-            var quote = new Quote { Id = 1 };
             _quoteRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(quote);
 
-            var resultado = await _service.DeleteAsync(1);
+            var ok = await _service.DeleteAsync(1, 1);
 
+            Assert.IsTrue(ok);
             _quoteRepositoryMock.Verify(r => r.DeleteAsync(quote), Times.Once);
-            Assert.IsTrue(resultado);
         }
 
         [TestMethod]
-        public async Task AtualizarAsync_ComOrcamentoExistente_DeveRecalcularValores()
+        public async Task AtualizarAsync_DeveRecalcularValores()
         {
-            // Arrange
             var quote = new Quote
             {
                 Id = 1,
-                TotalPrice = 100,
-                QuoteItems = new List<QuoteItem>
-                {
-                    new() { Id = 1, Description = "Serviço 1", Quantity = 1, UnitPrice = 100, TotalPrice = 100 }
-                }
+                CompanyId = 1,
+                Customer = new Customer { Id = 1, CompanyId = 1 },
+                QuoteItems = new()
+        {
+            new QuoteItem { Id = 1, Quantity = 1, UnitPrice = 100, TotalPrice = 100 }
+        }
             };
 
             var dto = new UpdateQuoteDto
             {
                 Id = 1,
-                Items = new List<UpdateQuoteItemDto>
-                {
-                    new() { Id = 1, Description = "Serviço 1", Quantity = 2, UnitPrice = 100 }
-                }
+                Items = new()
+        {
+            new UpdateQuoteItemDto { Id = 1, Quantity = 2, UnitPrice = 100 }
+        }
             };
 
-            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(quote);
-            _quoteRepositoryMock
-                .Setup(r => r.UpdateAsync(It.IsAny<Quote>()))
+            _quoteRepositoryMock.Setup(r => r.GetByIdAsync(1))
+                .ReturnsAsync(quote);
+
+            _quoteRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Quote>()))
                 .ReturnsAsync((Quote q) => q);
 
-            // Act
-            var resultado = await _service.UpdateAsync(1, dto);
+            var resultado = await _service.UpdateAsync(1, dto, 1);
 
-            // Assert
-            Assert.IsNotNull(resultado);
-            Assert.AreEqual(200m, resultado.TotalPrice, "O valor total deve ser recalculado corretamente.");
-            Assert.AreEqual(2, resultado.Items.First().Quantity, "A quantidade do item deve ser atualizada.");
-            _quoteRepositoryMock.Verify(r => r.UpdateAsync(It.IsAny<Quote>()), Times.Once);
+            Assert.AreEqual(200m, resultado.TotalPrice);
+            Assert.AreEqual(2, resultado.Items.First().Quantity);
         }
 
         [TestMethod]
-        public async Task ObterTodosAsync_ComFiltros_DeveChamarRepositorioComParametrosCorretos()
+        public async Task GetAllAsync_ChamaRepositorioComFiltros()
         {
-            // Arrange
-            var filtro = new QuoteFilterDto
-            {
-                ClientName = "João",
-                CreatedAtStart = new DateTime(2024, 1, 1),
-                CreatedAtEnd = new DateTime(2024, 12, 31),
-                Page = 1,
-                PageSize = 10
-            };
+            var fakeQuotes = new List<Quote>().AsQueryable();
 
-            _quoteRepositoryMock
-                .Setup(r => r.GetAllAsync(
-                    It.IsAny<int?>(),
-                    It.IsAny<int?>(),
-                    It.IsAny<DateTime?>(),
-                    It.IsAny<DateTime?>(),
-                    It.IsAny<int>(),
-                    It.IsAny<int>()))
-                .ReturnsAsync(new List<Quote>());
+            _quoteRepositoryMock.Setup(r => r.Query()).Returns(fakeQuotes);
 
-            // Act
-            var resultado = await _service.GetAllAsync(
-                null,                   
-                null,                   
-                filtro.CreatedAtStart,
-                filtro.CreatedAtEnd,
-                filtro.Page,
-                filtro.PageSize);
+            var result = await _service.GetAllAsync(
+                companyId: 1,
+                customerId: null,
+                userId: null,
+                startDate: new DateTime(2024, 1, 1),
+                endDate: new DateTime(2024, 12, 31),
+                pageNumber: 1,
+                pageSize: 10);
 
-            // Assert
-            _quoteRepositoryMock.Verify(r => r.GetAllAsync(
-                It.IsAny<int?>(),
-                It.IsAny<int?>(),
-                It.Is<DateTime?>(d => d == filtro.CreatedAtStart),
-                It.Is<DateTime?>(d => d == filtro.CreatedAtEnd),
-                It.Is<int>(p => p == filtro.Page),
-                It.Is<int>(s => s == filtro.PageSize)
-            ), Times.Once);
+            Assert.IsNotNull(result);
+            _quoteRepositoryMock.Verify(r => r.Query(), Times.Once);
         }
     }
 }

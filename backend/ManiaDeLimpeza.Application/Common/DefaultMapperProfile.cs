@@ -15,12 +15,12 @@ namespace ManiaDeLimpeza.Application.Common
             CreateMap<CreateQuoteDto, Quote>()
                 .ForMember(dest => dest.QuoteItems, opt => opt.MapFrom(src => src.Items));
 
-            CreateMap<CreateQuoteItemDto, QuoteItem>();
+            CreateMap<CreateQuoteDto, QuoteItem>();
 
             CreateMap<QuoteDto, Quote>()
                 .ForMember(dest => dest.CashDiscount, opt => opt.MapFrom(src => src.CashDiscount))
                 .ForMember(dest => dest.Customer, opt => opt.Ignore())
-                .ForMember(dest => dest.QuoteItems, opt => opt.MapFrom(src => src.LineItems));
+                .ForMember(dest => dest.QuoteItems, opt => opt.MapFrom(src => src.Items));
 
             CreateMap<Quote, QuoteDto>();
 
