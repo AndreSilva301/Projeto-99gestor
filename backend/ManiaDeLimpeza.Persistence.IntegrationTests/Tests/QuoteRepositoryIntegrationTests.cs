@@ -559,14 +559,11 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             await repo.CreateAsync(orcamento);
 
-            // Verifica que os itens foram criados
             var itensAntes = await db.QuoteItems.Where(qi => qi.QuoteId == orcamento.Id).CountAsync();
             Assert.AreEqual(2, itensAntes);
 
-            // Deleta o orçamento
             await repo.DeleteAsync(orcamento.Id);
 
-            // Verifica que os itens foram deletados em cascata
             var itensDepois = await db.QuoteItems.Where(qi => qi.QuoteId == orcamento.Id).CountAsync();
             Assert.AreEqual(0, itensDepois);
         }
