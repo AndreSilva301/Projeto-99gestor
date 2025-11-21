@@ -55,7 +55,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 {
                     Id = q.Id,
                     TotalPrice = q.TotalPrice,
-                    Items = q.QuoteItems?.Select(i => new QuoteItemResponseDto
+                    QuoteItems = q.QuoteItems?.Select(i => new QuoteItemResponseDto
                     {
                         Id = i.Id,
                         Description = i.Description,
@@ -250,7 +250,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var resultado = await _service.UpdateAsync(1, dto, 1);
 
             Assert.AreEqual(200m, resultado.TotalPrice);
-            Assert.AreEqual(2, resultado.Items.First().Quantity);
+            Assert.AreEqual(2, resultado.QuoteItems.First().Quantity);
         }
 
         [TestMethod]

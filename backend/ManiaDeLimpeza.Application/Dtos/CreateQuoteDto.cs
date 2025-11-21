@@ -9,12 +9,6 @@ public class CreateQuoteDto : IBasicDto
     public int CustomerId { get; set; }
 
     [Required]
-    public int UserId { get; set; }
-
-    [Required]
-    public decimal TotalPrice { get; set; }
-
-    [Required]
     public PaymentMethod PaymentMethod { get; set; }
 
     [MaxLength(500)]
@@ -33,14 +27,11 @@ public class CreateQuoteDto : IBasicDto
         if (CustomerId <= 0)
             errors.Add("Cliente é obrigatório.");
 
-        if (UserId <= 0)
-            errors.Add("Usuário é obrigatório.");
-
-        if (TotalPrice < 0)
-            errors.Add("O valor total deve ser maior que zero.");
-
         if (!string.IsNullOrWhiteSpace(PaymentConditions) && PaymentConditions.Length > 500)
             errors.Add("As condições de pagamento não podem ter mais de 500 caracteres.");
+
+        if (CashDiscount.HasValue && CashDiscount.Value < 0)
+            errors.Add("O desconto à vista não pode ser menor que zero.");
 
         if (CustomFields != null && CustomFields.Count > 0)
         {

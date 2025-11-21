@@ -1,103 +1,123 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
-    public class QuoteRepository : BaseRepository<Quote>, IQuoteRepository, IScopedDependency
+    namespace ManiaDeLimpeza.Persistence.Repositories
     {
-        private readonly ApplicationDbContext _context;
-
-        public QuoteRepository(ApplicationDbContext context)
-            : base(context)
+        public class QuoteRepository : BaseRepository<Quote>, IQuoteRepository, IScopedDependency
         {
-            _context = context;
-        }
+            private readonly ApplicationDbContext _context;
 
-        public async Task<IEnumerable<Quote>> GetAllAsync(
-            int? customerId = null,
-            int? userId = null,
-            DateTime? startDate = null,
-            DateTime? endDate = null,
-            int pageNumber = 1,
-            int pageSize = 10)
-        {
-            var query = _context.Quotes
-                .Include(q => q.Customer)
-                .Include(q => q.User)
-                .Include(q => q.QuoteItems)
-                .AsQueryable();
+            public QuoteRepository(ApplicationDbContext context)
+                : base(context)
+            {
+                _context = context;
+            }
 
-            if (customerId.HasValue)
-                query = query.Where(q => q.CustomerId == customerId.Value);
+            public async Task<Quote?> GetByIdAsync(int id, int companyId)
+            {
+                return await _context.Quotes
+                    .Include(q => q.Customer)
+                    .Include(q => q.User)
+                    .Include(q => q.QuoteItems)
+                    .FirstOrDefaultAsync(q => q.Id == id && q.CompanyId == companyId);
+            }
 
-            if (userId.HasValue)
-                query = query.Where(q => q.UserId == userId.Value);
+            public async Task<Quote> CreateAsync(Quote quote, int companyId)
+            {
+                quote.CompanyId = companyId;
 
-            if (startDate.HasValue)
-                query = query.Where(q => q.CreatedAt >= startDate.Value);
+                await _context.Quotes.AddAsync(quote);
+                await _context.SaveChangesAsync();
 
-            if (endDate.HasValue)
-                query = query.Where(q => q.CreatedAt <= endDate.Value);
+                return quote;
+            }
 
-            return await query
-                .OrderByDescending(q => q.CreatedAt)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-        }
+            public async Task<Quote> UpdateAsync(Quote quote, int companyId)
+            {
+                quote.CompanyId = companyId;
 
-        public override async Task<Quote?> GetByIdAsync(int id)
-        {
-            return await _context.Quotes
-                .Include(q => q.Customer)
-                .Include(q => q.User)
-                .Include(q => q.QuoteItems)
-                .FirstOrDefaultAsync(q => q.Id == id);
-        }
+                _context.Quotes.Update(quote);
+                await _context.SaveChangesAsync();
 
-        public async Task<Quote> CreateAsync(Quote quote)
-        {
-            await _context.Quotes.AddAsync(quote);
-            await _context.SaveChangesAsync();
-            return quote;
-        }
+                return quote;
+            }
 
-        public async Task<Quote> UpdateAsync(Quote quote)
-        {
-            _context.Quotes.Update(quote);
-            await _context.SaveChangesAsync();
-            return quote;
-        }
+            public async Task<bool> DeleteAsync(int id, int companyId)
+            {
+                var quote = await _context.Quotes
+                    .FirstOrDefaultAsync(q => q.Id == id && q.CompanyId == companyId);
 
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var quote = await _context.Quotes.FindAsync(id);
-            if (quote == null)
-                return false;
+                if (quote == null)
+                    return false;
 
-            _context.Quotes.Remove(quote);
-            await _context.SaveChangesAsync();
-            return true;
-        }
+                _context.Quotes.Remove(quote);
+                await _context.SaveChangesAsync();
 
-        public async Task<int> CountAsync(int? customerId = null, int? userId = null)
-        {
-            var query = _context.Quotes.AsQueryable();
+                return true;
+            }
 
-            if (customerId.HasValue)
-                query = query.Where(q => q.CustomerId == customerId.Value);
+            public async Task<bool> ExistsAsync(int id, int companyId)
+            {
+                return await _context.Quotes
+                    .AnyAsync(q => q.Id == id && q.CompanyId == companyId);
+            }
 
-            if (userId.HasValue)
-                query = query.Where(q => q.UserId == userId.Value);
+            public async Task<PagedResult<Quote>> GetPagedAsync(
+                    string? searchTerm,
+                    DateTime? createdAtStart,
+                    DateTime? createdAtEnd,
+                    string sortBy,
+                    bool sortDescending,
+                    int page,
+                    int pageSize,
+                    int companyId)
+            {
+                IQueryable<Quote> query = _context.Quotes
+                    .Include(q => q.Customer)
+                    .Include(q => q.User)
+                    .Include(q => q.QuoteItems)
+                    .Where(q => q.CompanyId == companyId);
 
-            return await query.CountAsync();
-        }
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    query = query.Where(q =>
+                        q.Customer.Name.Contains(searchTerm) ||
+                        q.User.Name.Contains(searchTerm));
+                }
 
-        public async Task<bool> ExistsAsync(int id)
-        {
-            return await _context.Quotes.AnyAsync(q => q.Id == id);
+                if (createdAtStart.HasValue)
+                    query = query.Where(q => q.CreatedAt >= createdAtStart.Value);
+
+                if (createdAtEnd.HasValue)
+                    query = query.Where(q => q.CreatedAt <= createdAtEnd.Value);
+
+                if (!string.IsNullOrWhiteSpace(sortBy))
+                {
+                    query = sortDescending
+                        ? query.OrderByDescending(q => EF.Property<object>(q, sortBy))
+                        : query.OrderBy(q => EF.Property<object>(q, sortBy));
+                }
+
+                var totalItems = await query.CountAsync();
+
+                var items = await query
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToListAsync();
+
+                return new PagedResult<Quote>
+                {
+                    TotalItems = totalItems,
+                    Items = items,
+                    Page = page,
+                    PageSize = pageSize
+                };
+            }
         }
     }
 }

@@ -14,13 +14,12 @@ public class UpdateQuoteItemDto : IBasicDto
     [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
 
-    [Range(0.01, double.MaxValue)]
-    public int Quantity { get; set; }
+    public decimal? Quantity { get; set; }
+    public decimal? UnitPrice { get; set; }
 
-    [Range(0.01, double.MaxValue)]
-    public decimal UnitPrice { get; set; }
+    public decimal? TotalPrice { get; set; }
+
     public int Order { get; set; }
-
 
     public Dictionary<string, string> CustomFields { get; set; } = new();
 
@@ -39,11 +38,22 @@ public class UpdateQuoteItemDto : IBasicDto
         else if (Description.Length > 200)
             errors.Add("A descrição não pode ter mais de 200 caracteres.");
 
-        if (Quantity <= 0)
+        var hasQtyPrice = Quantity.HasValue && UnitPrice.HasValue;
+        var hasManualTotal = TotalPrice.HasValue && TotalPrice.Value > 0;
+
+        if (!hasQtyPrice && !hasManualTotal)
+        {
+            errors.Add("Informe (Quantidade e Preço Unitário) ou apenas o Preço Total.");
+        }
+
+        if (Quantity.HasValue && Quantity <= 0)
             errors.Add("A quantidade deve ser maior que zero.");
 
-        if (UnitPrice <= 0)
+        if (UnitPrice.HasValue && UnitPrice <= 0)
             errors.Add("O preço unitário deve ser maior que zero.");
+
+        if (TotalPrice.HasValue && TotalPrice <= 0)
+            errors.Add("O preço total deve ser maior que zero.");
 
         foreach (var kvp in CustomFields)
         {

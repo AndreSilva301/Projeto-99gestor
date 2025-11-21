@@ -33,7 +33,7 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
             .OnDelete(DeleteBehavior.Restrict);
 
         builder.HasMany(q => q.QuoteItems)
-            .WithOne(qi => qi.Quote)
+            .WithOne()
             .HasForeignKey(qi => qi.QuoteId)
             .OnDelete(DeleteBehavior.Cascade);
 

@@ -1,21 +1,24 @@
-﻿using ManiaDeLimpeza.Domain.Entities;
+﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Entities;
 
-namespace ManiaDeLimpeza.Domain.Persistence;
-public interface IQuoteRepository : IBaseRepository<Quote>
+namespace ManiaDeLimpeza.Domain.Persistence
 {
-    Task<IEnumerable<Quote>> GetAllAsync(
-        int? customerId = null,
-        int? userId = null,
-        DateTime? startDate = null,
-        DateTime? endDate = null,
-        int pageNumber = 1,
-        int pageSize = 10
-    );
+    public interface IQuoteRepository : IBaseRepository<Quote>
+    {
+        Task<PagedResult<Quote>> GetPagedAsync(
+            string? searchTerm,
+            DateTime? createdAtStart,
+            DateTime? createdAtEnd,
+            string sortBy,
+            bool sortDescending,
+            int page,
+            int pageSize,
+            int companyId);
 
-    Task<Quote?> GetByIdAsync(int id);
-    Task<Quote> CreateAsync(Quote quote);
-    Task<Quote> UpdateAsync(Quote quote);
-    Task<bool> DeleteAsync(int id);
-    Task<int> CountAsync(int? customerId = null, int? userId = null);
-    Task<bool> ExistsAsync(int id);
+        Task<Quote?> GetByIdAsync(int id, int companyId);
+        Task<Quote> CreateAsync(Quote quote, int companyId);
+        Task<Quote> UpdateAsync(Quote quote, int companyId);
+        Task<bool> DeleteAsync(int id, int companyId);
+        Task<bool> ExistsAsync(int id, int companyId);
+    }
 }

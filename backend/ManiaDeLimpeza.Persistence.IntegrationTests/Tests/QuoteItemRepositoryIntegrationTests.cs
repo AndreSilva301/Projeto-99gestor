@@ -1,6 +1,7 @@
 ﻿using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Persistence.Repositories;
+using ManiaDeLimpeza.Persistence.Repositories.ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManiaDeLimpeza.Persistence.IntegrationTests.Repositories
