@@ -78,6 +78,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
 
             var orcamento = new Quote
             {
+                CompanyId = empresa.Id,
                 CustomerId = cliente.Id,
                 UserId = usuario.Id,
                 TotalPrice = 150.00m,
@@ -96,7 +97,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 }
             };
 
-            var resultado = await repo.CreateAsync(orcamento);
+            var resultado = await repo.CreateAsync(orcamento, empresa.Id);
 
             Assert.IsNotNull(resultado);
             Assert.IsTrue(resultado.Id > 0);
@@ -141,7 +142,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 }
             };
 
-            await repo.CreateAsync(orcamento);
+            var resultado = await repo.CreateAsync(orcamento, empresa.Id);
 
             var buscado = await repo.GetByIdAsync(orcamento.Id);
 
@@ -183,7 +184,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 }
             };
 
-            await repo.CreateAsync(orcamento);
+            var resultado = await repo.CreateAsync(orcamento, empresa.Id);
 
             // Atualizar
             orcamento.TotalPrice = 200.00m;
@@ -191,7 +192,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             orcamento.PaymentConditions = "Cartão 3x sem juros";
             orcamento.UpdatedAt = DateTime.UtcNow;
 
-            var atualizado = await repo.UpdateAsync(orcamento);
+            var atualizado = await repo.UpdateAsync(orcamento, empresa.Id);
 
             Assert.AreEqual(200.00m, atualizado.TotalPrice);
             Assert.AreEqual(PaymentMethod.CreditCard, atualizado.PaymentMethod);
@@ -217,12 +218,14 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 PaymentConditions = "À vista"
             };
 
-            await repo.CreateAsync(orcamento);
-            var sucesso = await repo.DeleteAsync(orcamento.Id);
+            var criado = await repo.CreateAsync(orcamento, empresa.Id);
 
-            Assert.IsTrue(sucesso);
+            var removido = await repo.DeleteAsync(criado.Id, empresa.Id);
 
-            var buscado = await repo.GetByIdAsync(orcamento.Id);
+            Assert.IsTrue(removido);
+
+            var buscado = await repo.GetByIdAsync(criado.Id, empresa.Id);
+
             Assert.IsNull(buscado);
         }
 
@@ -232,7 +235,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             using var db = TestDbContextFactory.CreateContext();
             var repo = new QuoteRepository(db);
 
-            var sucesso = await repo.DeleteAsync(9999);
+            var empresa = await CriarEmpresaTesteAsync(db);
+
+            var sucesso = await repo.DeleteAsync(9999, empresa.Id);
 
             Assert.IsFalse(sucesso);
         }
@@ -250,19 +255,19 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 CustomerId = cliente.Id,
                 UserId = usuario.Id,
-                TotalPrice = 100.00m,
+                TotalPrice = 100m,
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "À vista"
-            });
+            }, empresa.Id);
 
             await repo.CreateAsync(new Quote
             {
                 CustomerId = cliente.Id,
                 UserId = usuario.Id,
-                TotalPrice = 200.00m,
-                PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "Pix"
-            });
+                TotalPrice = 200m,
+                PaymentMethod = PaymentMethod.Cash,
+                PaymentConditions = "Parcelado"
+            }, empresa.Id);
 
             var resultado = await repo.GetAllAsync();
 
@@ -274,6 +279,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var db = TestDbContextFactory.CreateContext();
             var repo = new QuoteRepository(db);
+
             var empresa = await CriarEmpresaTesteAsync(db);
             var usuario = await CriarUsuarioTesteAsync(db, empresa.Id);
             var cliente1 = await CriarClienteTesteAsync(db, empresa.Id);
@@ -286,7 +292,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 100.00m,
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "À vista"
-            });
+            }, empresa.Id);
 
             await repo.CreateAsync(new Quote
             {
@@ -295,7 +301,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 150.00m,
                 PaymentMethod = PaymentMethod.Pix,
                 PaymentConditions = "Pix"
-            });
+            }, empresa.Id);
 
             await repo.CreateAsync(new Quote
             {
@@ -304,12 +310,23 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 200.00m,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "Cartão"
-            });
+            }, empresa.Id);
 
-            var resultado = await repo.GetAllAsync(customerId: cliente1.Id);
+            var resultado = await repo.GetPagedAsync(
+                searchTerm: null,
+                createdAtStart: null,
+                createdAtEnd: null,
+                sortBy: "",
+                sortDescending: false,
+                page: 1,
+                pageSize: 100,
+                companyId: empresa.Id
+            );
 
-            Assert.AreEqual(2, resultado.Count());
-            Assert.IsTrue(resultado.All(q => q.CustomerId == cliente1.Id));
+            var listaFiltrada = resultado.Items.Where(q => q.CustomerId == cliente1.Id).ToList();
+
+            Assert.AreEqual(2, listaFiltrada.Count);
+            Assert.IsTrue(listaFiltrada.All(q => q.CustomerId == cliente1.Id));
         }
 
         [TestMethod]
@@ -326,24 +343,33 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             {
                 CustomerId = cliente.Id,
                 UserId = usuario1.Id,
-                TotalPrice = 100.00m,
+                TotalPrice = 100m,
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "À vista"
-            });
+            }, empresa.Id);
 
             await repo.CreateAsync(new Quote
             {
                 CustomerId = cliente.Id,
                 UserId = usuario2.Id,
-                TotalPrice = 200.00m,
+                TotalPrice = 200m,
                 PaymentMethod = PaymentMethod.Pix,
                 PaymentConditions = "Pix"
-            });
+            }, empresa.Id);
 
-            var resultado = await repo.GetAllAsync(userId: usuario1.Id);
+            var resultado = await repo.GetPagedAsync(
+                searchTerm: usuario1.Name,
+                createdAtStart: null,
+                createdAtEnd: null,
+                sortBy: "",
+                sortDescending: false,
+                page: 1,
+                pageSize: 20,
+                companyId: empresa.Id
+            );
 
-            Assert.AreEqual(1, resultado.Count());
-            Assert.AreEqual(usuario1.Id, resultado.First().UserId);
+            Assert.AreEqual(1, resultado.Items.Count);
+            Assert.AreEqual(usuario1.Id, resultado.Items.First().UserId);
         }
 
         [TestMethod]
@@ -366,7 +392,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "À vista",
                 CreatedAt = new DateTime(2024, 1, 15)
-            });
+            }, empresa.Id);
 
             await repo.CreateAsync(new Quote
             {
@@ -376,13 +402,22 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 PaymentMethod = PaymentMethod.Pix,
                 PaymentConditions = "Pix",
                 CreatedAt = new DateTime(2024, 2, 15)
-            });
+            }, empresa.Id);
 
-            var resultado = await repo.GetAllAsync(startDate: dataInicio, endDate: dataFim);
+            var resultado = await repo.GetPagedAsync(
+                searchTerm: null,
+                createdAtStart: dataInicio,
+                createdAtEnd: dataFim,
+                sortBy: "",
+                sortDescending: false,
+                page: 1,
+                pageSize: 50,
+                companyId: empresa.Id
+            );
 
-            Assert.AreEqual(1, resultado.Count());
-            Assert.IsTrue(resultado.First().CreatedAt >= dataInicio);
-            Assert.IsTrue(resultado.First().CreatedAt <= dataFim);
+            Assert.AreEqual(1, resultado.Items.Count);
+            Assert.IsTrue(resultado.Items.First().CreatedAt >= dataInicio);
+            Assert.IsTrue(resultado.Items.First().CreatedAt <= dataFim);
         }
 
         [TestMethod]
@@ -390,11 +425,11 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var db = TestDbContextFactory.CreateContext();
             var repo = new QuoteRepository(db);
+
             var empresa = await CriarEmpresaTesteAsync(db);
             var usuario = await CriarUsuarioTesteAsync(db, empresa.Id);
             var cliente = await CriarClienteTesteAsync(db, empresa.Id);
 
-            // Criar 5 orçamentos
             for (int i = 1; i <= 5; i++)
             {
                 await repo.CreateAsync(new Quote
@@ -405,17 +440,35 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                     PaymentMethod = PaymentMethod.Cash,
                     PaymentConditions = "À vista",
                     CreatedAt = DateTime.UtcNow.AddDays(-i)
-                });
+                }, empresa.Id);
             }
 
-            var pagina1 = await repo.GetAllAsync(pageNumber: 1, pageSize: 2);
-            var pagina2 = await repo.GetAllAsync(pageNumber: 2, pageSize: 2);
+            var pagina1 = await repo.GetPagedAsync(
+                searchTerm: null,
+                createdAtStart: null,
+                createdAtEnd: null,
+                sortBy: "CreatedAt",
+                sortDescending: true,
+                page: 1,
+                pageSize: 2,
+                companyId: empresa.Id
+            );
 
-            Assert.AreEqual(2, pagina1.Count());
-            Assert.AreEqual(2, pagina2.Count());
-            
-            // Verifica ordenação descendente por data
-            var listaPagina1 = pagina1.ToList();
+            var pagina2 = await repo.GetPagedAsync(
+                searchTerm: null,
+                createdAtStart: null,
+                createdAtEnd: null,
+                sortBy: "CreatedAt",
+                sortDescending: true,
+                page: 2,
+                pageSize: 2,
+                companyId: empresa.Id
+            );
+
+            Assert.AreEqual(2, pagina1.Items.Count);
+            Assert.AreEqual(2, pagina2.Items.Count);
+
+            var listaPagina1 = pagina1.Items.ToList();
             Assert.IsTrue(listaPagina1[0].CreatedAt >= listaPagina1[1].CreatedAt);
         }
 
@@ -435,7 +488,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 100.00m,
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "À vista"
-            });
+            }, empresa.Id);
 
             await repo.CreateAsync(new Quote
             {
@@ -444,12 +497,22 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 200.00m,
                 PaymentMethod = PaymentMethod.Pix,
                 PaymentConditions = "Pix"
-            });
+            }, empresa.Id);
 
-            var total = await repo.CountAsync();
+            var result = await repo.GetPagedAsync(
+                searchTerm: null,
+                createdAtStart: null,
+                createdAtEnd: null,
+                sortBy: "",
+                sortDescending: false,
+                page: 1,
+                pageSize: 10,
+                companyId: empresa.Id
+            );
 
-            Assert.AreEqual(2, total);
+            Assert.AreEqual(2, result.TotalItems);
         }
+
 
         [TestMethod]
         public async Task CountAsync_FiltradoPorCliente_DeveRetornarContagemDoCliente()
@@ -468,7 +531,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 100.00m,
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "À vista"
-            });
+            }, empresa.Id); 
 
             await repo.CreateAsync(new Quote
             {
@@ -477,9 +540,20 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 TotalPrice = 200.00m,
                 PaymentMethod = PaymentMethod.Pix,
                 PaymentConditions = "Pix"
-            });
+            }, empresa.Id); 
 
-            var totalCliente1 = await repo.CountAsync(customerId: cliente1.Id);
+            var resultado = await repo.GetPagedAsync(
+                searchTerm: null,
+                createdAtStart: null,
+                createdAtEnd: null,
+                sortBy: "",
+                sortDescending: false,
+                page: 1,
+                pageSize: 50,
+                companyId: empresa.Id
+            );
+
+            var totalCliente1 = resultado.Items.Count(q => q.CustomerId == cliente1.Id);
 
             Assert.AreEqual(1, totalCliente1);
         }
@@ -489,6 +563,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         {
             using var db = TestDbContextFactory.CreateContext();
             var repo = new QuoteRepository(db);
+
             var empresa = await CriarEmpresaTesteAsync(db);
             var usuario = await CriarUsuarioTesteAsync(db, empresa.Id);
             var cliente = await CriarClienteTesteAsync(db, empresa.Id);
@@ -502,9 +577,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 PaymentConditions = "À vista"
             };
 
-            await repo.CreateAsync(orcamento);
+            await repo.CreateAsync(orcamento, empresa.Id); 
 
-            var existe = await repo.ExistsAsync(orcamento.Id);
+            var existe = await repo.ExistsAsync(orcamento.Id, empresa.Id); 
 
             Assert.IsTrue(existe);
         }
@@ -515,7 +590,9 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
             using var db = TestDbContextFactory.CreateContext();
             var repo = new QuoteRepository(db);
 
-            var existe = await repo.ExistsAsync(9999);
+            var empresa = await CriarEmpresaTesteAsync(db);
+
+            var existe = await repo.ExistsAsync(9999, empresa.Id); 
 
             Assert.IsFalse(existe);
         }
@@ -557,12 +634,12 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 }
             };
 
-            await repo.CreateAsync(orcamento);
+            await repo.CreateAsync(orcamento, empresa.Id);
 
             var itensAntes = await db.QuoteItems.Where(qi => qi.QuoteId == orcamento.Id).CountAsync();
             Assert.AreEqual(2, itensAntes);
 
-            await repo.DeleteAsync(orcamento.Id);
+            await repo.DeleteAsync(orcamento.Id, empresa.Id);
 
             var itensDepois = await db.QuoteItems.Where(qi => qi.QuoteId == orcamento.Id).CountAsync();
             Assert.AreEqual(0, itensDepois);
@@ -587,7 +664,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 PaymentConditions = "À vista com desconto"
             };
 
-            var resultado = await repo.CreateAsync(orcamento);
+            var resultado = await repo.CreateAsync(orcamento, empresa.Id);
 
             Assert.IsNotNull(resultado);
             Assert.AreEqual(10.00m, resultado.CashDiscount);
@@ -629,7 +706,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
                 }
             };
 
-            var resultado = await repo.CreateAsync(orcamento);
+            var resultado = await repo.CreateAsync(orcamento, empresa.Id);
 
             // Buscar novamente para verificar persistência
             var buscado = await repo.GetByIdAsync(resultado.Id);

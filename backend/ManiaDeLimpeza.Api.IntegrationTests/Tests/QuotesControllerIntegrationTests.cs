@@ -4,6 +4,7 @@ using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Persistence;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Net;
@@ -35,10 +36,8 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
         [TestCleanup]
         public void Cleanup()
         {
-            TestDataCleanup.ClearQuotes(_db);
-            TestDataCleanup.ClearClients(_db);
-            TestDataCleanup.ClearUsers(_db);
-            TestDataCleanup.ClearCompany(_db);
+            _db.Database.EnsureDeleted();
+            _db.Database.Migrate();
         }
 
         private Customer SeedCustomer()

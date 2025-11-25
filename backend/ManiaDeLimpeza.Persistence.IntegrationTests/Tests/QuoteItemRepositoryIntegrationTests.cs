@@ -1,7 +1,6 @@
 ﻿using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Persistence.Repositories;
-using ManiaDeLimpeza.Persistence.Repositories.ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManiaDeLimpeza.Persistence.IntegrationTests.Repositories
@@ -44,7 +43,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Repositories
                 PaymentConditions = "À vista"
             };
 
-            await _quoteRepository.CreateAsync(quote);
+            await _quoteRepository.CreateAsync(quote, 1); 
             return quote;
         }
 

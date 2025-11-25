@@ -1,6 +1,4 @@
 ﻿using ManiaDeLimpeza.Domain;
-using ManiaDeLimpeza.Domain.Interfaces;
-using System.ComponentModel.DataAnnotations;
 
 namespace ManiaDeLimpeza.Application.Dtos
 {
