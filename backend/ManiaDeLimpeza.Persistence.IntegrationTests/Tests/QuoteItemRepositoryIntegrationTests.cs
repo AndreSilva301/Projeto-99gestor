@@ -43,7 +43,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Repositories
                 PaymentConditions = "À vista"
             };
 
-            await _quoteRepository.CreateAsync(quote);
+            await _quoteRepository.CreateAsync(quote, 1); 
             return quote;
         }
 

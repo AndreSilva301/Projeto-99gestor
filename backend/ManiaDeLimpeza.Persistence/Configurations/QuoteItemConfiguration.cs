@@ -32,7 +32,7 @@ public class QuoteItemConfiguration : IEntityTypeConfiguration<QuoteItem>
         builder.HasIndex(qi => qi.QuoteId);
         builder.HasIndex(qi => qi.Order);
 
-        builder.HasOne(qi => qi.Quote)
+        builder.HasOne<Quote>()
             .WithMany(q => q.QuoteItems)
             .HasForeignKey(qi => qi.QuoteId)
             .OnDelete(DeleteBehavior.Cascade);

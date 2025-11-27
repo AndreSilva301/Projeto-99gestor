@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
@@ -12,7 +11,6 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public Customer Customer { get; set; } = null!;
         public int CompanyId { get; set; }
-        public Company Company { get; set; } = null!;
 
         [Required]
         public int UserId { get; set; }
@@ -35,6 +33,47 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public decimal? CashDiscount { get; set; }
 
+        public void RecalculateTotals()
+        {
+            if (QuoteItems == null)
+                QuoteItems = new List<QuoteItem>();
+
+            int order = 1;
+            foreach (var item in QuoteItems)
+            {
+                item.TotalPrice = Math.Round((item.Quantity ?? 0m) * (item.UnitPrice ?? 0m), 2);
+                item.Order = order++;
+            }
+
+            TotalPrice = Math.Round(QuoteItems.Sum(i => i.TotalPrice), 2);
+
+            decimal finalPrice = TotalPrice;
+
+            if (!string.IsNullOrWhiteSpace(PaymentConditions) &&
+                (PaymentConditions.Contains("à vista", StringComparison.OrdinalIgnoreCase) ||
+                 PaymentConditions.Contains("àvista", StringComparison.OrdinalIgnoreCase)))
+            {
+                if (CashDiscount.HasValue)
+                    finalPrice -= CashDiscount.Value;
+            }
+
+            TotalPrice = Math.Round(QuoteItems.Sum(i => i.TotalPrice), 2);
+        }
+
+        public decimal GetFinalPrice()
+        {
+            decimal finalPrice = TotalPrice;
+
+            bool isCashPayment =
+                !string.IsNullOrWhiteSpace(PaymentConditions) &&
+                (PaymentConditions.Contains("à vista", StringComparison.OrdinalIgnoreCase) ||
+                 PaymentConditions.Contains("àvista", StringComparison.OrdinalIgnoreCase));
+
+            if (isCashPayment && CashDiscount.HasValue)
+                finalPrice -= CashDiscount.Value;
+
+            return Math.Round(Math.Max(0m, finalPrice), 2);
+        }
     }
 }
     

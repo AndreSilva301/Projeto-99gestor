@@ -1,8 +1,8 @@
 ﻿using AutoMapper;
 using ManiaDeLimpeza.Api.Controllers.Base;
+using ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers;
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
-using ManiaDeLimpeza.Application.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,31 +13,29 @@ namespace ManiaDeLimpeza.Api.Controllers
     [Authorize]
     public class QuoteController : AuthBaseController
     {
-        private readonly QuoteService _quoteService;
+        private readonly IQuoteService _quoteService;
         private readonly IMapper _mapper;
 
-        public QuoteController(QuoteService quoteService, IMapper mapper)
+        public QuoteController(IQuoteService quoteService, IMapper mapper)
         {
             _quoteService = quoteService;
             _mapper = mapper;
         }
 
-
         [HttpPost]
         [ProducesResponseType(typeof(ApiResponse<QuoteDto>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<QuoteDto>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] QuoteDto dto)
+        public async Task<IActionResult> Create([FromBody] CreateQuoteDto dto)
         {
             if (CurrentUser == null)
                 return Unauthorized(new ApiResponse<string>("Unable to resolve current user"));
 
-            var created = await _quoteService.CreateAsync(dto, CurrentUser!, CurrentUser!.CompanyId);
+            var created = await _quoteService.CreateAsync(dto, CurrentUser.Id, CurrentUser.CompanyId);
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = created.Id },
-                new ApiResponse<QuoteDto>(_mapper.Map<QuoteDto>(created))
-            );
+            return Created(
+                string.Empty,
+                new ApiResponse<QuoteResponseDto>(created)
+             );
         }
 
         [HttpPut("{id:int}")]
@@ -50,7 +48,7 @@ namespace ManiaDeLimpeza.Api.Controllers
 
             var updated = await _quoteService.UpdateAsync(id, dto, CurrentUser.CompanyId);
 
-            return Ok(new ApiResponse<QuoteDto>(updated));
+            return Ok(new ApiResponse<QuoteResponseDto>(updated));
         }
 
         [HttpGet("{id:int}")]
@@ -63,40 +61,21 @@ namespace ManiaDeLimpeza.Api.Controllers
             if (quote == null)
                 return NotFound(new ApiResponse<string>("Quote not found"));
 
-            return Ok(new ApiResponse<QuoteDto>(_mapper.Map<QuoteDto>(quote)));
+            var quoteDto = _mapper.Map<QuoteResponseDto>(quote);
+
+            return Ok(
+                new ApiResponse<QuoteResponseDto>(quoteDto)
+            );
         }
 
         [HttpPost("search")]
-        [ProducesResponseType(typeof(ApiResponse<PagedResultDto<QuoteDto>>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ApiResponse<PagedResultDto<QuoteDto>>), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<QuoteDto>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<PagedResult<QuoteDto>>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Search([FromBody] QuoteFilterDto filter)
         {
             var result = await _quoteService.GetPagedAsync(filter, CurrentUser.CompanyId);
 
-            var quoteDtos = result.Items.Select(q => new QuoteDto
-            {
-                Id = q.Id,
-                CustomerId = q.CustomerId,
-                TotalPrice = q.TotalPrice,
-                PaymentMethod = q.PaymentMethod,
-                PaymentConditions = q.PaymentConditions,
-                CashDiscount = q.CashDiscount,
-
-                Items = q.QuoteItems.Select(i => new QuoteItemDto
-                {
-                    Description = i.Description,
-                    Quantity = i.Quantity,
-                    UnitPrice = i.UnitPrice,
-                    CustomFields = i.CustomFields
-                }).ToList()
-            });
-
-            var dto = new PagedResultDto<QuoteDto>(
-                totalCount: result.TotalCount,
-                items: quoteDtos
-            );
-
-            return Ok(new ApiResponse<PagedResultDto<QuoteDto>>(dto));
+            return Ok(new ApiResponse<PagedResult<QuoteResponseDto>>(result));
         }
 
         [HttpDelete("{id:int}")]
@@ -104,12 +83,12 @@ namespace ManiaDeLimpeza.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _quoteService.DeleteAsync(id, CurrentUser.CompanyId);
+            var success = await _quoteService.DeleteAsync(id, CurrentUser.CompanyId);
 
-            if (!deleted)
-                return BadRequest(new ApiResponse<string>("Unable to delete quote"));
+            if (!success)
+                return BadRequest(new ApiResponse<string>("Could not delete quote"));
 
             return NoContent();
         }
-    }
+    } 
 }

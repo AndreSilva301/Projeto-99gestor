@@ -13,17 +13,17 @@ namespace ManiaDeLimpeza.Application.Queries.Quotes
     {
         public static IQueryable<Quote> ApplyFilters(IQueryable<Quote> query, QuoteFilterDto filter)
         {
-            if (!string.IsNullOrWhiteSpace(filter.ClientName))
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
                 query = query.Where(q =>
                     EF.Functions.Collate(q.Customer.Name, "Latin1_General_CI_AI")
-                        .Contains(filter.ClientName));
+                        .Contains(filter.SearchTerm));
             }
 
-            if (!string.IsNullOrWhiteSpace(filter.ClientPhone))
+            if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
             {
-                query = query.Where(q => q.Customer.Phone.Mobile.Contains(filter.ClientPhone) ||
-                                         q.Customer.Phone.Landline.Contains(filter.ClientPhone));
+                query = query.Where(q => q.Customer.Phone.Mobile.Contains(filter.SearchTerm) ||
+                                         q.Customer.Phone.Landline.Contains(filter.SearchTerm));
             }
 
             if (filter.CreatedAtStart.HasValue)

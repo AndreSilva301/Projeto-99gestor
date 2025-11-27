@@ -37,7 +37,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns((CreateQuoteDto dto) => new Quote
                 {
                     CustomerId = dto.CustomerId,
-                    UserId = dto.UserId,
                     PaymentMethod = dto.PaymentMethod,
                     CashDiscount = dto.CashDiscount,
                     PaymentConditions = dto.PaymentConditions,
@@ -55,7 +54,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 {
                     Id = q.Id,
                     TotalPrice = q.TotalPrice,
-                    Items = q.QuoteItems?.Select(i => new QuoteItemResponseDto
+                    QuoteItems = q.QuoteItems?.Select(i => new QuoteItemResponseDto
                     {
                         Id = i.Id,
                         Description = i.Description,
@@ -71,7 +70,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 {
                     dest.Quantity = src.Quantity;
                     dest.UnitPrice = src.UnitPrice;
-                    dest.TotalPrice = src.Quantity * src.UnitPrice;
                 });
             
             _quoteRepositoryMock
@@ -100,8 +98,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             _service = new QuoteService(
                 _quoteRepositoryMock.Object,
                 _customerRepositoryMock.Object,
-                _mapperMock.Object,
-                _dbContext
+                _mapperMock.Object
             );
         }
 
@@ -112,8 +109,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var dto = new CreateQuoteDto
             {
                 CustomerId = 99,
-                UserId = 1,
-                TotalPrice = 10m,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new()
                 {
@@ -134,8 +129,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var dto = new CreateQuoteDto
             {
                 CustomerId = 1,
-                UserId = 1,
-                TotalPrice = 0,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new()
         {
@@ -172,7 +165,6 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var dto = new CreateQuoteDto
             {
                 CustomerId = 1,
-                UserId = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 PaymentConditions = "à vista",
                 CashDiscount = 10m,
@@ -244,13 +236,13 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             _quoteRepositoryMock.Setup(r => r.GetByIdAsync(1))
                 .ReturnsAsync(quote);
 
-            _quoteRepositoryMock.Setup(r => r.UpdateAsync(It.IsAny<Quote>()))
-                .ReturnsAsync((Quote q) => q);
+            _quoteRepositoryMock.Setup(r => r.Query())
+               .Returns(_dbContext.Quotes);
 
             var resultado = await _service.UpdateAsync(1, dto, 1);
 
             Assert.AreEqual(200m, resultado.TotalPrice);
-            Assert.AreEqual(2, resultado.Items.First().Quantity);
+            Assert.AreEqual(2, resultado.QuoteItems.First().Quantity);
         }
 
         [TestMethod]
@@ -258,16 +250,9 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             _quoteRepositoryMock
                 .Setup(r => r.Query())
-                .Returns(_dbContext.Quotes);
+                .Returns(_dbContext.Quotes.AsQueryable());
 
-            var result = await _service.GetAllAsync(
-                companyId: 1,
-                customerId: null,
-                userId: null,
-                startDate: new DateTime(2024, 1, 1),
-                endDate: new DateTime(2024, 12, 31),
-                pageNumber: 1,
-                pageSize: 10);
+            var result = await _service.GetAllAsync(1);
 
             Assert.IsNotNull(result);
             _quoteRepositoryMock.Verify(r => r.Query(), Times.Once);
