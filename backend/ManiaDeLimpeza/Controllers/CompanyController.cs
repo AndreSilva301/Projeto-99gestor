@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Api.Controllers.Base;
+using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Dtos.Mappers;
 using ManiaDeLimpeza.Application.Interfaces;
@@ -19,36 +20,42 @@ public class CompanyController : AuthBaseController
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(CompanyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> GetById(int id)
     {
         var currentUser = CurrentUser;
 
         if (!currentUser.IsAdminOrSysAdmin(id))
-            return Forbid("Acesso não autorizado.");
+            return StatusCode(StatusCodes.Status403Forbidden, 
+                ApiResponseHelper.ErrorResponse("Acesso não autorizado."));
 
         var company = await _companyServices.GetByIdAsync(id, currentUser);
         return Ok(company.ToDto());
     }
 
     [HttpPut("{id}")]
+    [ProducesResponseType(typeof(CompanyDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ApiResponse<string>), StatusCodes.Status403Forbidden)]
     public async Task<IActionResult> Update(int id, [FromBody] UpdateCompanyDto dto)
     {
         var currentUser = CurrentUser;
 
         if (!currentUser.IsAdminOrSysAdmin(id))
-            return Forbid("Acesso não autorizado.");
+            return StatusCode(StatusCodes.Status403Forbidden, 
+                ApiResponseHelper.ErrorResponse("Acesso não autorizado."));
 
         if (!dto.IsValid())
-            return BadRequest(new
-            {
-                Message = "Erro de validação.",
-                Errors = dto.Validate().ToArray()
-            });
+        {
+            var errors = dto.Validate().ToList();
+            return StatusCode(StatusCodes.Status400BadRequest,
+                ApiResponseHelper.ErrorResponse(errors, "Erro de validação."));
+        }
 
         var updatedCompany = await _companyServices.UpdateCompanyAsync(id, dto, currentUser);
 
         if (updatedCompany == null)
-            return NotFound($"Empresa com ID {id} não encontrada.");
+            return NotFound(ApiResponseHelper.ErrorResponse($"Empresa com ID {id} não encontrada."));
 
         return Ok(updatedCompany.ToDto());
     }
