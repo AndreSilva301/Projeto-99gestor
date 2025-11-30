@@ -2,7 +2,6 @@
 {
     public class PagedResult<T>
     {
-        public int TotalCount { get; }
         public int TotalItems { get; set; }
         public int Page { get; set; }
         public int PageSize { get; set; }
@@ -17,7 +16,7 @@
 
         public PagedResult(int totalCount, IEnumerable<T> items, int page, int pageSize)
         {
-            TotalCount = totalCount;
+            TotalItems = totalCount;
             Items = items.ToList();
             Page = page;
             PageSize = pageSize;

@@ -15,7 +15,6 @@ public class QuoteResponseDto
     public DateTime UpdatedAt { get; set; }
 
     public decimal TotalPrice { get; set; }
-    public decimal FinalPrice { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
     public string PaymentConditions { get; set; } = string.Empty;

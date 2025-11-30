@@ -24,34 +24,14 @@ namespace ManiaDeLimpeza.Domain.Entities
        
         public Dictionary<string, string> CustomFields { get; set; } = new();
 
-        public void CalcularPrecoTotal()
+        public decimal GetCalculatedTotalPrice()
         {
-            TotalPrice = Math.Round(Quantity!.Value * UnitPrice!.Value, 2);
-        }
-
-        public void AplicarRegrasDePreco()
-        {
-            bool hasQty = Quantity.HasValue && Quantity.Value > 0;
-            bool hasUnitPrice = UnitPrice.HasValue && UnitPrice.Value > 0;
-            bool hasTotalPrice = TotalPrice != 0;
-
-            if (hasQty && hasUnitPrice)
+            if(Quantity.HasValue && UnitPrice.HasValue)
             {
-                CalcularPrecoTotal(); 
-                return;
+                return Math.Round(Quantity.Value * UnitPrice.Value, 2);
             }
 
-            if (hasQty && !hasUnitPrice)
-                throw new DomainException("Preço unitário é obrigatório quando a quantidade é informada.");
-
-            if (hasUnitPrice && !hasQty)
-                throw new DomainException("Quantidade é obrigatória quando o preço unitário é informado.");
-
-            if (!hasQty && !hasUnitPrice)
-            {
-                if (!hasTotalPrice)
-                    throw new DomainException("É necessário informar total, ou quantidade + preço unitário.");
-            }
+            return TotalPrice;
         }
     }
 }

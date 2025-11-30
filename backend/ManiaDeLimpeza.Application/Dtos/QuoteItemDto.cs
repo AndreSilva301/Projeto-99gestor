@@ -12,6 +12,8 @@ public class QuoteItemDto : IBasicDto
 
     public decimal? UnitPrice { get; set; }
 
+    public decimal? TotalPrice { get; set; }
+
     public Dictionary<string, string> CustomFields { get; set; } = new();
 
     public List<string> Validate()

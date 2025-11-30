@@ -26,16 +26,20 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public virtual async Task AddAsync(T entity)
+        public virtual async Task<T> AddAsync(T entity)
         {
-            await _dbSet.AddAsync(entity);
+            var addEntry = await _dbSet.AddAsync(entity);
             await _context.SaveChangesAsync();
+
+            return addEntry.Entity;
         }
 
-        public virtual async Task UpdateAsync(T entity)
+        public virtual async Task<T> UpdateAsync(T entity)
         {
-            _dbSet.Update(entity);
+            var updatedEntry = _dbSet.Update(entity);
             await _context.SaveChangesAsync();
+
+            return updatedEntry.Entity;
         }
 
         public virtual async Task DeleteAsync(T entity)

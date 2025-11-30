@@ -13,6 +13,5 @@ namespace ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers
         Task<QuoteResponseDto> CreateAsync(CreateQuoteDto dto, int userId, int companyId);
 
         Task<bool> DeleteAsync(int id, int companyId);
-        Task<IEnumerable<QuoteResponseDto>> GetAllAsync(int companyId);
     }
 }

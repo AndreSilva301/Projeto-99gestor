@@ -13,8 +13,6 @@ public class QuoteProfile : Profile
                 opt => opt.MapFrom(src => src.Customer != null ? src.Customer.Name : string.Empty))
             .ForMember(dest => dest.UserName,
                 opt => opt.MapFrom(src => src.User != null ? src.User.Name : string.Empty))
-            .ForMember(dest => dest.FinalPrice,
-                opt => opt.MapFrom(src => src.TotalPrice - (src.CashDiscount ?? 0)))
             .ForMember(dest => dest.QuoteItems,
                 opt => opt.MapFrom(src => src.QuoteItems));
 
@@ -34,14 +32,11 @@ public class QuoteProfile : Profile
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore());
 
         // QuoteItem → QuoteItemResponseDto
-        CreateMap<QuoteItem, QuoteItemResponseDto>()
-            .ForMember(dest => dest.TotalPrice,
-                opt => opt.MapFrom(src => src.Quantity * src.UnitPrice));
+        CreateMap<QuoteItem, QuoteItemResponseDto>();
 
         // CreateQuoteItemDto → QuoteItem
         CreateMap<QuoteItemDto, QuoteItem>()
             .ForMember(dest => dest.Id, opt => opt.Ignore())
-            .ForMember(dest => dest.QuoteId, opt => opt.Ignore())
-            .ForMember(dest => dest.TotalPrice, opt => opt.Ignore()); // Calculado pelo serviço
+            .ForMember(dest => dest.QuoteId, opt => opt.Ignore()); // Calculado pelo serviço
     }
 }

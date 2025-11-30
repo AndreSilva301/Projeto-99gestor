@@ -42,16 +42,11 @@ namespace ManiaDeLimpeza.Application.Services
             quote.CompanyId = companyId;
 
             quote.RecalculateTotals();
+            quote.EnsureQuoteItemsOrder();
 
-            await _quoteRepository.AddAsync(quote);
+            var addedQuote = await _quoteRepository.AddAsync(quote);
 
-            var persisted = await _quoteRepository.Query()
-                .Include(q => q.Customer)
-                .Include(q => q.User)
-                .Include(q => q.QuoteItems)
-                .FirstOrDefaultAsync(q => q.Id == quote.Id);
-
-            return _mapper.Map<QuoteResponseDto>(persisted ?? quote);
+            return _mapper.Map<QuoteResponseDto>(addedQuote);
         }
 
         /// <summary>
@@ -59,30 +54,22 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<Quote?> GetByIdAsync(int id, int companyId)
         {
-            var quote = await _quoteRepository.GetByIdAsync(id, companyId);
+            var quote = await _quoteRepository.GetByIdAsync(id);
 
-            if (quote == null)
-                throw new BusinessException($"Quote with id {id} not found.");
-
-            if (quote.Customer.CompanyId != companyId)
-                throw new BusinessException("Quote does not belong to the company.");
+            // Ensure the quote belongs to the specified company
+            if (!quote?.IsForCompany(companyId) ?? false)
+            {
+                return null;
+            }
 
             return quote;
         }
 
         public async Task<bool> DeleteAsync(int id, int companyId)
         {
-            var existing = await _quoteRepository.GetByIdAsync(id, companyId);
+            var quote = await _quoteRepository.DeleteAsync(id, companyId);
 
-            if (existing == null)
-                throw new BusinessException($"Quote with id {id} not found.");
-
-            if (existing.Customer.CompanyId != companyId)
-                throw new BusinessException("Quote does not belong to the company.");
-
-            await _quoteRepository.DeleteAsync(id, companyId);
-
-            return true;
+            return quote != null;
         }
 
         /// <summary>
@@ -92,12 +79,12 @@ namespace ManiaDeLimpeza.Application.Services
         /// </summary>
         public async Task<QuoteResponseDto> UpdateAsync(int id, UpdateQuoteDto dto, int companyId)
         {
-            var existing = await _quoteRepository.GetByIdAsync(id, companyId);
+            var existing = await _quoteRepository.GetByIdAsync(id);
 
             if (existing == null)
                 throw new BusinessException($"Quote with id {id} not found.");
 
-            if (existing.Customer.CompanyId != companyId)
+            if (existing.CompanyId != companyId)
                 throw new BusinessException("Quote does not belong to the company.");
 
             existing.PaymentMethod = dto.PaymentMethod;
@@ -125,11 +112,10 @@ namespace ManiaDeLimpeza.Application.Services
                     existingItem.Description = itemDto.Description;
                     existingItem.Quantity = itemDto.Quantity;
                     existingItem.UnitPrice = itemDto.UnitPrice;
+                    existingItem.Order = itemDto.Order;
 
                     if (itemDto.TotalPrice.HasValue)
-                        existingItem.TotalPrice = itemDto.TotalPrice.Value;
-
-                    existingItem.AplicarRegrasDePreco();
+                        existingItem.TotalPrice = existingItem.GetCalculatedTotalPrice();
                 }
                 else
                 {
@@ -138,19 +124,20 @@ namespace ManiaDeLimpeza.Application.Services
                         Description = itemDto.Description,
                         Quantity = itemDto.Quantity,
                         UnitPrice = itemDto.UnitPrice,
+                        Order = itemDto.Order,
                         TotalPrice = itemDto.TotalPrice ?? 0
                     };
 
-                    newItem.AplicarRegrasDePreco();
+                    newItem.TotalPrice = newItem.GetCalculatedTotalPrice();
                     existing.QuoteItems.Add(newItem);
                 }
             }
 
             existing.RecalculateTotals();
 
-            await _quoteRepository.UpdateAsync(existing, companyId);
+            var updated = await _quoteRepository.UpdateAsync(existing);
 
-            return _mapper.Map<QuoteResponseDto>(existing);
+            return _mapper.Map<QuoteResponseDto>(updated);
         }
 
         /// <summary>
@@ -175,22 +162,6 @@ namespace ManiaDeLimpeza.Application.Services
                 result.Page,
                 result.PageSize
             );
-        }
-
-        /// <summary>
-        /// Returns all quotes for a company without filtering.
-        /// </summary>
-        public async Task<IEnumerable<QuoteResponseDto>> GetAllAsync(int companyId)
-        {
-            var items = await _quoteRepository.Query()
-                .Include(q => q.Customer)
-                .Include(q => q.User)
-                .Include(q => q.QuoteItems)
-                .Where(q => q.CompanyId == companyId)
-                .OrderByDescending(q => q.CreatedAt)
-                .ToListAsync();
-
-            return _mapper.Map<IEnumerable<QuoteResponseDto>>(items);
         }
     }
 }

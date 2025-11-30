@@ -33,6 +33,11 @@ namespace ManiaDeLimpeza.Domain.Entities
 
         public decimal? CashDiscount { get; set; }
 
+        public bool IsForCompany(int companyId)
+        {
+            return CompanyId == companyId;
+        }
+
         public void RecalculateTotals()
         {
             if (QuoteItems == null)
@@ -41,39 +46,28 @@ namespace ManiaDeLimpeza.Domain.Entities
             int order = 1;
             foreach (var item in QuoteItems)
             {
-                item.TotalPrice = Math.Round((item.Quantity ?? 0m) * (item.UnitPrice ?? 0m), 2);
+                item.TotalPrice = item.GetCalculatedTotalPrice();
+            }
+
+            TotalPrice = GetCalculatedTotalPrice();
+        }
+
+        public decimal GetCalculatedTotalPrice()
+        {
+            return Math.Round(QuoteItems.Sum(i => i.TotalPrice), 2);
+        }
+
+        public void EnsureQuoteItemsOrder()
+        {
+            if (QuoteItems == null)
+                return;
+            int order = 1;
+            foreach (var item in QuoteItems)
+            {
                 item.Order = order++;
             }
-
-            TotalPrice = Math.Round(QuoteItems.Sum(i => i.TotalPrice), 2);
-
-            decimal finalPrice = TotalPrice;
-
-            if (!string.IsNullOrWhiteSpace(PaymentConditions) &&
-                (PaymentConditions.Contains("à vista", StringComparison.OrdinalIgnoreCase) ||
-                 PaymentConditions.Contains("àvista", StringComparison.OrdinalIgnoreCase)))
-            {
-                if (CashDiscount.HasValue)
-                    finalPrice -= CashDiscount.Value;
-            }
-
-            TotalPrice = Math.Round(QuoteItems.Sum(i => i.TotalPrice), 2);
         }
 
-        public decimal GetFinalPrice()
-        {
-            decimal finalPrice = TotalPrice;
-
-            bool isCashPayment =
-                !string.IsNullOrWhiteSpace(PaymentConditions) &&
-                (PaymentConditions.Contains("à vista", StringComparison.OrdinalIgnoreCase) ||
-                 PaymentConditions.Contains("àvista", StringComparison.OrdinalIgnoreCase));
-
-            if (isCashPayment && CashDiscount.HasValue)
-                finalPrice -= CashDiscount.Value;
-
-            return Math.Round(Math.Max(0m, finalPrice), 2);
-        }
     }
 }
     

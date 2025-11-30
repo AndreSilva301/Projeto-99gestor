@@ -32,6 +32,15 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
             .HasForeignKey(q => q.UserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        // Configure CompanyId as foreign key without navigation property
+        builder.Property(q => q.CompanyId)
+            .IsRequired();
+
+        builder.HasOne<Company>()
+            .WithMany()
+            .HasForeignKey(q => q.CompanyId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(q => q.QuoteItems)
             .WithOne()
             .HasForeignKey(qi => qi.QuoteId)
@@ -39,6 +48,7 @@ public class QuoteConfiguration : IEntityTypeConfiguration<Quote>
 
         builder.HasIndex(q => q.CustomerId);
         builder.HasIndex(q => q.UserId);
+        builder.HasIndex(q => q.CompanyId);
         builder.HasIndex(q => q.CreatedAt);
     }
 }

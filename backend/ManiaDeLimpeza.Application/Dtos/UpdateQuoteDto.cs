@@ -70,4 +70,15 @@ public class UpdateQuoteDto : IBasicDto
     }
 
     public bool IsValid() => Validate().Count == 0;
+
+    public void EnsureQuoteItemsOrder()
+    {
+        if (Items == null)
+            return;
+        int order = 1;
+        foreach (var item in Items)
+        {
+            item.Order = order++;
+        }
+    }
 }
