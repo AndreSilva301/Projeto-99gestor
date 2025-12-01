@@ -5,13 +5,10 @@ using System.ComponentModel.DataAnnotations;
 namespace ManiaDeLimpeza.Application.Dtos;
 public class CreateQuoteDto : IBasicDto
 {
-    [Required]
     public int CustomerId { get; set; }
 
-    [Required]
-    public PaymentMethod PaymentMethod { get; set; }
+    public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.Unknown;
 
-    [MaxLength(500)]
     public string PaymentConditions { get; set; } = string.Empty;
 
     public decimal? CashDiscount { get; set; }

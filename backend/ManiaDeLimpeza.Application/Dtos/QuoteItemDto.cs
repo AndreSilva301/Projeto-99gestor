@@ -4,8 +4,6 @@ using System.ComponentModel.DataAnnotations;
 namespace ManiaDeLimpeza.Application.Dtos;
 public class QuoteItemDto : IBasicDto
 {
-    [Required]
-    [MaxLength(200)]
     public string Description { get; set; } = string.Empty;
 
     public decimal? Quantity { get; set; }

@@ -399,7 +399,8 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             // Arrange
             var dto = new UpdateQuoteDto
-            {
+            {   
+                Id = 999,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>()
             };
@@ -409,7 +410,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .ReturnsAsync((Quote?)null);
 
             // Act
-            await _quoteService.UpdateAsync(999, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert - Exception expected
         }
@@ -420,6 +421,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 999,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>()
             };
@@ -430,7 +432,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
 
             // Act & Assert
             var exception = await Assert.ThrowsExceptionAsync<BusinessException>(
-                () => _quoteService.UpdateAsync(999, dto, companyId: 1)
+                () => _quoteService.UpdateAsync(dto, companyId: 1)
             );
 
             Assert.AreEqual("Quote with id 999 not found.", exception.Message);
@@ -442,7 +444,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             // Arrange
             var dto = new UpdateQuoteDto
-            {
+            {   Id = 999,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>()
             };
@@ -450,7 +452,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var existingQuote = new Quote
             {
                 Id = 1,
-                CompanyId = 999, // Different company
+                CompanyId = 2, // Different company
                 CustomerId = 1,
                 UserId = 1,
                 QuoteItems = new List<QuoteItem>()
@@ -461,7 +463,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .ReturnsAsync(existingQuote);
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert - Exception expected
         }

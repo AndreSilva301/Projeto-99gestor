@@ -9,9 +9,6 @@ public class UpdateQuoteDto : IBasicDto
     public int Id { get; set; }
 
     [Required]
-    public int CustomerId { get; set; }
-
-    [Required]
     public decimal TotalPrice { get; set; }
 
     [Required]
@@ -21,8 +18,6 @@ public class UpdateQuoteDto : IBasicDto
     public string PaymentConditions { get; set; } = string.Empty;
 
     public decimal? CashDiscount { get; set; }
-
-    public DateTime? UpdatedAt { get; set; }
 
     public List<UpdateQuoteItemDto> Items { get; set; } = new();
 
@@ -34,9 +29,6 @@ public class UpdateQuoteDto : IBasicDto
 
         if (Id <= 0)
             errors.Add("Id da cotação é obrigatório.");
-
-        if (CustomerId <= 0)
-            errors.Add("Cliente é obrigatório.");
 
         if (TotalPrice <= 0)
             errors.Add("O valor total deve ser maior que zero.");

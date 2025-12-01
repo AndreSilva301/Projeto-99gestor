@@ -77,8 +77,10 @@ namespace ManiaDeLimpeza.Application.Services
         /// The total price is recalculated using the LineItem.Total values.
         /// Note: Total may differ from UnitPrice * Quantity for manual overrides.
         /// </summary>
-        public async Task<QuoteResponseDto> UpdateAsync(int id, UpdateQuoteDto dto, int companyId)
+        public async Task<QuoteResponseDto> UpdateAsync(UpdateQuoteDto dto, int companyId)
         {
+            var id = dto.Id;
+
             var existing = await _quoteRepository.GetByIdAsync(id);
 
             if (existing == null)
@@ -103,6 +105,8 @@ namespace ManiaDeLimpeza.Application.Services
 
             foreach (var toRemove in itemsToRemove)
                 existing.QuoteItems.Remove(toRemove);
+
+            dto.EnsureQuoteItemsOrder();
 
             foreach (var itemDto in dto.Items)
             {

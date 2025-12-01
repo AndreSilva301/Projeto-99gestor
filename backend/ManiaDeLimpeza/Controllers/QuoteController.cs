@@ -27,8 +27,7 @@ namespace ManiaDeLimpeza.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse<QuoteDto>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateQuoteDto dto)
         {
-            if (CurrentUser == null)
-                return Unauthorized(new ApiResponse<string>("Unable to resolve current user"));
+            //Validate DTO
 
             var created = await _quoteService.CreateAsync(dto, CurrentUser.Id, CurrentUser.CompanyId);
 
@@ -41,12 +40,9 @@ namespace ManiaDeLimpeza.Api.Controllers
         [HttpPut("{id:int}")]
         [ProducesResponseType(typeof(ApiResponse<QuoteDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<QuoteDto>), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateQuoteDto dto)
+        public async Task<IActionResult> Update([FromBody] UpdateQuoteDto dto)
         {
-            if (id != dto.Id)
-                return BadRequest(new ApiResponse<string>("ID mismatch"));
-
-            var updated = await _quoteService.UpdateAsync(id, dto, CurrentUser.CompanyId);
+            var updated = await _quoteService.UpdateAsync(dto, CurrentUser.CompanyId);
 
             return Ok(new ApiResponse<QuoteResponseDto>(updated));
         }
