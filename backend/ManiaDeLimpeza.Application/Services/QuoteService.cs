@@ -87,7 +87,7 @@ namespace ManiaDeLimpeza.Application.Services
                 throw new BusinessException($"Quote with id {id} not found.");
 
             if (existing.CompanyId != companyId)
-                throw new BusinessException("Quote does not belong to the company.");
+                throw new KeyNotFoundException("Quote does not belong to the company.");
 
             existing.PaymentMethod = dto.PaymentMethod;
             existing.PaymentConditions = dto.PaymentConditions;

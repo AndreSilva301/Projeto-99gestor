@@ -5,13 +5,10 @@ using System.ComponentModel.DataAnnotations;
 namespace ManiaDeLimpeza.Application.Dtos;
 public class UpdateQuoteDto : IBasicDto
 {
-    [Required]
     public int Id { get; set; }
 
-    [Required]
     public decimal TotalPrice { get; set; }
 
-    [Required]
     public PaymentMethod PaymentMethod { get; set; }
 
     [MaxLength(500)]
