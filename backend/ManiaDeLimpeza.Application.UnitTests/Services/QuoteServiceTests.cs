@@ -30,6 +30,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 _customerRepositoryMock.Object,
                 _mapperMock.Object
             );
+
         }
 
         #region CreateAsync Tests
@@ -474,6 +475,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>()
             };
@@ -492,8 +494,8 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .ReturnsAsync(existingQuote);
 
             // Act & Assert
-            var exception = await Assert.ThrowsExceptionAsync<BusinessException>(
-                () => _quoteService.UpdateAsync(1, dto, companyId: 1)
+            var exception = await Assert.ThrowsExceptionAsync<KeyNotFoundException>(
+                () => _quoteService.UpdateAsync(dto, companyId: 1)
             );
 
             Assert.AreEqual("Quote does not belong to the company.", exception.Message);
@@ -505,6 +507,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "3x",
                 Items = new List<UpdateQuoteItemDto>()
@@ -536,7 +539,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert
             Assert.IsNotNull(updatedQuote);
@@ -549,6 +552,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "3x sem juros",
                 Items = new List<UpdateQuoteItemDto>()
@@ -580,7 +584,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert
             Assert.IsNotNull(updatedQuote);
@@ -593,6 +597,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 CashDiscount = 50.00m,
                 Items = new List<UpdateQuoteItemDto>()
@@ -624,7 +629,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert
             Assert.IsNotNull(updatedQuote);
@@ -638,6 +643,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             var beforeUpdate = DateTime.UtcNow;
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>()
             };
@@ -667,7 +673,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
             var afterUpdate = DateTime.UtcNow;
 
             // Assert
@@ -684,6 +690,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>
                 {
@@ -721,7 +728,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert
             Assert.IsNotNull(updatedQuote);
@@ -736,6 +743,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>
                 {
@@ -785,7 +793,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert
             Assert.IsNotNull(updatedQuote);
@@ -801,6 +809,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>
                 {
@@ -840,7 +849,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert
             Assert.IsNotNull(updatedQuote);
@@ -857,6 +866,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             // Arrange
             var dto = new UpdateQuoteDto
             {
+                Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 Items = new List<UpdateQuoteItemDto>
                 {
@@ -890,7 +900,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .Returns(new QuoteResponseDto());
 
             // Act
-            await _quoteService.UpdateAsync(1, dto, companyId: 1);
+            await _quoteService.UpdateAsync(dto, companyId: 1);
 
             // Assert - TotalPrice should be (2*100) + (3*50) = 350
             Assert.IsNotNull(updatedQuote);

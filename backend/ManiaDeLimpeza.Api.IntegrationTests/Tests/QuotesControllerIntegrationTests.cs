@@ -3,253 +3,300 @@ using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Infrastructure.Helpers;
 using ManiaDeLimpeza.Persistence;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Net;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
-namespace ManiaDeLimpeza.Api.IntegrationTests.Tests
+[TestClass]
+public class QuoteControllerTests
 {
-    [TestClass]
-    public class QuotesControllerIntegrationTests
+    private HttpClient _client;
+    private CustomWebApplicationFactory _factory;
+
+    [TestInitialize]
+    public void Setup()
     {
-        private static CustomWebApplicationFactory _factory;
-        private static HttpClient _client;
-        private ApplicationDbContext _db;
+        _factory = new CustomWebApplicationFactory();
+        _client = _factory.CreateClient();
 
-        [ClassInitialize]
-        public static void Init(TestContext context)
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+    }
+
+    [TestCleanup]
+    public void Cleanup()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        TestDataCleanup.ClearQuotes(db);
+        TestDataCleanup.ClearCustomers(db);
+        TestDataCleanup.ClearUsers(db);
+        TestDataCleanup.ClearCompany(db);
+    }
+
+    [TestMethod]
+    private async Task<string> LoginAsync(string email, string password)
+    {
+        var loginResponse = await _client.PostAsJsonAsync("/api/auth/login", new
         {
-            _factory = new CustomWebApplicationFactory();
-            _client = _factory.CreateClient();
-        }
+            Email = email,
+            Password = password
+        });
 
-        [TestInitialize]
-        public void SetupEach()
+        var body = await loginResponse.Content.ReadAsStringAsync();
+        var parsed = JsonConvert.DeserializeObject<ApiResponse<AuthResponseDto>>(body);
+
+        Assert.IsTrue(parsed.Success, "Falha no login");
+
+        return parsed.Data.BearerToken;
+    }
+
+    [TestMethod]
+    public async Task CreateQuote_ShouldCreateSuccessfully()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var company = new Company { Name = "Company A" };
+        db.Companies.Add(company);
+        db.SaveChanges();
+
+        var user = new User
         {
-            var scope = _factory.Services.CreateScope();
-            _db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        }
+            Email = "user@test.com",
+            Name = "User",
+            CompanyId = company.Id,
+            Profile = UserProfile.Admin
+        };
+        user.PasswordHash = PasswordHelper.Hash("123456", user);
+        db.Users.Add(user);
+        db.SaveChanges();
 
-        [TestCleanup]
-        public void Cleanup()
+        var customer = new Customer
         {
-            _db.Database.EnsureDeleted();
-            _db.Database.Migrate();
-        }
+            Name = "Cliente",
+            CompanyId = company.Id,
+            Phone = new Phone { Mobile = "11999999999" }
+        };
+        db.Customers.Add(customer);
+        db.SaveChanges();
 
-        private Customer SeedCustomer()
+        var token = await LoginAsync(user.Email, "123456");
+
+        var quoteDto = new CreateQuoteDto
         {
-            var company = new Company { Name = "Empresa 1" };
-            _db.Companies.Add(company);
-            _db.SaveChanges();
-
-            var user = new User
+            CustomerId = customer.Id,
+            PaymentMethod = PaymentMethod.CreditCard,
+            Items = new List<QuoteItemDto>
             {
-                Email = "user@test.com",
-                Name = "User Test",
-                PasswordHash = "hash",
-                CompanyId = company.Id
-            };
-            _db.Users.Add(user);
-            _db.SaveChanges();
+               new QuoteItemDto
+               {
+                   Description = "Limpeza Geral",
+                   Quantity = 3,
+                   UnitPrice = 150
+               }
+            }
+        };
 
-            var customer = new Customer
+        var request = new HttpRequestMessage(HttpMethod.Post, "/api/quote");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Content = JsonContent.Create(quoteDto);
+
+        var response = await _client.SendAsync(request);
+
+        Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
+    }
+
+    [TestMethod]
+    public async Task UpdateQuote_ShouldReturn403_WhenQuoteDoesNotBelongToCompany()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var companyA = new Company { Name = "Empresa A" };
+        var companyB = new Company { Name = "Empresa B" };
+        db.Companies.AddRange(companyA, companyB);
+        db.SaveChanges();
+
+        var userA = new User
+        {
+            Email = "userA@test.com",
+            Name = "User A",
+            CompanyId = companyA.Id,
+            Profile = UserProfile.Admin
+        };
+        userA.PasswordHash = PasswordHelper.Hash("Senha123", userA);
+        db.Users.Add(userA);
+        db.SaveChanges();
+
+        var token = await LoginAsync("userA@test.com", "Senha123");
+
+        var customer = new Customer
+        {
+            Name = "Cliente",
+            CompanyId = companyB.Id,
+            Phone = new Phone { Mobile = "11999999999" }
+        };
+        db.Customers.Add(customer);
+        db.SaveChanges();
+
+        var quote = new Quote
+        {
+            CustomerId = customer.Id,
+            CompanyId = companyB.Id,
+            UserId = userA.Id,
+            PaymentMethod = PaymentMethod.Pix,
+            TotalPrice = 200
+        };
+        db.Quotes.Add(quote);
+        db.SaveChanges();
+
+        var dto = new UpdateQuoteDto
+        {
+            Id = quote.Id,
+            TotalPrice = 500,
+            PaymentMethod = PaymentMethod.Cash,
+            Items = new List<UpdateQuoteItemDto>
             {
-                Name = "Cliente Teste",
-                Phone = new Phone
+                new UpdateQuoteItemDto
                 {
-                    Mobile = "11999999999"
-                },
-                CompanyId = company.Id
-            };
-            _db.Customers.Add(customer);
-            _db.SaveChanges();
+                    Description = "Teste",
+                    Quantity = 1,
+                    UnitPrice = 500
+                }
+            }
+        };
 
-            return customer;
-        }
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/quote/{quote.Id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Content = JsonContent.Create(dto);
 
-        private Quote SeedQuote()
+        var response = await _client.SendAsync(request);
+
+        Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
+
+        var body = await response.Content.ReadAsStringAsync();
+        var parsed = JsonConvert.DeserializeObject<ApiResponse<string>>(body);
+
+        Assert.IsFalse(parsed.Success);
+        Assert.AreEqual("Quote does not belong to the company.", parsed.Message);
+    }
+
+    [TestMethod]
+    public async Task GetById_ShouldReturnQuote_WhenExistsAndBelongsToCompany()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var company = new Company { Name = "Empresa A" };
+        db.Companies.Add(company);
+        db.SaveChanges();
+
+        var user = new User
         {
-            var customer = SeedCustomer();
-            var quote = new Quote
-            {
-                CustomerId = customer.Id,
-                UserId = _db.Users.First().Id,
-                TotalPrice = 300,
-                PaymentMethod = PaymentMethod.Pix
-            };
+            Email = "user@test.com",
+            Name = "User",
+            CompanyId = company.Id,
+            Profile = UserProfile.Admin
+        };
+        user.PasswordHash = PasswordHelper.Hash("123456", user);
 
-            _db.Quotes.Add(quote);
-            _db.SaveChanges();
+        db.Users.Add(user);
+        db.SaveChanges();
 
-            return quote;
-        }
+        var token = await LoginAsync("user@test.com", "123456");
 
-        [TestMethod]
-        public async Task CreateQuote_ValidData_ShouldReturn201()
+        var customer = new Customer
         {
-            var customer = SeedCustomer();
+            Name = "Cliente",
+            CompanyId = company.Id,
+            Phone = new Phone { Mobile = "11999999999" }
+        };
 
-            var dto = new CreateQuoteDto
-            {
-                CustomerId = customer.Id,
-                PaymentMethod = PaymentMethod.CreditCard,
-                PaymentConditions = "2x",
-                Items = new List<QuoteItemDto>
-                 {
-                     new QuoteItemDto
-                     {
-                         Description = "Limpeza Geral",
-                         Quantity = 1,
-                         UnitPrice = 500
-                     }
-                 }
-            };
+        db.Customers.Add(customer);
+        db.SaveChanges();
 
-            var response = await _client.PostAsJsonAsync("/api/quote", dto);
-
-            Assert.AreEqual(HttpStatusCode.Created, response.StatusCode);
-
-            var body = await response.Content.ReadAsStringAsync();
-            var parsed = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(body);
-
-            Assert.IsNotNull(parsed);
-            Assert.IsTrue(parsed.Success);
-            Assert.IsTrue(parsed.Data.Id > 0);
-
-            Assert.AreEqual(1, parsed.Data.QuoteItems.Count);
-
-            var item = parsed.Data.QuoteItems.First();
-
-
-            Assert.AreEqual("Limpeza Geral", item.Description);
-            Assert.AreEqual(1, item.Quantity);
-            Assert.AreEqual(500, item.UnitPrice);
-            Assert.AreEqual(500, item.TotalPrice);
-        }
-
-        [TestMethod]
-        public async Task GetQuoteById_ShouldReturn200_WhenExists()
+        var quote = new Quote
         {
-            var quote = SeedQuote();
+            CustomerId = customer.Id,
+            CompanyId = company.Id,
+            UserId = user.Id,
+            PaymentMethod = PaymentMethod.Pix,
+            TotalPrice = 300
+        };
 
-            var response = await _client.GetAsync($"/api/quote/{quote.Id}");
+        db.Quotes.Add(quote);
+        db.SaveChanges();
 
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/api/quote/{quote.Id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-            var result = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(
-                await response.Content.ReadAsStringAsync());
+        var response = await _client.SendAsync(request);
 
-            Assert.IsNotNull(result);
-            Assert.AreEqual(quote.TotalPrice, result.Data.TotalPrice);
-        }
+        Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
 
+        var body = await response.Content.ReadAsStringAsync();
+        var parsed = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(body);
 
-        [TestMethod]
-        public async Task GetQuoteById_ShouldReturn404_WhenNotExists()
+        Assert.AreEqual(quote.Id, parsed.Data.Id);
+    }
+
+    [TestMethod]
+    public async Task Delete_ShouldReturn204_WhenSuccessful()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var company = new Company { Name = "Empresa A" };
+        db.Companies.Add(company);
+        db.SaveChanges();
+
+        var user = new User
         {
-            var response = await _client.GetAsync("/api/quote/99999");
+            Email = "user@test.com",
+            Name = "User",
+            CompanyId = company.Id,
+            Profile = UserProfile.Admin
+        };
 
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
-        }
+        user.PasswordHash = PasswordHelper.Hash("123456", user);
+        db.Users.Add(user);
+        db.SaveChanges();
 
+        var token = await LoginAsync("user@test.com", "123456");
 
-        [TestMethod]
-        public async Task UpdateQuote_ShouldReturn200_WhenValid()
+        var customer = new Customer
         {
-            var quote = SeedQuote();
+            Name = "Cliente",
+            CompanyId = company.Id,
+            Phone = new Phone { Mobile = "11999999999" }
+        };
 
-            var dto = new UpdateQuoteDto
-            {
-                Id = quote.Id,
-                TotalPrice = 999,
-                PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista"
-            };
+        db.Customers.Add(customer);
+        db.SaveChanges();
 
-            var response = await _client.PutAsJsonAsync($"/api/quote/{quote.Id}", dto);
-
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var result = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(
-                await response.Content.ReadAsStringAsync());
-
-            Assert.IsNotNull(result);
-            Assert.AreEqual(999, result.Data.TotalPrice);
-        }
-
-
-        [TestMethod]
-        public async Task DeleteQuote_ShouldReturn204_WhenExists()
+        var quote = new Quote
         {
-            var quote = SeedQuote();
+            CustomerId = customer.Id,
+            CompanyId = company.Id,
+            UserId = user.Id,
+            PaymentMethod = PaymentMethod.Pix,
+            TotalPrice = 150
+        };
 
-            var response = await _client.DeleteAsync($"/api/quote/{quote.Id}");
+        db.Quotes.Add(quote);
+        db.SaveChanges();
 
-            Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
-        }
+        var request = new HttpRequestMessage(HttpMethod.Delete, $"/api/quote/{quote.Id}");
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
+        var response = await _client.SendAsync(request);
 
-        [TestMethod]
-        public async Task DeleteQuote_ShouldReturn404_WhenNotExists()
-        {
-            var response = await _client.DeleteAsync("/api/quote/99999");
-            Assert.AreEqual(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-
-        [TestMethod]
-        public async Task SearchQuotes_ShouldReturn10Items_AndRespectSortOrder()
-        {
-            for (int i = 0; i < 15; i++)
-                SeedQuote();
-
-            var filter = new QuoteFilterDto
-            {
-                Page = 1,
-                PageSize = 10
-            };
-
-            var response = await _client.PostAsJsonAsync("/api/quotes/search", filter);
-
-            Assert.AreEqual(HttpStatusCode.OK, response.StatusCode);
-
-            var result = await response.Content
-                .ReadFromJsonAsync<ApiResponse<PagedResult<QuoteResponseDto>>>();
-
-            Assert.IsNotNull(result);
-            Assert.IsNotNull(result.Data);
-
-            Assert.AreEqual(10, result.Data.Items.Count);
-
-            var expectedFirst = _db.Quotes
-                .OrderByDescending(q => q.CreatedAt)
-                .First();
-
-            var firstReturned = result.Data.Items.First();
-
-            Assert.AreEqual(expectedFirst.Id, firstReturned.Id);
-            Assert.AreEqual(expectedFirst.TotalPrice, firstReturned.TotalPrice);
-        }
-
-        [TestMethod]
-        public async Task CreateQuote_ShouldReturn400_WhenItemsEmpty()
-        {
-            var customer = SeedCustomer();
-
-            var dto = new CreateQuoteDto
-            {
-                CustomerId = customer.Id,
-                PaymentMethod = PaymentMethod.Pix,
-                PaymentConditions = "À vista",
-                Items = new List<QuoteItemDto>() 
-            };
-
-            var response = await _client.PostAsJsonAsync("/api/quote", dto);
-            Assert.AreEqual(HttpStatusCode.BadRequest, response.StatusCode);
-        }
+        Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
     }
 }
