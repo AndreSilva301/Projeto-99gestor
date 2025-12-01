@@ -11,6 +11,8 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 
+namespace ManiaDeLimpeza.Api.IntegrationTests.Tests;
+
 [TestClass]
 public class QuoteControllerTests
 {
@@ -298,5 +300,65 @@ public class QuoteControllerTests
         var response = await _client.SendAsync(request);
 
         Assert.AreEqual(HttpStatusCode.NoContent, response.StatusCode);
+    }
+
+    [TestMethod]
+    public void CreateQuote_ShouldReturnBadRequest_WhenInvalidItems()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void UpdateQuote_ShouldReturnBadRequest_WhenInvalidPayload()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void UpdateQuote_ShouldReturnNotFound_WhenQuoteDoesNotExist()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void GetById_ShouldReturnNotFound_WhenQuoteDoesNotExist()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void GetById_ShouldReturnForbidden_WhenQuoteBelongsToOtherCompany()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void Delete_ShouldReturnNotFound_WhenQuoteDoesNotExist()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void Delete_ShouldReturnForbidden_WhenQuoteBelongsToOtherCompany()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void SearchQuotes_ShouldReturnPagedResults_WhenMatchesFound()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void SearchQuotes_ShouldReturnEmpty_WhenNoMatches()
+    {
+        throw new NotImplementedException();
+    }
+
+    [TestMethod]
+    public void SearchQuotes_ShouldRespectPagination()
+    {
+        throw new NotImplementedException();
     }
 }
