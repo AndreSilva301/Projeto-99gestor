@@ -30,11 +30,20 @@ namespace ManiaDeLimpeza.Application.Common
             CreateMap<QuoteItemDto, QuoteItem>();
 
             CreateMap<User, UserLightDto>();
+
+            // Customer mappings
             CreateMap<Customer, CustomerDto>().ReverseMap();
             CreateMap<CustomerCreateDto, Customer>();
             CreateMap<CustomerUpdateDto, Customer>();
             CreateMap<Customer, CustomerListItemDto>();
+
+            // Related value object mappings
+            CreateMap<AddressDto, Address>().ReverseMap();
+            CreateMap<PhoneDto, Phone>().ReverseMap();
+
+            // Customer relationship mappings
             CreateMap<CustomerRelationshipCreateDto, CustomerRelationship>();
+            CreateMap<CustomerRelationshipDto, CustomerRelationship>();
             CreateMap<CustomerRelationship, CustomerRelationshipDto>();
         }
     }

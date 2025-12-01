@@ -4,7 +4,7 @@ using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace ManiaDeLimpeza.Application.Services

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.Serialization;
 
-namespace ManiaDeLimpeza.Infrastructure.Exceptions
+namespace ManiaDeLimpeza.Domain.Exceptions
 {
     [Serializable]
     public class BusinessException : Exception

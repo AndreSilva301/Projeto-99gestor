@@ -4,8 +4,8 @@ using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Application.UnitTests.Tools;
 using ManiaDeLimpeza.Domain;
 using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Domain.Persistence;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Moq;
 
 namespace ManiaDeLimpeza.Application.UnitTests.Services

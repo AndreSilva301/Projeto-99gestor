@@ -16,9 +16,13 @@ public class CustomerUpdateDto : IBasicDto
             errors.Add("O nome é obrigatório.");
         if (Name?.Length > 255)
             errors.Add("O nome deve ter no máximo 255 caracteres.");
-        if (!Email.IsValidEmail())
+
+        // Email is optional on update; validate only if provided
+        if (!string.IsNullOrWhiteSpace(Email) && !Email.IsValidEmail())
             errors.Add("E-mail não é válido.");
-        if (!Phone?.Mobile.IsValidPhone() ?? true)
+
+        // Phone is optional on update; validate Mobile only if provided
+        if (Phone != null && !string.IsNullOrWhiteSpace(Phone.Mobile) && !Phone.Mobile.IsValidPhone())
             errors.Add("Número de telefone inválido.");
         return errors;
     }

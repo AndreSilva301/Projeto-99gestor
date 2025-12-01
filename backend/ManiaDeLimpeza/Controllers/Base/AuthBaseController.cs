@@ -49,7 +49,7 @@ namespace ManiaDeLimpeza.Api.Controllers.Base
         /// Gets the current user or returns an Unauthorized response if not found.
         /// Use this in actions where you need to ensure the user exists.
         /// </summary>
-        protected User? GetCurrentUserOrThrow()
+        protected User GetCurrentUserOrThrow()
         {
             if (CurrentUser == null)
             {

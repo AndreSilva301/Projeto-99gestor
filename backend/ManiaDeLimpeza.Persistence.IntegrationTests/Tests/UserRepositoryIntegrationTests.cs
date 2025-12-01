@@ -1,4 +1,5 @@
 using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Persistence.IntegrationTests.Tools;
 using ManiaDeLimpeza.Persistence.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -62,7 +63,7 @@ namespace ManiaDeLimpeza.Persistence.IntegrationTests.Tests
         }
 
         [TestMethod]
-        [ExpectedException(typeof(DbUpdateException))]
+        [ExpectedException(typeof(BusinessException))]
         public async Task AddUser_WithDuplicateEmail_ShouldThrowException()
         {
             using var context = TestDbContextFactory.CreateContext();

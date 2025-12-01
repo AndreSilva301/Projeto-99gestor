@@ -1,4 +1,4 @@
-﻿using ManiaDeLimpeza.Infrastructure.Exceptions;
+﻿using ManiaDeLimpeza.Domain.Exceptions;
 using System.Net;
 using System.Text.Json;
 

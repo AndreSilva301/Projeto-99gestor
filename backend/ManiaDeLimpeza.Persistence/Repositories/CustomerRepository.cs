@@ -24,7 +24,13 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                  .FirstOrDefaultAsync(c => c.Id == id);
         }
 
-        public async Task<PagedResult<Customer>> GetPagedByCompanyAsync(int companyId, int page, int pageSize, string? searchTerm, string orderBy, string direction)
+        public async Task<PagedResult<Customer>> GetPagedByCompanyAsync(
+            int companyId, 
+            int page, 
+            int pageSize, 
+            string? searchTerm, 
+            string orderBy, 
+            string direction)
         {
             var query = _context.Customers
                 .AsNoTracking()
@@ -40,9 +46,6 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 );
             }
 
-            var validColumns = new[] { "Name", "Email", "CreatedDate", "UpdatedDate" };
-            orderBy = validColumns.Contains(orderBy) ? orderBy : "Name";
-
             query = direction.ToLower() == "desc"
                 ? query.OrderByDescending(c => EF.Property<object>(c, orderBy))
                 : query.OrderBy(c => EF.Property<object>(c, orderBy));
@@ -54,7 +57,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 .Take(pageSize)
                 .ToListAsync();
 
-            return new PagedResult<Customer>
+            return new PagedResult<Customer>()
             {
                 TotalItems = totalItems,
                 Page = page,

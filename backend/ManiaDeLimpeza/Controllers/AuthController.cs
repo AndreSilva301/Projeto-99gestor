@@ -5,7 +5,7 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Persistence;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore.Storage;

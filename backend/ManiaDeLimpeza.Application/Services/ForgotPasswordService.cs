@@ -4,10 +4,10 @@ using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Domain.Services;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
 using Microsoft.Extensions.Options;
 using System.Security.Cryptography;
 
