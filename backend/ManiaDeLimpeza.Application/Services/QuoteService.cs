@@ -36,6 +36,21 @@ namespace ManiaDeLimpeza.Application.Services
             if (customer == null || customer.CompanyId != companyId)
                 throw new BusinessException("Cliente não pertence à sua empresa.");
 
+            if (dto.Items == null || dto.Items.Count == 0)
+                throw new BusinessException("O orçamento deve conter pelo menos um item.");
+
+            foreach (var item in dto.Items)
+            {
+                if (string.IsNullOrWhiteSpace(item.Description))
+                    throw new BusinessException("A descrição do item não pode estar vazia.");
+
+                if (item.Quantity <= 0)
+                    throw new BusinessException("A quantidade deve ser maior que zero.");
+
+                if (item.UnitPrice <= 0)
+                    throw new BusinessException("O preço unitário deve ser maior que zero.");
+            }
+
             var quote = _mapper.Map<Quote>(dto);
             quote.CreatedAt = DateTime.UtcNow;
             quote.UserId = userId;
@@ -84,7 +99,7 @@ namespace ManiaDeLimpeza.Application.Services
             var existing = await _quoteRepository.GetByIdAsync(id);
 
             if (existing == null)
-                throw new BusinessException($"Quote with id {id} not found.");
+                throw new KeyNotFoundException($"Quote with id {id} not found.");
 
             if (existing.CompanyId != companyId)
                 throw new KeyNotFoundException("Quote does not belong to the company.");
