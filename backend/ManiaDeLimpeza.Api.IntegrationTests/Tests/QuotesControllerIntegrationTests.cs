@@ -532,4 +532,111 @@ public class QuoteControllerTests
 
         Assert.AreEqual(5, parsed.Data.Items.Count);
     }
+
+    [TestMethod]
+    public async Task CreateUpdateAndGet_ShouldPersistAndUpdateAllFields()
+    {
+        using var scope = _factory.Services.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        var company = TestDataFactory.CreateCompany(db, "FullFlow Co");
+        var user = TestDataFactory.CreateUserAdmin(db, company, "fullflow@test.com", "Senha123");
+        var customer = TestDataFactory.CreateCustomer(db, company, "Cliente End-to-End");
+
+        var token = await LoginAsync(user.Email, "Senha123");
+
+        var createDto = new CreateQuoteDto
+        {
+            CustomerId = customer.Id,
+            PaymentMethod = PaymentMethod.CreditCard,
+            PaymentConditions = "Parcelado em 3x",
+            CashDiscount = 10,
+            CustomFields = new Dictionary<string, string> { { "Obs", "Criada via teste" } },
+            Items = new List<QuoteItemDto>
+            {
+                new QuoteItemDto { Description = "Serviço 1", Quantity = 2, UnitPrice = 100, CustomFields = new Dictionary<string,string>{{"K1","V1"}} },
+                new QuoteItemDto { Description = "Serviço 2", Quantity = 1, UnitPrice = 50 }
+            }
+        };
+
+        var createReq = new HttpRequestMessage(HttpMethod.Post, "/api/quote");
+        createReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        createReq.Content = JsonContent.Create(createDto);
+        var createRes = await _client.SendAsync(createReq);
+        Assert.AreEqual(HttpStatusCode.Created, createRes.StatusCode);
+        var created = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(await createRes.Content.ReadAsStringAsync());
+        Assert.IsTrue(created.Success);
+
+        var createdQuote = created.Data;
+
+        // GET and assert persisted
+        var getReq = new HttpRequestMessage(HttpMethod.Get, $"/api/quote/{createdQuote.Id}");
+        getReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        var getRes = await _client.SendAsync(getReq);
+        Assert.AreEqual(HttpStatusCode.OK, getRes.StatusCode);
+        var got = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(await getRes.Content.ReadAsStringAsync());
+
+        Assert.AreEqual(createDto.CustomerId, got.Data.CustomerId);
+        Assert.AreEqual(user.Id, got.Data.UserId);
+        Assert.AreEqual(createDto.PaymentMethod, got.Data.PaymentMethod);
+        Assert.AreEqual(createDto.PaymentConditions, got.Data.PaymentConditions);
+        Assert.AreEqual(createDto.CashDiscount, got.Data.CashDiscount);
+        Assert.AreEqual(createDto.Items.Count, got.Data.QuoteItems.Count);
+        Assert.IsTrue(got.Data.CreatedAt != default);
+
+        // check items
+        for (int i = 0; i < createDto.Items.Count; i++)
+        {
+            var sent = createDto.Items[i];
+            var returned = got.Data.QuoteItems[i];
+            Assert.AreEqual(sent.Description, returned.Description);
+            Assert.AreEqual(sent.Quantity, returned.Quantity);
+            Assert.AreEqual(sent.UnitPrice, returned.UnitPrice);
+        }
+
+        // UPDATE all fields
+        var updateDto = new UpdateQuoteDto
+        {
+            Id = createdQuote.Id,
+            PaymentMethod = PaymentMethod.Cash,
+            PaymentConditions = "À vista",
+            CashDiscount = 5,
+            TotalPrice = 999, // service may recalc; provide valid > 0
+            CustomFields = new Dictionary<string, string> { { "U1", "Updated" } },
+            Items = new List<UpdateQuoteItemDto>
+            {
+                new UpdateQuoteItemDto { Description = "Serviço 1 alterado", Quantity = 3, UnitPrice = 120 },
+                new UpdateQuoteItemDto { Description = "Serviço 3 novo", Quantity = 2, UnitPrice = 80 }
+            }
+        };
+
+        var updReq = new HttpRequestMessage(HttpMethod.Put, $"/api/quote/{createdQuote.Id}");
+        updReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        updReq.Content = JsonContent.Create(updateDto);
+        var updRes = await _client.SendAsync(updReq);
+        Assert.AreEqual(HttpStatusCode.OK, updRes.StatusCode);
+        var updated = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(await updRes.Content.ReadAsStringAsync());
+        Assert.IsTrue(updated.Success);
+
+        // GET again and assert updated
+        var get2 = await _client.SendAsync(getReq);
+        Assert.AreEqual(HttpStatusCode.OK, get2.StatusCode);
+        var got2 = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(await get2.Content.ReadAsStringAsync());
+
+        Assert.AreEqual(updateDto.PaymentMethod, got2.Data.PaymentMethod);
+        Assert.AreEqual(updateDto.PaymentConditions, got2.Data.PaymentConditions);
+        Assert.AreEqual(updateDto.CashDiscount, got2.Data.CashDiscount);
+        Assert.AreEqual(updateDto.Items.Count, got2.Data.QuoteItems.Count);
+
+        for (int i = 0; i < updateDto.Items.Count; i++)
+        {
+            var sent = updateDto.Items[i];
+            var returned = got2.Data.QuoteItems[i];
+            Assert.AreEqual(sent.Description, returned.Description);
+            Assert.AreEqual(sent.Quantity, returned.Quantity);
+            Assert.AreEqual(sent.UnitPrice, returned.UnitPrice);
+        }
+
+        Assert.IsTrue(got2.Data.UpdatedAt >= got.Data.CreatedAt);
+    }
 }
