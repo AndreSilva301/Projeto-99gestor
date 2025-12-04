@@ -619,6 +619,8 @@ public class QuoteControllerTests
         Assert.IsTrue(updated.Success);
 
         // GET again and assert updated
+        getReq = new HttpRequestMessage(HttpMethod.Get, $"/api/quote/{createdQuote.Id}");
+        getReq.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         var get2 = await _client.SendAsync(getReq);
         Assert.AreEqual(HttpStatusCode.OK, get2.StatusCode);
         var got2 = JsonConvert.DeserializeObject<ApiResponse<QuoteResponseDto>>(await get2.Content.ReadAsStringAsync());
