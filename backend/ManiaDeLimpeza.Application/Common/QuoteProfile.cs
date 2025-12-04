@@ -21,7 +21,8 @@ public class QuoteProfile : Profile
             .ForMember(dest => dest.Id, opt => opt.Ignore())
             .ForMember(dest => dest.CreatedAt, opt => opt.Ignore())
             .ForMember(dest => dest.UpdatedAt, opt => opt.Ignore())
-            .ForMember(dest => dest.TotalPrice, opt => opt.Ignore()); // Calculado pelo serviço
+            .ForMember(dest => dest.TotalPrice, opt => opt.Ignore())
+            .ForMember(dest => dest.QuoteItems, opt => opt.MapFrom(src => src.Items)); // Calculado pelo serviço
 
         // UpdateQuoteDto → Quote
         CreateMap<UpdateQuoteDto, Quote>()
