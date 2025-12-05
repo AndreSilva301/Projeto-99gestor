@@ -274,15 +274,7 @@ public class QuoteControllerTests
         {
             CustomerId = customer.Id,
             PaymentMethod = PaymentMethod.CreditCard,
-            Items = new List<QuoteItemDto>
-        {
-            new QuoteItemDto
-            {
-                Description = "", 
-                Quantity = 0,     
-                UnitPrice = -10   
-            }
-        }
+            Items = new List<QuoteItemDto>()
         };
 
         var request = new HttpRequestMessage(HttpMethod.Post, "/api/quote");
@@ -302,18 +294,23 @@ public class QuoteControllerTests
 
         var company = TestDataFactory.CreateCompany(db);
         var user = TestDataFactory.CreateUserAdmin(db, company);
+        var customer = TestDataFactory.CreateCustomer(db, company);
+
+        var quote = TestDataFactory.CreateQuote(db, company, customer, user);
+        db.SaveChanges();
 
         var token = await LoginAsync(user.Email, "123456");
 
         var invalidDto = new UpdateQuoteDto
         {
-            Id = 0, 
+            Id = quote.Id,            
             PaymentMethod = PaymentMethod.Cash,
-            TotalPrice = -200, 
-            Items = new List<UpdateQuoteItemDto>()
+            TotalPrice = -200,       
+            Items = new List<UpdateQuoteItemDto>() 
+
         };
 
-        var request = new HttpRequestMessage(HttpMethod.Put, "/api/quote/0");
+        var request = new HttpRequestMessage(HttpMethod.Put, $"/api/quote/{quote.Id}");
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
         request.Content = JsonContent.Create(invalidDto);
 

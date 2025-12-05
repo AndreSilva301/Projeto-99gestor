@@ -94,7 +94,6 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         public virtual async Task<Quote?> GetByIdAsync(int id)
         {
             return await _context.Quotes
-                   .AsNoTracking()
                    .Include(c => c.QuoteItems)
                    .FirstOrDefaultAsync(c => c.Id == id);
         }

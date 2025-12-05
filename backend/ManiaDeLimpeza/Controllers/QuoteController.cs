@@ -27,7 +27,10 @@ namespace ManiaDeLimpeza.Api.Controllers
         [ProducesResponseType(typeof(ApiResponse<QuoteDto>), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] CreateQuoteDto dto)
         {
-            //Validate DTO
+            var errors = dto.Validate();
+            if (errors.Any())
+                return BadRequest(new ApiResponse<List<string>>(errors));
+
 
             var created = await _quoteService.CreateAsync(dto, CurrentUser.Id, CurrentUser.CompanyId);
 
