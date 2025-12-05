@@ -98,14 +98,14 @@ namespace ManiaDeLimpeza.Application.Services
 
             var existing = await _quoteRepository.GetByIdAsync(id);
 
-            if (dto.Items == null || dto.Items.Count == 0)
-                throw new BusinessException("The quote must contain at least one item.");
-
             if (existing == null)
                 throw new KeyNotFoundException($"Quote with id {id} not found.");
 
             if (existing.CompanyId != companyId)
                 throw new KeyNotFoundException("Quote does not belong to the company.");
+
+            if (dto.Items == null || dto.Items.Count == 0)
+                throw new BusinessException("The quote must contain at least one item.");
 
             existing.PaymentMethod = dto.PaymentMethod;
             existing.PaymentConditions = dto.PaymentConditions;
