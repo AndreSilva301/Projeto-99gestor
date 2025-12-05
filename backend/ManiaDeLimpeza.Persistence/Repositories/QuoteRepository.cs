@@ -91,5 +91,11 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                 PageSize = pageSize
             };
         }
+        public virtual async Task<Quote?> GetByIdAsync(int id)
+        {
+            return await _context.Quotes
+                   .Include(c => c.QuoteItems)
+                   .FirstOrDefaultAsync(c => c.Id == id);
+        }
     }
 }
