@@ -71,7 +71,7 @@ const Dashboard = () => {
     };
 
     loadDashboardData();
-  }, [updateHeader]);
+  }, []);
 
   // Quick actions based on MVP requirements
   const quickActions = [

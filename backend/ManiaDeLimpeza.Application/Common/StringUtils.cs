@@ -9,7 +9,7 @@ public static class StringUtils
     );
 
     private static readonly Regex PasswordRegex = new Regex(
-        @"^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$",
+        @"^(?=.*[A-Za-z])(?=.*\d)[\w@#$%^&*!+=\-]{8,}$",
         RegexOptions.Compiled
     );
 
