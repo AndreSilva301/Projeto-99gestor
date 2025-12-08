@@ -432,7 +432,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 .ReturnsAsync((Quote?)null);
 
             // Act & Assert
-            var exception = await Assert.ThrowsExceptionAsync<BusinessException>(
+            var exception = await Assert.ThrowsExceptionAsync<KeyNotFoundException>(
                 () => _quoteService.UpdateAsync(dto, companyId: 1)
             );
 
@@ -510,7 +510,16 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 Id = 1,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "3x",
-                Items = new List<UpdateQuoteItemDto>()
+                Items = new List<UpdateQuoteItemDto>
+                {
+                  new UpdateQuoteItemDto
+                  {
+                     Id = 1,
+                     Description = "Item teste",
+                     Quantity = 1,
+                     UnitPrice = 10
+                  }
+                }
             };
 
             var existingQuote = new Quote
@@ -520,7 +529,17 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 CustomerId = 1,
                 UserId = 1,
                 PaymentMethod = PaymentMethod.Cash,
-                QuoteItems = new List<QuoteItem>()
+                QuoteItems = new List<QuoteItem>
+                {
+                  new QuoteItem
+                  {
+                    Id = 1,
+                    QuoteId = 1,
+                    Description = "Item antigo",
+                    Quantity = 1,
+                    UnitPrice = 10
+                  }
+                }
             };
 
             Quote updatedQuote = null!;
@@ -555,7 +574,16 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 Id = 1,
                 PaymentMethod = PaymentMethod.CreditCard,
                 PaymentConditions = "3x sem juros",
-                Items = new List<UpdateQuoteItemDto>()
+                Items = new List<UpdateQuoteItemDto>
+                {
+                   new UpdateQuoteItemDto
+                   {
+                      Id = 10,
+                      Description = "Limpeza de sofá",
+                      Quantity = 1,
+                      UnitPrice = 100
+                   }
+                }
             };
 
             var existingQuote = new Quote
@@ -565,7 +593,17 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 CustomerId = 1,
                 UserId = 1,
                 PaymentConditions = "À vista",
-                QuoteItems = new List<QuoteItem>()
+                QuoteItems = new List<QuoteItem>
+                {
+                  new QuoteItem
+                  {
+                     Id = 10,
+                     QuoteId = 1,
+                     Description = "Limpeza de sofá",
+                     Quantity = 1,
+                     UnitPrice = 100
+                  }
+                }
             };
 
             Quote updatedQuote = null!;
@@ -600,7 +638,18 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
                 CashDiscount = 50.00m,
-                Items = new List<UpdateQuoteItemDto>()
+                Items = new List<UpdateQuoteItemDto>
+                {
+                   new UpdateQuoteItemDto
+                   {
+                      Id = 1,
+                      QuoteId = 1,
+                      Description = "Teste",
+                      Quantity = 1,
+                      UnitPrice = 100,
+                      Order = 1
+                   }
+                }
             };
 
             var existingQuote = new Quote
@@ -610,7 +659,19 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 CustomerId = 1,
                 UserId = 1,
                 CashDiscount = 0,
-                QuoteItems = new List<QuoteItem>()
+                QuoteItems = new List<QuoteItem>
+                {
+                   new QuoteItem
+                   {
+                      Id = 1,
+                      QuoteId = 1,
+                      Description = "Teste",
+                      Quantity = 1,
+                      UnitPrice = 100,
+                      Order = 1,
+                     TotalPrice = 100
+                   }
+                }
             };
 
             Quote updatedQuote = null!;
@@ -641,11 +702,22 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         {
             // Arrange
             var beforeUpdate = DateTime.UtcNow;
+
             var dto = new UpdateQuoteDto
             {
                 Id = 1,
                 PaymentMethod = PaymentMethod.Cash,
-                Items = new List<UpdateQuoteItemDto>()
+                Items = new List<UpdateQuoteItemDto>
+                {
+                    new UpdateQuoteItemDto
+                    {
+                       Id = 1,
+                       QuoteId = 1,
+                       Description = "Serviço X",
+                       Quantity = 1,
+                       UnitPrice = 100
+                    }
+                }
             };
 
             var existingQuote = new Quote
@@ -654,7 +726,17 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
                 CompanyId = 1,
                 CustomerId = 1,
                 UserId = 1,
-                QuoteItems = new List<QuoteItem>()
+                QuoteItems = new List<QuoteItem>
+                {
+                    new QuoteItem
+                    {
+                       Id = 1,
+                       QuoteId = 1,
+                       Description = "Serviço X",
+                       Quantity = 1,
+                       UnitPrice = 100
+                    }
+                }
             };
 
             Quote updatedQuote = null!;
@@ -683,6 +765,7 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
             Assert.IsTrue(updatedQuote.UpdatedAt <= afterUpdate);
             Assert.AreEqual(DateTimeKind.Utc, updatedQuote.UpdatedAt.Value.Kind);
         }
+
 
         [TestMethod]
         public async Task UpdateAsync_WhenRemovingItems_ShouldRemoveItemsNotInUpdateDto()
