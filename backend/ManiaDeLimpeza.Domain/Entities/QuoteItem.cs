@@ -1,10 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿using ManiaDeLimpeza.Domain.ExceptionErrors;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Domain.Entities
 {
@@ -19,12 +14,24 @@ namespace ManiaDeLimpeza.Domain.Entities
         [MaxLength(500)]
         public string Description { get; set; } = string.Empty;
 
-        public int Quantity { get; set; }
+        public decimal? Quantity { get; set; }
 
-        public decimal UnitPrice { get; set; }
+        public decimal? UnitPrice { get; set; }
 
-        public decimal TotalValue { get; set; }
+        public decimal TotalPrice { get; set; }
 
-        public string ExtraFields { get; set; } = string.Empty;
+        public int Order { get; set; }
+       
+        public Dictionary<string, string> CustomFields { get; set; } = new();
+
+        public decimal GetCalculatedTotalPrice()
+        {
+            if(Quantity.HasValue && UnitPrice.HasValue)
+            {
+                return Math.Round(Quantity.Value * UnitPrice.Value, 2);
+            }
+
+            return TotalPrice;
+        }
     }
 }

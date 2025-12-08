@@ -183,30 +183,43 @@ namespace ManiaDeLimpeza.Persistence.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("CashDiscount")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<int>("CostumerId")
+                    b.Property<int>("CompanyId")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<int>("CustomerId")
+                        .HasColumnType("int");
+
                     b.Property<string>("PaymentConditions")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
 
                     b.Property<int>("PaymentMethod")
                         .HasColumnType("int");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CostumerId");
+                    b.HasIndex("CompanyId");
+
+                    b.HasIndex("CreatedAt");
+
+                    b.HasIndex("CustomerId");
 
                     b.HasIndex("UserId");
 
@@ -221,28 +234,36 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("CustomFields")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<string>("ExtraFields")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("Quantity")
+                    b.Property<int>("Order")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("Quantity")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("QuoteId")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("TotalValue")
+                    b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("UnitPrice")
+                    b.Property<decimal?>("UnitPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("Order");
 
                     b.HasIndex("QuoteId");
 
@@ -451,7 +472,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.CustomerRelationship", b =>
                 {
                     b.HasOne("ManiaDeLimpeza.Domain.Entities.Customer", "Customer")
-                        .WithMany("CostumerRelationships")
+                        .WithMany("CustomerRelationships")
                         .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -472,9 +493,15 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Quote", b =>
                 {
+                    b.HasOne("ManiaDeLimpeza.Domain.Entities.Company", null)
+                        .WithMany()
+                        .HasForeignKey("CompanyId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ManiaDeLimpeza.Domain.Entities.Customer", "Customer")
                         .WithMany("Quotes")
-                        .HasForeignKey("CostumerId")
+                        .HasForeignKey("CustomerId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
@@ -516,7 +543,7 @@ namespace ManiaDeLimpeza.Persistence.Migrations
 
             modelBuilder.Entity("ManiaDeLimpeza.Domain.Entities.Customer", b =>
                 {
-                    b.Navigation("CostumerRelationships");
+                    b.Navigation("CustomerRelationships");
 
                     b.Navigation("Quotes");
                 });

@@ -1,13 +1,8 @@
 ﻿using ManiaDeLimpeza.Domain.Entities;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Claims;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace ManiaDeLimpeza.Persistence.Repositories
 {
@@ -22,6 +17,12 @@ namespace ManiaDeLimpeza.Persistence.Repositories
 
         public async Task<User> AddAsync(User user)
         {
+            var existing = await GetByEmailAsync(user.Email);
+            if (existing != null)
+            {
+                throw new BusinessException("A user with this email already exists.");
+            }
+
             var userEntityEntry = await _context.Users.AddAsync(user);
             await _context.SaveChangesAsync();
             return userEntityEntry.Entity;

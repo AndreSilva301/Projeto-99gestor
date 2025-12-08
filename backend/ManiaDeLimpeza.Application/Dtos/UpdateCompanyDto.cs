@@ -4,7 +4,6 @@ using System.ComponentModel.DataAnnotations;
 namespace ManiaDeLimpeza.Application.Dtos;
 public class UpdateCompanyDto
 {
-    [Required]
     public string Name { get; set; } = string.Empty;
 
     public string? CNPJ { get; set; }

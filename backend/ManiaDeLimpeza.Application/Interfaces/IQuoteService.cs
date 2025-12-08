@@ -5,9 +5,13 @@ namespace ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers
 {
     public interface IQuoteService
     {
-        Task<Quote> CreateAsync(QuoteDto quote, User user);
-        Task<Quote?> GetByIdAsync(int id);
-        Task<PagedResult<Quote>> GetPagedAsync(QuoteFilterDto filter);
-        Task<Quote> UpdateAsync(QuoteDto quote);
+        Task<Quote?> GetByIdAsync(int id, int companyId);
+        Task<PagedResult<QuoteResponseDto>> GetPagedAsync(QuoteFilterDto filter, int companyId);
+
+        Task<QuoteResponseDto> UpdateAsync(UpdateQuoteDto dto, int companyId);
+
+        Task<QuoteResponseDto> CreateAsync(CreateQuoteDto dto, int userId, int companyId);
+
+        Task<bool> DeleteAsync(int id, int companyId);
     }
 }

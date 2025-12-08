@@ -4,7 +4,7 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Infrastructure.Helpers;
 
 namespace ManiaDeLimpeza.Application.Services

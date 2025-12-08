@@ -4,7 +4,7 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Domain.Exceptions;
 
 namespace ManiaDeLimpeza.Application.Services
 {
@@ -34,7 +34,7 @@ namespace ManiaDeLimpeza.Application.Services
             entity.CompanyId = companyId;
             entity.CreatedDate = DateTime.UtcNow;
 
-            await _customerRepository.AddAsync(entity); 
+            await _customerRepository.AddAsync(entity);
 
             if (dto.Relationships?.Any() == true)
             {
@@ -57,6 +57,9 @@ namespace ManiaDeLimpeza.Application.Services
         public async Task<CustomerDto> UpdateAsync(int customerId, CustomerUpdateDto dto, int companyId)
         {
             var existing = await _customerRepository.GetbyIdWithRelationshipAsync(customerId);
+
+            if (existing == null)
+                throw new BusinessException("Cliente não encontrado.");
 
             if (existing.CompanyId != companyId)
                 throw new BusinessException("Cliente não pertence à empresa do usuário.");
@@ -86,20 +89,31 @@ namespace ManiaDeLimpeza.Application.Services
         {
             var customer = await _customerRepository.GetbyIdWithRelationshipAsync(customerId);
 
+            if (customer == null)
+                return null;
+
             if (customer.CompanyId != companyId)
                 return null;
 
             return _mapper.Map<CustomerDto>(customer);
         }
 
-        public async Task<PagedResult<CustomerListItemDto>> SearchAsync(string? searchTerm, int page, int pageSize, int companyId, string? orderBy = "Name", string direction = "asc")
+        public async Task<PagedResult<CustomerListItemDto>> SearchAsync(string? searchTerm, int page, int pageSize, int companyId, string orderBy = "Name", string direction = "asc")
         {
-            var result = await _customerRepository.GetPagedByCompanyAsync(companyId, page, pageSize, searchTerm ?? "", orderBy ?? "Name", direction.ToLower() == "desc" ? "desc" : "asc");
+            var result = await _customerRepository.GetPagedByCompanyAsync(
+                companyId: companyId,
+                page: page, 
+                pageSize: pageSize, 
+                searchTerm: searchTerm, 
+                orderBy: orderBy, 
+                direction: direction);
 
             return new PagedResult<CustomerListItemDto>
             {
                 Items = result.Items.Select(_mapper.Map<CustomerListItemDto>).ToList(),
-                TotalItems = result.TotalItems
+                TotalItems = result.TotalItems,
+                Page = result.Page,
+                PageSize = result.PageSize,
             };
         }
 

@@ -2,7 +2,7 @@
 using ManiaDeLimpeza.Application.Services;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Domain.Exceptions;
 using ManiaDeLimpeza.Infrastructure.Helpers;
 using Moq;
 using System;

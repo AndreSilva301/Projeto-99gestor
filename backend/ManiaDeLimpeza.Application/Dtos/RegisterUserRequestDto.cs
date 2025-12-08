@@ -1,7 +1,7 @@
 ﻿using ManiaDeLimpeza.Application.Common;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Interfaces;
-using ManiaDeLimpeza.Infrastructure.Exceptions;
+using ManiaDeLimpeza.Domain.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

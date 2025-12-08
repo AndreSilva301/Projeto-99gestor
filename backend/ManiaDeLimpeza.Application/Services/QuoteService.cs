@@ -1,17 +1,11 @@
 ﻿using AutoMapper;
 using ManiaDeLimpeza.Api.Controllers.ManiaDeLimpeza.Api.Controllers;
 using ManiaDeLimpeza.Application.Dtos;
-using ManiaDeLimpeza.Application.Queries.Quotes;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
+using ManiaDeLimpeza.Domain.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using ManiaDeLimpeza.Persistence.Extensions;
 
 namespace ManiaDeLimpeza.Application.Services
 {
@@ -36,33 +30,61 @@ namespace ManiaDeLimpeza.Application.Services
         /// The total price is calculated from the sum of each line item's Total property.
         /// Note: Total may differ from UnitPrice * Quantity for manual overrides.
         /// </summary>
-        public async Task<Quote> CreateAsync(QuoteDto quoteDto, User user)
+        public async Task<QuoteResponseDto> CreateAsync(CreateQuoteDto dto, int userId, int companyId)
         {
-            var client = await _customerRepository.GetByIdAsync(quoteDto.ClientId);
-            if (client == null)
-            {
-                throw new ArgumentException("Client not found");
-            }
+            var customer = await _customerRepository.GetByIdAsync(dto.CustomerId);
+            if (customer == null || customer.CompanyId != companyId)
+                throw new BusinessException("Cliente não pertence à sua empresa.");
 
-            var quote = _mapper.Map<Quote>(quoteDto);
+            if (dto.Items == null || dto.Items.Count == 0)
+                throw new BusinessException("O orçamento deve conter pelo menos um item.");
+
+            //foreach (var item in dto.Items)
+            //{
+            //    if (string.IsNullOrWhiteSpace(item.Description))
+            //        throw new BusinessException("A descrição do item não pode estar vazia.");
+
+            //  if (item.Quantity <= 0)
+            //        throw new BusinessException("A quantidade deve ser maior que zero.");
+
+            //    if (item.UnitPrice <= 0)
+            //        throw new BusinessException("O preço unitário deve ser maior que zero.");
+            //}
+
+            var quote = _mapper.Map<Quote>(dto);
             quote.CreatedAt = DateTime.UtcNow;
-            quote.UserId = user.Id;
-            quote.TotalPrice = quote.QuoteItems.Sum(li => li.TotalValue);
-            if (quote.CashDiscount.HasValue)
-                quote.TotalPrice -= quote.CashDiscount.Value;
+            quote.UserId = userId;
+            quote.CompanyId = companyId;
 
-            await _quoteRepository.AddAsync(quote);
-            return quote;
+            quote.RecalculateTotals();
+            quote.EnsureQuoteItemsOrder();
+
+            var addedQuote = await _quoteRepository.AddAsync(quote);
+
+            return _mapper.Map<QuoteResponseDto>(addedQuote);
         }
 
         /// <summary>
         /// Retrieves a quote by ID if it is not archived.
         /// </summary>
-        public async Task<Quote?> GetByIdAsync(int id)
+        public async Task<Quote?> GetByIdAsync(int id, int companyId)
         {
             var quote = await _quoteRepository.GetByIdAsync(id);
 
+            // Ensure the quote belongs to the specified company
+            if (!quote?.IsForCompany(companyId) ?? false)
+            {
+                return null;
+            }
+
             return quote;
+        }
+
+        public async Task<bool> DeleteAsync(int id, int companyId)
+        {
+            var quote = await _quoteRepository.DeleteAsync(id, companyId);
+
+            return quote != null;
         }
 
         /// <summary>
@@ -70,48 +92,98 @@ namespace ManiaDeLimpeza.Application.Services
         /// The total price is recalculated using the LineItem.Total values.
         /// Note: Total may differ from UnitPrice * Quantity for manual overrides.
         /// </summary>
-        public async Task<Quote> UpdateAsync(QuoteDto quoteDto)
+        public async Task<QuoteResponseDto> UpdateAsync(UpdateQuoteDto dto, int companyId)
         {
+            var id = dto.Id;
 
-            var existing = await _quoteRepository.GetByIdAsync(quoteDto.Id);
+            var existing = await _quoteRepository.GetByIdAsync(id);
+
             if (existing == null)
-                throw new KeyNotFoundException($"Quote with ID {quoteDto.Id} not found.");
+                throw new KeyNotFoundException($"Quote with id {id} not found.");
 
-            // Apply updates from DTO into the existing entity
-            _mapper.Map(quoteDto, existing);
+            if (existing.CompanyId != companyId)
+                throw new KeyNotFoundException("Quote does not belong to the company.");
 
-            // Recalculate total
-            existing.TotalPrice = existing.QuoteItems.Sum(li => li.TotalValue);
-            if (existing.CashDiscount.HasValue)
-                existing.TotalPrice -= existing.CashDiscount.Value;
+            if (dto.Items == null || dto.Items.Count == 0)
+                throw new BusinessException("The quote must contain at least one item.");
 
-            await _quoteRepository.UpdateAsync(existing);
-            return existing;
+            existing.PaymentMethod = dto.PaymentMethod;
+            existing.PaymentConditions = dto.PaymentConditions;
+            existing.CashDiscount = dto.CashDiscount;
+            existing.UpdatedAt = DateTime.UtcNow;
+
+            var updatedItemIds = dto.Items
+                .Where(x => x.Id > 0)
+                .Select(x => x.Id)
+                .ToList();
+
+            var itemsToRemove = existing.QuoteItems
+                .Where(x => !updatedItemIds.Contains(x.Id))
+                .ToList();
+
+            foreach (var toRemove in itemsToRemove)
+                existing.QuoteItems.Remove(toRemove);
+
+            dto.EnsureQuoteItemsOrder();
+
+            foreach (var itemDto in dto.Items)
+            {
+                if (itemDto.Id > 0)
+                {
+                    var existingItem = existing.QuoteItems.First(i => i.Id == itemDto.Id);
+                    existingItem.Description = itemDto.Description;
+                    existingItem.Quantity = itemDto.Quantity;
+                    existingItem.UnitPrice = itemDto.UnitPrice;
+                    existingItem.Order = itemDto.Order;
+
+                    if (itemDto.TotalPrice.HasValue)
+                        existingItem.TotalPrice = existingItem.GetCalculatedTotalPrice();
+                }
+                else
+                {
+                    var newItem = new QuoteItem
+                    {
+                        Description = itemDto.Description,
+                        Quantity = itemDto.Quantity,
+                        UnitPrice = itemDto.UnitPrice,
+                        Order = itemDto.Order,
+                        TotalPrice = itemDto.TotalPrice ?? 0
+                    };
+
+                    newItem.TotalPrice = newItem.GetCalculatedTotalPrice();
+                    existing.QuoteItems.Add(newItem);
+                }
+            }
+
+            existing.RecalculateTotals();
+
+            var updated = await _quoteRepository.UpdateAsync(existing);
+
+            return _mapper.Map<QuoteResponseDto>(updated);
         }
 
         /// <summary>
-        /// Archives a quote by setting IsArchived to true.
+        /// Returns paginated and filtered list of quotes.
         /// </summary>
-        
-        public async Task<PagedResult<Quote>> GetPagedAsync(QuoteFilterDto filter)
+        public async Task<PagedResult<QuoteResponseDto>> GetPagedAsync(QuoteFilterDto filter, int companyId)
         {
-            throw new NotImplementedException();
-            //var query = _quoteRepository.Query()
-            //    .Include(q => q.Customer)
-            //    .Where(q => !q.IsArchived);
+            var result = await _quoteRepository.GetPagedAsync(
+                searchTerm: filter.SearchTerm,
+                createdAtStart: filter.CreatedAtStart,
+                createdAtEnd: filter.CreatedAtEnd,
+                sortBy: filter.SortBy,
+                sortDescending: filter.SortDescending,
+                page: filter.Page,
+                pageSize: filter.PageSize,
+                companyId: companyId
+            );
 
-            //query = QuoteFiltering.ApplyFilters(query, filter);
-            //query = QuoteSorting.ApplySorting(query, filter.SortBy, filter.SortDescending);
-
-            //var (totalItems, items) = await query.PaginateAsync(filter.Page, filter.PageSize);
-
-            //return new PagedResult<Quote>()
-            //{
-            //    TotalItems = totalItems,
-            //    Items = items,
-            //    PageSize = filter.PageSize,
-            //    Page = filter.Page,
-            //};
+            return new PagedResult<QuoteResponseDto>(
+                result.TotalItems,
+                result.Items.Select(q => _mapper.Map<QuoteResponseDto>(q)),
+                result.Page,
+                result.PageSize
+            );
         }
     }
 }

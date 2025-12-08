@@ -27,6 +27,14 @@ namespace ManiaDeLimpeza.Api.IntegrationTests.Tools
             db.SaveChanges();
         }
 
+        public static void ClearCustomers(ApplicationDbContext db)
+        {
+            // Clear relationships first (foreign key constraint)
+            db.CustomerRelationships.RemoveRange(db.CustomerRelationships);
+            db.Customers.RemoveRange(db.Customers);
+            db.SaveChanges();
+        }
+
         public static void ClearQuotes(ApplicationDbContext db)
         {
             db.Quotes.RemoveRange(db.Quotes);
