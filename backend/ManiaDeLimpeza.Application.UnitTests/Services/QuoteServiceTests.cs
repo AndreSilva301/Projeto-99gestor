@@ -395,8 +395,8 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         #region UpdateAsync Tests
 
         [TestMethod]
-        [ExpectedException(typeof(BusinessException))]
-        public async Task UpdateAsync_WhenQuoteDoesNotExist_ShouldThrowBusinessException()
+        [ExpectedException(typeof(KeyNotFoundException))]
+        public async Task UpdateAsync_WhenQuoteDoesNotExist_ShouldThrowKeyNotFoundException()
         {
             // Arrange
             var dto = new UpdateQuoteDto
@@ -440,8 +440,8 @@ namespace ManiaDeLimpeza.Application.UnitTests.Services
         }
 
         [TestMethod]
-        [ExpectedException(typeof(BusinessException))]
-        public async Task UpdateAsync_WhenQuoteBelongsToDifferentCompany_ShouldThrowBusinessException()
+        [ExpectedException(typeof(KeyNotFoundException))]
+        public async Task UpdateAsync_WhenQuoteBelongsToDifferentCompany_ShouldThrowKeyNotFoundException()
         {
             // Arrange
             var dto = new UpdateQuoteDto
