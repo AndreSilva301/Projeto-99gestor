@@ -15,34 +15,19 @@ class CompanyService {
    */
   async getCurrentCompany() {
     try {
-      // For now, we'll simulate getting the current user's company
-      // In real implementation, this would call GET /api/company/{currentUserCompanyId}
-      const mockCompany = {
-        id: 1,
-        name: 'Mania de Limpeza Ltda',
-        cnpj: '12.345.678/0001-90',
-        address: {
-          street: 'Rua das Flores',
-          number: '123',
-          complement: 'Sala 45',
-          neighborhood: 'Vila Madalena',
-          city: 'São Paulo',
-          state: 'SP',
-          zipCode: '05435-000'
-        },
-        phone: {
-          mobile: '(11) 99999-1234',
-          landline: '(11) 3333-4567'
-        },
-        dateTime: '2024-01-01T00:00:00Z'
-      };
+      // Get current user data to extract companyId
+      const userData = this.getUserData();
+      
+      if (!userData || !userData.companyId) {
+        return {
+          success: false,
+          message: 'Usuário não autenticado ou sem empresa associada'
+        };
+      }
 
-      return {
-        success: true,
-        data: mockCompany
-      };
+      return await this.getCompanyById(userData.companyId);
     } catch (error) {
-      console.error('Error fetching company:', error);
+      console.error('Error fetching current company:', error);
       return {
         success: false,
         message: 'Erro ao carregar dados da empresa',
@@ -52,7 +37,16 @@ class CompanyService {
   }
 
   /**
-   * Get company by ID (for SystemAdmin)
+   * Get user data from storage
+   * @returns {Object|null} User data
+   */
+  getUserData() {
+    const userData = localStorage.getItem('auth_user');
+    return userData ? JSON.parse(userData) : null;
+  }
+
+  /**
+   * Get company by ID
    * @param {number} companyId - Company ID
    * @returns {Promise<Object>} Company details
    */
@@ -60,16 +54,10 @@ class CompanyService {
     try {
       const response = await this.client.get(`/company/${companyId}`);
       
-      if (response.success && response.data) {
-        return {
-          success: true,
-          data: response.data
-        };
-      }
-
+      // The API returns the company data directly, not wrapped in a response object
       return {
-        success: false,
-        message: response.message || 'Empresa não encontrada'
+        success: true,
+        data: this.mapCompanyFromApi(response)
       };
     } catch (error) {
       console.error('Error fetching company by ID:', error);
@@ -94,6 +82,33 @@ class CompanyService {
         error: error.message
       };
     }
+  }
+
+  /**
+   * Map company data from API response to frontend format
+   * @param {Object} apiData - API response data
+   * @returns {Object} Mapped company data
+   */
+  mapCompanyFromApi(apiData) {
+    return {
+      id: apiData.id,
+      name: apiData.name,
+      cnpj: apiData.cnpj || '',
+      address: {
+        street: apiData.address?.street || '',
+        number: apiData.address?.number || '',
+        complement: apiData.address?.complement || '',
+        neighborhood: apiData.address?.neighborhood || '',
+        city: apiData.address?.city || '',
+        state: apiData.address?.state || '',
+        zipCode: apiData.address?.zipCode || ''
+      },
+      phone: {
+        mobile: apiData.phone?.mobile || '',
+        landline: apiData.phone?.landline || ''
+      },
+      dateTime: apiData.dateTime
+    };
   }
 
   /**
@@ -144,7 +159,7 @@ class CompanyService {
       // Map frontend data to backend DTO structure
       const updateDto = {
         name: companyData.name,
-        cnpj: companyData.cnpj,
+        cnpj: companyData.cnpj || null,
         address: {
           street: companyData.address.street,
           number: companyData.address.number,
@@ -162,18 +177,11 @@ class CompanyService {
 
       const response = await this.client.put(`/company/${companyId}`, updateDto);
 
-      if (response.success && response.data) {
-        return {
-          success: true,
-          data: response.data,
-          message: 'Empresa atualizada com sucesso'
-        };
-      }
-
+      // The API returns the company data directly, not wrapped in a response object
       return {
-        success: false,
-        message: response.message || 'Erro ao atualizar empresa',
-        errors: response.errors || []
+        success: true,
+        data: this.mapCompanyFromApi(response),
+        message: 'Empresa atualizada com sucesso'
       };
     } catch (error) {
       console.error('Error updating company:', error);
@@ -182,7 +190,7 @@ class CompanyService {
         return {
           success: false,
           message: error.data.message || 'Dados inválidos',
-          errors: error.data.errors || []
+          errors: Array.isArray(error.data.errors) ? error.data.errors : [error.data.message || 'Erro de validação']
         };
       }
       
