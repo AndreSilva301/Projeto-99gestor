@@ -8,6 +8,19 @@ const Sidebar = ({ isOpen, onClose, userRole = 'Administrator' }) => {
   const company = mockApiService.getCompany();
   const counts = mockApiService.getNavigationCounts();
 
+  // Get actual user data from localStorage to check permissions
+  const getUserData = () => {
+    const userData = localStorage.getItem('auth_user');
+    return userData ? JSON.parse(userData) : null;
+  };
+
+  const isAdminOrSystemAdmin = () => {
+    const userData = getUserData();
+    if (!userData) return false;
+    // Profile values: Admin = 1, SystemAdmin = 3
+    return userData.profile === 1 || userData.profile === 3;
+  };
+
   // Navigation items based on MVP requirements
   const navigationItems = [
     {
@@ -28,14 +41,14 @@ const Sidebar = ({ isOpen, onClose, userRole = 'Administrator' }) => {
       icon: 'file-text',
       badge: counts.quotes
     },
-    // Only show Employees for Administrators (MVP requirement)
-    ...(userRole === 'Administrator' ? [{
+    // Only show Employees for Administrators and SystemAdmin (MVP requirement)
+    ...(isAdminOrSystemAdmin() ? [{
       path: '/portal/employees',
       label: 'Colaboradores',
       icon: 'person-badge'
     }] : []),
-    // Only show Company for Administrators (MVP requirement)
-    ...(userRole === 'Administrator' ? [{
+    // Only show Company for Administrators and SystemAdmin (MVP requirement)
+    ...(isAdminOrSystemAdmin() ? [{
       path: '/portal/company',
       label: 'Empresa',
       icon: 'building'

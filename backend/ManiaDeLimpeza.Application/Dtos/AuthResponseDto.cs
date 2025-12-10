@@ -12,6 +12,7 @@ public class AuthResponseDto
     public int CompanyId { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
+    public UserProfile Profile { get; set; }
     public string BearerToken { get; set; } = string.Empty;
 
     public AuthResponseDto() { }
@@ -22,6 +23,7 @@ public class AuthResponseDto
         CompanyId = user.CompanyId;
         Name = user.Name;
         Email = user.Email;
+        Profile = user.Profile;
         BearerToken = bearerToken ?? string.Empty;
     }
 }

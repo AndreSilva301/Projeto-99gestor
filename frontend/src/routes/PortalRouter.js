@@ -12,6 +12,7 @@ import {
 import CustomerCreate from '../pages/portal/CustomerCreate';
 import CustomerEdit from '../pages/portal/CustomerEdit';
 import CustomerView from '../pages/portal/CustomerView';
+import EmployeeDetail from '../pages/portal/EmployeeDetail';
 import CompanySettings from '../pages/portal/settings/CompanySettings';
 
 const PortalRouter = () => {
@@ -25,6 +26,7 @@ const PortalRouter = () => {
         <Route path="customers/:id/view" element={<CustomerView />} />
         <Route path="quotes" element={<Quotes />} />
         <Route path="employees" element={<Employees />} />
+        <Route path="employees/:id" element={<EmployeeDetail />} />
         <Route path="company" element={<Company />} />
         <Route path="settings" element={<Settings />} />
         <Route path="settings/company" element={<CompanySettings />} />
