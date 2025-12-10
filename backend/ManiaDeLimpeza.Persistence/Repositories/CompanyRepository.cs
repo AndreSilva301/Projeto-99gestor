@@ -31,5 +31,11 @@ namespace ManiaDeLimpeza.Infrastructure.Repositories
         {
             return await _context.Companies.FirstOrDefaultAsync(c => c.Name.ToLower() == name.ToLower());
         }
+
+        public async Task UpdateAsync(Company company)
+        {
+            _context.Companies.Update(company);
+            await _context.SaveChangesAsync();
+        }
     }
 }

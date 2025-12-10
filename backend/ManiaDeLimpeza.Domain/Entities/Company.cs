@@ -18,4 +18,5 @@ public class Company
     public DateTime DateTime { get; set; } = DateTime.UtcNow;
 
     public List<User> Users { get; set; } = new();
+    public byte[]? LogoImagem { get; set; }
 }

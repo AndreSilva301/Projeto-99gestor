@@ -106,7 +106,6 @@ namespace ManiaDeLimpeza.Persistence
                 entity.Property(cr => cr.Id)
                     .ValueGeneratedOnAdd();
             });
-
         }
     }
 }

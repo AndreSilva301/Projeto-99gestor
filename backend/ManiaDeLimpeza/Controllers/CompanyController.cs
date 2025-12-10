@@ -3,8 +3,6 @@ using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Dtos.Mappers;
 using ManiaDeLimpeza.Application.Interfaces;
-using ManiaDeLimpeza.Domain.Entities;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManiaDeLimpeza.Api.Controllers;
@@ -58,5 +56,46 @@ public class CompanyController : AuthBaseController
             return NotFound(ApiResponseHelper.ErrorResponse($"Empresa com ID {id} não encontrada."));
 
         return Ok(updatedCompany.ToDto());
+    }
+
+    [HttpGet("{companyId}/logo")]
+    public async Task<IActionResult> GetLogo(int companyId)
+    {
+        var currentUser = CurrentUser;
+
+        if (!currentUser.IsAdminOrSysAdmin(companyId))
+            return StatusCode(StatusCodes.Status403Forbidden,
+                ApiResponseHelper.ErrorResponse("Acesso não autorizado."));
+
+        var logoBase64 = await _companyServices.GetLogoAsync(companyId);
+
+        if (logoBase64 == null)
+            return NotFound(ApiResponseHelper.ErrorResponse("A empresa não possui logo."));
+
+        return Ok(new { LogoBase64 = logoBase64 });
+    }
+
+    [HttpPut("{companyId}/logo")]
+    public async Task<IActionResult> UpdateLogo(int companyId, IFormFile file)
+    {
+        var currentUser = CurrentUser;
+
+        if (!currentUser.IsAdminOrSysAdmin(companyId))
+            return StatusCode(StatusCodes.Status403Forbidden,
+                ApiResponseHelper.ErrorResponse("Acesso não autorizado."));
+
+        if (file == null || file.Length == 0)
+            return BadRequest(ApiResponseHelper.ErrorResponse("Nenhum arquivo enviado."));
+
+        if (file.Length > 2 * 1024 * 1024)
+            return BadRequest(ApiResponseHelper.ErrorResponse("A imagem deve ter no máximo 2MB."));
+
+        var validTypes = new[] { "image/png", "image/jpeg", "image/jpg" };
+        if (!validTypes.Contains(file.ContentType))
+            return BadRequest(ApiResponseHelper.ErrorResponse("Formato inválido. Use PNG ou JPG."));
+
+        var result = await _companyServices.UpdateLogoAsync(companyId, file, currentUser);
+
+        return Ok(new { LogoBase64 = result });
     }
 }
