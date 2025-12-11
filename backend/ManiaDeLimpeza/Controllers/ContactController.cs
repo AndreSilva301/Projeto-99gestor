@@ -1,6 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ManiaDeLimpeza.Api.Controllers;
@@ -23,4 +22,4 @@ public class ContactController : ControllerBase
 
         return Ok(new { message = "Contato enviado com sucesso!" });
     }
-}
+} 

@@ -1,5 +1,6 @@
 ﻿using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Domain.Services;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
 using Microsoft.AspNetCore.Identity.UI.Services;
 
@@ -7,11 +8,11 @@ namespace ManiaDeLimpeza.Application.Services;
 
 public class ContactService : IContactService, IScopedDependency
 {
-    private readonly IEmailSender _emailSender;
+    private readonly IEmailServices _emailServices;
 
-    public ContactService(IEmailSender emailSender)
+    public ContactService(IEmailServices emailServices)
     {
-        _emailSender = emailSender;
+        _emailServices = emailServices;
     }
 
     public async Task ProcessContactAsync(ContactRequestDto dto)
@@ -21,12 +22,12 @@ public class ContactService : IContactService, IScopedDependency
             Nome: {dto.Name}
             Email: {dto.Email}
             Telefone: {dto.Phone}
-            Interesse: {dto.Interest}
+            Interesse: {dto.Interest.ToString()}
 
             Mensagem:
             {dto.Message}
         ";
 
-        await _emailSender.SendEmailAsync("contato@suasite.com", subject, body);
+        await _emailServices.SendContactEmail("contato@suasite.com", subject, body);
     }
 }

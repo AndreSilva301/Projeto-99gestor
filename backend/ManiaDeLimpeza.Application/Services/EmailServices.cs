@@ -28,4 +28,12 @@ public class EmailServices : IEmailServices, IScopedDependency
 
         return Task.CompletedTask;
     }
+    public Task SendContactEmail(string to, string subject, string body)
+    {
+        _logger.LogInformation("[Simulação] Email de contato enviado para: {to}", to);
+        _logger.LogInformation("[Simulação] Assunto: {subject}", subject);
+        _logger.LogInformation("[Simulação] Corpo da mensagem:\n{body}", body);
+
+        return Task.CompletedTask;
+    }
 }

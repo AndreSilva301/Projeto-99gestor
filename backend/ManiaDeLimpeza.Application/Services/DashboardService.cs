@@ -63,7 +63,7 @@ public class DashboardService : IDashboardService, IScopedDependency
             .SumAsync(q => (decimal?)q.TotalPrice) ?? 0;
 
         // Employees
-        var totalEmployees = await _db.Employees
+        var totalEmployees = await _db.Users
             .Where(e => e.CompanyId == companyId)
             .CountAsync();
 
