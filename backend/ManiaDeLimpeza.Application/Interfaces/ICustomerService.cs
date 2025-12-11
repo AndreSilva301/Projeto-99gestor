@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Dtos;
 using ManiaDeLimpeza.Domain.Entities;
 using System;
 using System.Collections.Generic;
@@ -18,5 +19,6 @@ namespace ManiaDeLimpeza.Application.Interfaces
         Task<IEnumerable<CustomerRelationshipDto>> AddOrUpdateRelationshipsAsync(int customerId, IEnumerable<CustomerRelationshipDto> dtos, int currentUserId);
         Task<IEnumerable<CustomerRelationshipDto>> ListRelationshipsAsync(int customerId,int currentUserId);
         Task DeleteRelationshipsAsync( int customerId, IEnumerable<int> relationshipIds, int currentUserId);
+        Task<CustomerStatsDto> GetStatsAsync(int companyId);
     }
 }

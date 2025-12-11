@@ -10,7 +10,29 @@ const CustomerCreate = () => {
   const handleSubmit = async (customerData) => {
     try {
       setLoading(true);
-      await customerService.createCustomer(customerData);
+      
+      // Transform the form data to match API structure (CustomerCreateDto)
+      const apiData = {
+        name: customerData.name,
+        phone: {
+          mobile: customerData.phone.mobile || null,
+          landline: customerData.phone.landline || null
+        },
+        address: {
+          street: customerData.address.street,
+          number: customerData.address.number,
+          complement: customerData.address.complement || null,
+          neighborhood: customerData.address.neighborhood,
+          city: customerData.address.city,
+          state: customerData.address.state,
+          zipCode: customerData.address.zipCode
+        },
+        email: customerData.email || '',
+        observations: null,
+        relationships: []
+      };
+      
+      await customerService.createCustomer(apiData);
       navigate('/portal/customers', { 
         state: { 
           message: 'Cliente criado com sucesso!',

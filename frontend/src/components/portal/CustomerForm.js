@@ -277,6 +277,14 @@ const CustomerForm = ({
     // At least one phone number is required
     if (!formData.phone.mobile.trim() && !formData.phone.landline.trim()) {
       setErrors(prev => ({ ...prev, phoneRequired: 'Pelo menos um telefone é obrigatório' }));
+      // Mark phone fields as touched to show validation
+      setTouched(prev => ({ ...prev, 'phone.mobile': true, 'phone.landline': true }));
+      
+      // Scroll to the error
+      const phoneSection = document.getElementById('phone.mobile');
+      if (phoneSection) {
+        phoneSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
       return;
     } else {
       setErrors(prev => {
@@ -292,6 +300,7 @@ const CustomerForm = ({
     }
     
     let isValid = true;
+    let firstErrorField = null;
     
     fieldsToValidate.forEach(field => {
       let value;
@@ -303,14 +312,39 @@ const CustomerForm = ({
       }
       
       const fieldValid = validateField(field, value);
-      if (!fieldValid) isValid = false;
+      if (!fieldValid && !firstErrorField) {
+        firstErrorField = field;
+        isValid = false;
+      } else if (!fieldValid) {
+        isValid = false;
+      }
     });
 
-    setTouched(fieldsToValidate.reduce((acc, field) => ({ ...acc, [field]: true }), {}));
+    // Mark all fields as touched to show validation errors
+    const touchedFields = fieldsToValidate.reduce((acc, field) => ({ ...acc, [field]: true }), {});
+    setTouched(touchedFields);
 
-    if (isValid) {
-      onSubmit(formData);
+    if (!isValid) {
+      // Scroll to first error field
+      if (firstErrorField) {
+        const errorElement = document.getElementById(firstErrorField);
+        if (errorElement) {
+          errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          errorElement.focus();
+        }
+      }
+      
+      // Show alert with validation errors
+      const errorMessages = Object.values(errors).filter(msg => msg).join('\n');
+      if (errorMessages) {
+        alert('Por favor, corrija os seguintes erros:\n\n' + errorMessages);
+      }
+      
+      return;
     }
+
+    // If all valid, submit the form
+    onSubmit(formData);
   };
 
   const isViewMode = mode === 'view';
@@ -515,7 +549,7 @@ const CustomerForm = ({
           )}
 
           {/* Registration Date (View mode only) */}
-          {isViewMode && customer && customer.dateTime && (
+          {isViewMode && customer && customer.registrationDate && (
             <div className="col-md-6 mb-3">
               <label className="form-label">Data de Cadastro</label>
               <div className="input-group">
@@ -531,7 +565,7 @@ const CustomerForm = ({
                     day: '2-digit',
                     hour: '2-digit',
                     minute: '2-digit'
-                  }).format(new Date(customer.dateTime))}
+                  }).format(new Date(customer.registrationDate))}
                   disabled
                 />
               </div>

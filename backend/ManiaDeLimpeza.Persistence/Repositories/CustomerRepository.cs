@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Dtos;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
@@ -43,6 +44,13 @@ namespace ManiaDeLimpeza.Persistence.Repositories
                         .Contains(EF.Functions.Collate(searchTerm, "SQL_Latin1_General_CP1_CI_AI"))
                     || EF.Functions.Collate(c.Email, "SQL_Latin1_General_CP1_CI_AI")
                         .Contains(EF.Functions.Collate(searchTerm, "SQL_Latin1_General_CP1_CI_AI"))
+                    || (c.Phone.Landline != null && c.Phone.Landline.Contains(searchTerm))
+                    || (c.Phone.Mobile != null && c.Phone.Mobile.Contains(searchTerm))
+                    || (c.Address.Street != null && c.Address.Street.Contains(searchTerm))
+                    || (c.Address.Number != null && c.Address.Number.Contains(searchTerm))
+                    || (c.Address.Neighborhood != null && c.Address.Neighborhood.Contains(searchTerm))
+                    || (c.Address.City != null && c.Address.City.Contains(searchTerm))
+                    || (c.Address.State != null && c.Address.State.Contains(searchTerm))
                 );
             }
 
@@ -193,6 +201,33 @@ namespace ManiaDeLimpeza.Persistence.Repositories
             }
 
             return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC);
+        }
+
+        public async Task<CustomerStatsDto> GetStatsAsync(int companyId)
+        {
+            var now = DateTime.UtcNow;
+            var firstDayOfMonth = new DateTime(now.Year, now.Month, 1);
+
+            var stats = new CustomerStatsDto
+            {
+                Total = await _context.Customers
+                    .Where(c => c.CompanyId == companyId && !c.IsDeleted)
+                    .CountAsync(),
+
+                Active = await _context.Customers
+                    .Where(c => c.CompanyId == companyId && !c.IsDeleted)
+                    .CountAsync(),
+
+                Inactive = await _context.Customers
+                    .Where(c => c.CompanyId == companyId && c.IsDeleted)
+                    .CountAsync(),
+
+                NewThisMonth = await _context.Customers
+                    .Where(c => c.CompanyId == companyId && !c.IsDeleted && c.CreatedDate >= firstDayOfMonth)
+                    .CountAsync()
+            };
+
+            return stats;
         }
     }
 }

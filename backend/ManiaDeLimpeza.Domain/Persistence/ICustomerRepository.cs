@@ -1,4 +1,5 @@
 ﻿using ManiaDeLimpeza.Application.Dtos;
+using ManiaDeLimpeza.Domain.Dtos;
 using ManiaDeLimpeza.Domain.Entities;
 using System.ComponentModel;
 
@@ -14,5 +15,6 @@ namespace ManiaDeLimpeza.Domain.Persistence
         Task SoftDeleteAsync(int customerId);
         Task<IEnumerable<CustomerRelationship>> AddOrUpdateRelationshipsAsync(int customerId, IEnumerable<CustomerRelationship> relationships);
         Task DeleteRelationshipsAsync(IEnumerable<int> relationshipIds, int customerId);
+        Task<CustomerStatsDto> GetStatsAsync(int companyId);
     }
 }

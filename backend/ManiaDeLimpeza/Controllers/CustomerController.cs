@@ -2,6 +2,7 @@
 using ManiaDeLimpeza.Api.Response;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Domain.Dtos;
 using ManiaDeLimpeza.Domain.Entities;
 using Microsoft.AspNetCore.Mvc;
 
@@ -70,6 +71,18 @@ namespace ManiaDeLimpeza.Api.Controllers
             var result = await _customerService.ListRelationshipsAsync(id, currentUser.CompanyId);
             var ordered = result.OrderByDescending(r => r.DateTime);
             return Ok(ApiResponseHelper.SuccessResponse(ordered, "Relationships retrieved successfully."));
+        }
+
+        /// <summary>
+        /// Gets customer statistics for the current company.
+        /// </summary>
+        [HttpGet("stats")]
+        [ProducesResponseType(typeof(ApiResponse<CustomerStatsDto>), StatusCodes.Status200OK)]
+        public async Task<ActionResult<ApiResponse<CustomerStatsDto>>> GetStats()
+        {
+            var currentUser = GetCurrentUserOrThrow();
+            var stats = await _customerService.GetStatsAsync(currentUser.CompanyId);
+            return Ok(ApiResponseHelper.SuccessResponse(stats, "Statistics retrieved successfully."));
         }
 
         /// <summary>

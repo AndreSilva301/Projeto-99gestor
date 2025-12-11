@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import Icon from '../../components/common/Icon';
 import DataTable from '../../components/common/DataTable';
-import { customerService, formatPhone, formatDate, getStatusLabel, getStatusColor } from '../../services/customerService';
+import { customerService, formatPhone, formatAddress, formatDate, getStatusLabel, getStatusColor } from '../../services/customerService';
 import { useHeader } from '../../contexts/HeaderContext';
 
 const Customers = () => {
@@ -142,11 +142,14 @@ const Customers = () => {
       accessor: 'address',
       header: 'Endereço',
       width: '30%',
-      render: (customer) => (
-        <div className="text-truncate" style={{ maxWidth: '200px' }} title={customer.address}>
-          {customer.address}
-        </div>
-      )
+      render: (customer) => {
+        const formattedAddress = formatAddress(customer.address);
+        return (
+          <div className="text-truncate" style={{ maxWidth: '250px' }} title={formattedAddress}>
+            {formattedAddress}
+          </div>
+        );
+      }
     },
     {
       accessor: 'status',

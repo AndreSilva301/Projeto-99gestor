@@ -7,6 +7,7 @@ public class CustomerListItemDto : IBasicDto
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public PhoneDto Phone { get; set; } = new PhoneDto();
+    public string ShortAddress { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime? UpdatedDate { get; set; }
     public List<string> Validate()

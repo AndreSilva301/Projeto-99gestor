@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using ManiaDeLimpeza.Application.Dtos;
 using ManiaDeLimpeza.Application.Interfaces;
+using ManiaDeLimpeza.Domain.Dtos;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
@@ -183,6 +184,11 @@ namespace ManiaDeLimpeza.Application.Services
                 throw new BusinessException($"Os relationships [{string.Join(", ", invalidIds)}] não pertencem ao customer {customerId}.");
 
             await _customerRepository.DeleteRelationshipsAsync(relationshipIds, customerId);
+        }
+
+        public async Task<CustomerStatsDto> GetStatsAsync(int companyId)
+        {
+            return await _customerRepository.GetStatsAsync(companyId);
         }
     }
 }

@@ -17,6 +17,9 @@ const CustomerEdit = () => {
   const loadCustomer = async () => {
     try {
       const customerData = await customerService.getCustomerById(id);
+      
+      // Data should already be in the correct format from mapCustomerFromApi
+      // No transformation needed
       setCustomer(customerData);
     } catch (error) {
       console.error('Erro ao carregar cliente:', error);
@@ -30,7 +33,28 @@ const CustomerEdit = () => {
   const handleSubmit = async (customerData) => {
     try {
       setLoading(true);
-      await customerService.updateCustomer(id, customerData);
+      
+      // Transform the form data to match API structure (CustomerUpdateDto)
+      const apiData = {
+        name: customerData.name,
+        phone: {
+          mobile: customerData.phone.mobile || null,
+          landline: customerData.phone.landline || null
+        },
+        address: {
+          street: customerData.address.street,
+          number: customerData.address.number,
+          complement: customerData.address.complement || null,
+          neighborhood: customerData.address.neighborhood,
+          city: customerData.address.city,
+          state: customerData.address.state,
+          zipCode: customerData.address.zipCode
+        },
+        email: customerData.email || '',
+        observations: customerData.observations || null
+      };
+      
+      await customerService.updateCustomer(id, apiData);
       navigate('/portal/customers', { 
         state: { 
           message: 'Cliente atualizado com sucesso!',
@@ -46,13 +70,28 @@ const CustomerEdit = () => {
   };
 
   const handleAddRelationship = async (relationshipText) => {
-    await customerService.addCustomerRelationship(id, relationshipText);
-    loadCustomer(); // Reload to get updated relationships
+    try {
+      const newRelationship = {
+        id: 0, // 0 indicates a new relationship
+        description: relationshipText,
+        dateTime: new Date().toISOString()
+      };
+      await customerService.addOrUpdateCustomerRelationships(id, [newRelationship]);
+      loadCustomer(); // Reload to get updated relationships
+    } catch (error) {
+      console.error('Erro ao adicionar relacionamento:', error);
+      alert('Erro ao adicionar relacionamento. Tente novamente.');
+    }
   };
 
   const handleDeleteRelationship = async (relationshipId) => {
-    await customerService.deleteCustomerRelationship(id, relationshipId);
-    loadCustomer(); // Reload to get updated relationships
+    try {
+      await customerService.deleteCustomerRelationships(id, [relationshipId]);
+      loadCustomer(); // Reload to get updated relationships
+    } catch (error) {
+      console.error('Erro ao excluir relacionamento:', error);
+      alert('Erro ao excluir relacionamento. Tente novamente.');
+    }
   };
 
   const handleCancel = () => {

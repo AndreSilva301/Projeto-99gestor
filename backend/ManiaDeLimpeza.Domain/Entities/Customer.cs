@@ -29,5 +29,20 @@ namespace ManiaDeLimpeza.Domain.Entities
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedDate { get; set; }
         public bool IsDeleted { get; set; } = false;
+
+        public string ShortAddress
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(Address.Street)
+                    && !string.IsNullOrEmpty(Address.Number)
+                    && !string.IsNullOrEmpty(Address.Neighborhood)
+                    && !string.IsNullOrEmpty(Address.City))
+                {
+                    return $"{Address.Street}, {Address.Number} - {Address.Neighborhood} - {Address.City}";
+                }
+                return "Endereço não disponível";
+            }
+        }
     }
 }
