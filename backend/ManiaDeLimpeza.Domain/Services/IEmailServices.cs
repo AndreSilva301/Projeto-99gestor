@@ -6,4 +6,5 @@ public interface IEmailServices
 {
     Task SendForgetPasswordEmail(string email, string token);
     Task SendingAnInvitation(string name, string email, UserProfile userProfile);
+    Task SendContactEmail(string to, string subject, string body);
 }

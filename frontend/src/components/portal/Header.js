@@ -32,16 +32,6 @@ const Header = ({ onToggleSidebar }) => {
 
       {/* Actions section */}
       <div className="portal-header-actions">
-        {/* Last update time */}
-        <div style={{ textAlign: 'right', marginRight: '16px' }}>
-          <small style={{ color: '#6c757d', display: 'block' }}>
-            Last updated
-          </small>
-          <strong style={{ fontSize: '0.875rem' }}>
-            Today, {getCurrentTime()}
-          </strong>
-        </div>
-
         {/* Notifications - Future feature */}
         <button
           className="portal-header-action-btn"

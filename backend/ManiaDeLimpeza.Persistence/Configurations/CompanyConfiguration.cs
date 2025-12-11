@@ -14,6 +14,8 @@ public class CompanyConfiguration : IEntityTypeConfiguration<Company>
         builder.Property(c => c.CNPJ)
             .HasMaxLength(18);
 
+        builder.Property(C => C.LogoImagem);
+           
         builder.OwnsOne(c => c.Address, address =>
         {
             address.Property(a => a.Street).HasMaxLength(150);

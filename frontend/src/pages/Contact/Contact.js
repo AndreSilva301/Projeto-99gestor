@@ -126,21 +126,21 @@ const Contact = () => {
             <div className="contact-info">
               <div className="contact-icon">📞</div>
               <h5>Telefone</h5>
-              <p>(11) 9999-9999</p>
+              <p>(27) 99984-8700</p>
             </div>
           </div>
           <div className="col-md-4 text-center mb-4">
             <div className="contact-info">
               <div className="contact-icon">📧</div>
               <h5>E-mail</h5>
-              <p>contato@99gestor.com.br</p>
+              <p>welber91@hotmail.com</p>
             </div>
           </div>
           <div className="col-md-4 text-center mb-4">
             <div className="contact-info">
               <div className="contact-icon">📍</div>
               <h5>Localização</h5>
-              <p>São Paulo, SP</p>
+              <p>Linhares, ES</p>
             </div>
           </div>
         </div>

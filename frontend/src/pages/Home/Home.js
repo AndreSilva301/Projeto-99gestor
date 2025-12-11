@@ -12,7 +12,7 @@ const Home = () => {
             Bem-vindo ao <span className="text-success">99Gestor</span>
           </h1>
           <p className="lead mb-4">
-            CRM especializado para prestadores de serviços em geral
+            CRM especializado em gestão de clientes para prestador de serviços.
           </p>
           <Link to="/register" className="btn btn-success btn-lg">
             Comece Gratuitamente
