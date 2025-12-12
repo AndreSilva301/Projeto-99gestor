@@ -16,7 +16,7 @@ public class DashboardController : AuthBaseController
         _dashboardService = dashboardService;
     }
 
-    [HttpGet("estatisticas")]
+    [HttpGet("stats")]
     [ProducesResponseType(typeof(ApiResponse<DashboardStatsDto>), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStats()
     {

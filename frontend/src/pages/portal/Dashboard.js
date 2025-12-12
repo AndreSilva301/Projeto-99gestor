@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { mockApiService, formatCurrency } from '../../services/mockApi';
+import { dashboardService } from '../../services/dashboardService';
+import { formatCurrency } from '../../services/quoteService';
 import { Icon } from '../../components/common';
 import { useHeader } from '../../contexts/HeaderContext';
 
@@ -47,19 +48,23 @@ const Dashboard = () => {
   const { updateHeader } = useHeader();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     updateHeader('Painel de controle', 'Bem-vindo ao seu painel de controle CRM');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const dashboardStats = mockApiService.getDashboardStats();
+        setLoading(true);
+        setError(null);
+        const dashboardStats = await dashboardService.getStats();
         setStats(dashboardStats);
       } catch (error) {
         console.error('Error loading dashboard data:', error);
+        setError(error.message || 'Erro ao carregar dados do dashboard');
       } finally {
         setLoading(false);
       }
@@ -90,15 +95,53 @@ const Dashboard = () => {
         height: '400px',
         color: '#6c757d'
       }}>
-        Loading dashboard...
+        <div style={{ textAlign: 'center' }}>
+          <div className="spinner" style={{ margin: '0 auto 16px' }}></div>
+          <p>Carregando dashboard...</p>
+        </div>
       </div>
     );
+  }
+
+  if (error) {
+    return (
+      <div style={{ 
+        background: 'white',
+        borderRadius: 'var(--portal-border-radius)',
+        padding: '32px',
+        boxShadow: 'var(--portal-shadow)',
+        marginBottom: '32px',
+        textAlign: 'center'
+      }}>
+        <Icon name="x-circle" size={48} style={{ color: '#dc3545', marginBottom: '16px' }} />
+        <h3 style={{ margin: '0 0 8px 0', color: 'var(--portal-dark)' }}>
+          Erro ao carregar dashboard
+        </h3>
+        <p style={{ 
+          margin: '0 0 24px 0',
+          color: 'var(--portal-secondary)',
+          lineHeight: '1.6'
+        }}>
+          {error}
+        </p>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="btn btn-primary"
+          style={{ margin: '0 auto' }}
+        >
+          <Icon name="refresh-cw" /> Tentar novamente
+        </button>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return null;
   }
 
   return (
     <div className="portal-dashboard">
 
-      {/* Welcome Message — MOVIDO PARA O TOPO */}
       <div style={{ 
         background: 'white',
         borderRadius: 'var(--portal-border-radius)',
@@ -118,17 +161,6 @@ const Dashboard = () => {
           Este é o seu painel MVP. Use as ações rápidas acima para começar a gerenciar seus clientes e orçamentos. 
           Os recursos do sistema, como agendamentos, avaliações e CRM, estão disponíveis para ajudar você a se organizar e manter sua gestão em dia.
         </p>
-        <div style={{ 
-          marginTop: '20px',
-          padding: '16px',
-          background: '#f8f9fa',
-          borderRadius: 'var(--portal-border-radius-sm)',
-          borderLeft: '4px solid var(--portal-primary)'
-        }}>
-          <strong style={{ color: 'var(--portal-primary)' }}>Recursos MVP disponíveis:</strong>
-          <br />
-          ✅ Gestão de Clientes • ✅ Criação de Orçamentos • ✅ Gestão de Funcionários (Somente para Administrator) • ✅ Configuração da Empresa
-        </div>
       </div>
 
       {/* Statistics Cards */}
