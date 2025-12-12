@@ -49,18 +49,13 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    updateHeader('Dashboard', 'Bem-vindo ao seu painel de controle CRM');
+    updateHeader('Painel de controle', 'Bem-vindo ao seu painel de controle CRM');
   }, []);
 
-  // Load dashboard data
   useEffect(() => {
-    // Update header when component mounts
-    
     const loadDashboardData = async () => {
       try {
-        // Simulate API call delay
         await new Promise(resolve => setTimeout(resolve, 500));
-        
         const dashboardStats = mockApiService.getDashboardStats();
         setStats(dashboardStats);
       } catch (error) {
@@ -73,27 +68,16 @@ const Dashboard = () => {
     loadDashboardData();
   }, []);
 
-  // Quick actions based on MVP requirements
   const quickActions = [
     {
       icon: 'person-plus-fill',
-      label: 'Add Customer',
+      label: 'Adicionar cliente',
       to: '/portal/customers/new'
     },
     {
       icon: 'file-plus-fill',
-      label: 'Create Quote',
+      label: 'Criar orçamento',
       to: '/portal/quotes/new'
-    },
-    {
-      icon: 'calendar-event',
-      label: 'Schedule Service',
-      onClick: () => alert('Coming soon in Phase 2!')
-    },
-    {
-      icon: 'gear-fill',
-      label: 'Settings',
-      to: '/portal/settings'
     }
   ];
 
@@ -113,49 +97,95 @@ const Dashboard = () => {
 
   return (
     <div className="portal-dashboard">
+
+      {/* Welcome Message — MOVIDO PARA O TOPO */}
+      <div style={{ 
+        background: 'white',
+        borderRadius: 'var(--portal-border-radius)',
+        padding: '24px',
+        boxShadow: 'var(--portal-shadow)',
+        marginBottom: '32px',
+        textAlign: 'center'
+      }}>
+        <h3 style={{ margin: '0 0 16px 0', color: 'var(--portal-dark)' }}>
+          Bem-vindo ao seu painel de controle do CRM! 🎉
+        </h3>
+        <p style={{ 
+          margin: '0',
+          color: 'var(--portal-secondary)',
+          lineHeight: '1.6'
+        }}>
+          Este é o seu painel MVP. Use as ações rápidas acima para começar a gerenciar seus clientes e orçamentos. 
+          Os recursos do sistema, como agendamentos, avaliações e CRM, estão disponíveis para ajudar você a se organizar e manter sua gestão em dia.
+        </p>
+        <div style={{ 
+          marginTop: '20px',
+          padding: '16px',
+          background: '#f8f9fa',
+          borderRadius: 'var(--portal-border-radius-sm)',
+          borderLeft: '4px solid var(--portal-primary)'
+        }}>
+          <strong style={{ color: 'var(--portal-primary)' }}>Recursos MVP disponíveis:</strong>
+          <br />
+          ✅ Gestão de Clientes • ✅ Criação de Orçamentos • ✅ Gestão de Funcionários (Somente para Administrator) • ✅ Configuração da Empresa
+        </div>
+      </div>
+
       {/* Statistics Cards */}
       <div className="portal-stats-grid">
-        <StatsCard
-          icon="people-fill"
-          label="Total Customers"
-          value={stats.totalCustomers}
-          change={{
-            text: `+${stats.customersGrowth.value} ${stats.customersGrowth.period}`,
-            trend: stats.customersGrowth.trend
+       <StatsCard
+       icon="people-fill"
+       label="Total de clientes"
+       value={stats.totalCustomers}
+       change={{
+        text: `+${stats.customersThisMonth} novos clientes`,
+        trend:
+         stats.customersThisMonth > 0
+          ? 'positive'
+          : stats.customersThisMonth < 0
+          ? 'negative'
+          : 'neutral'
           }}
-          gradient="portal-gradient-success"
-        />
+         gradient="portal-gradient-success"
+       />
         
         <StatsCard
           icon="file-text-fill"
-          label="Pending Quotes"
+          label="Orçamentos pendentes"
           value={stats.pendingQuotes}
           change={{
-            text: stats.quotesStatus.text,
-            trend: stats.quotesStatus.trend
+            text: `+${stats.quotesThisMonth} novos orçamentos`,
+            trend:
+              stats.quotesThisMonth > 0
+              ? 'positive'
+              : stats.quotesThisMonth < 0
+              ? 'negative'
+              : 'neutral'
           }}
           gradient="portal-gradient-warning"
         />
         
         <StatsCard
           icon="currency-dollar"
-          label="Monthly Revenue"
+          label="Receita mensal"
           value={formatCurrency(stats.monthlyRevenue)}
           change={{
-            text: `+${stats.revenueGrowth.value}% ${stats.revenueGrowth.period}`,
-            trend: stats.revenueGrowth.trend
+            text: `${formatCurrency(stats.revenueLastMonth)} mês anterior`,
+            trend: 
+            stats.revenueThisMonth > stats.revenueLastMonth
+              ? 'positive'
+              : stats.revenueThisMonth < stats.revenueLastMonth
+              ? 'negative'
+              : 'neutral'
           }}
           gradient="portal-gradient-info"
         />
         
         <StatsCard
           icon="person-badge-fill"
-          label="Active Employees"
+          label="Funcionários ativos"
           value={stats.activeEmployees}
-          change={{
-            text: stats.employeesStatus.text,
-            trend: stats.employeesStatus.trend
-          }}
+          change={null}
           gradient="portal-gradient-danger"
         />
       </div>
@@ -164,7 +194,7 @@ const Dashboard = () => {
       <div className="portal-quick-actions">
         <div className="portal-quick-actions-header">
           <Icon name="lightning-charge-fill" size={24} />
-          <h2 className="portal-quick-actions-title">Quick Actions</h2>
+          <h2 className="portal-quick-actions-title">Ações Rápidas</h2>
         </div>
         <div className="portal-quick-actions-grid">
           {quickActions.map((action, index) => (
@@ -179,38 +209,6 @@ const Dashboard = () => {
         </div>
       </div>
 
-      {/* Welcome Message */}
-      <div style={{ 
-        background: 'white',
-        borderRadius: 'var(--portal-border-radius)',
-        padding: '24px',
-        boxShadow: 'var(--portal-shadow)',
-        marginTop: '32px',
-        textAlign: 'center'
-      }}>
-        <h3 style={{ margin: '0 0 16px 0', color: 'var(--portal-dark)' }}>
-          Welcome to your CRM Dashboard! 🎉
-        </h3>
-        <p style={{ 
-          margin: '0',
-          color: 'var(--portal-secondary)',
-          lineHeight: '1.6'
-        }}>
-          This is your MVP dashboard. Use the quick actions above to start managing your customers and quotes. 
-          More features like service scheduling, evaluations, and proactive CRM will be available in future phases.
-        </p>
-        <div style={{ 
-          marginTop: '20px',
-          padding: '16px',
-          background: '#f8f9fa',
-          borderRadius: 'var(--portal-border-radius-sm)',
-          borderLeft: '4px solid var(--portal-primary)'
-        }}>
-          <strong style={{ color: 'var(--portal-primary)' }}>MVP Features Available:</strong>
-          <br />
-          ✅ Customer Management • ✅ Quote Creation • ✅ Employee Management (Admin only) • ✅ Company Settings
-        </div>
-      </div>
     </div>
   );
 };

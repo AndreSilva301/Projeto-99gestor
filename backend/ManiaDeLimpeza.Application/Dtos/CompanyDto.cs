@@ -12,5 +12,5 @@ public class CompanyDto
     public PhoneDto Phone { get; set; } = new PhoneDto();
 
     public DateTime DateTime { get; set; }
-    
+
 }

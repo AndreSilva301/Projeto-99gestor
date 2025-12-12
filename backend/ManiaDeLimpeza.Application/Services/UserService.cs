@@ -34,6 +34,14 @@ namespace ManiaDeLimpeza.Application.Services
                 throw new BusinessException("A user with this email already exists.");
             }
 
+            if (!password.IsValidPassword())
+            {
+                throw new BusinessException(
+                    "A senha contém caracteres inválidos. Caracteres permitidos: " +
+                    "letras (A–Z, a–z), números (0–9) e os caracteres especiais: @ # $ % ^ & * ! + = - . _"
+                );
+            }
+
             user.PasswordHash = PasswordHelper.Hash(password, user);
 
             var createdUser = await _userRepository.AddAsync(user);

@@ -4,6 +4,8 @@ using ManiaDeLimpeza.Application.Interfaces;
 using ManiaDeLimpeza.Domain.Entities;
 using ManiaDeLimpeza.Domain.Persistence;
 using ManiaDeLimpeza.Infrastructure.DependencyInjection;
+using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace ManiaDeLimpeza.Application.Services;
 public class CompanyServices : ICompanyServices, IScopedDependency
@@ -102,4 +104,25 @@ public class CompanyServices : ICompanyServices, IScopedDependency
         await _companyRepository.UpdateAsync(company);
         return company;
     }
+    public async Task<string?> GetLogoAsync(int companyId)
+    {
+        var company = await _companyRepository.GetByIdAsync(companyId);
+        if (company == null || company.LogoImagem == null)
+            return null;
+        return Convert.ToBase64String(company.LogoImagem);
+    }
+    public async Task<string?> UpdateLogoAsync(int companyId, IFormFile file, User currentUser)
+    {
+        if (!currentUser.IsAdminOrSysAdmin(companyId))
+            throw new UnauthorizedAccessException("Acesso não autorizado.");
+        var company = await _companyRepository.GetByIdAsync(companyId);
+        if (company == null)
+            return null;
+        using var memoryStream = new MemoryStream();
+        await file.CopyToAsync(memoryStream);
+        company.LogoImagem = memoryStream.ToArray();
+        await _companyRepository.UpdateAsync(company);
+        return Convert.ToBase64String(company.LogoImagem);
+    }
+
 }

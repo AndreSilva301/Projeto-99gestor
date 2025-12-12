@@ -13,7 +13,7 @@ export const mockApiService = {
   // Company data
   getCompany: () => ({
     id: 1,
-    name: 'ManiaDeLimpeza',
+    name: '99Gestor',
     cnpj: '12.345.678/0001-90',
     createdDate: '2024-01-15T10:00:00Z'
   }),
