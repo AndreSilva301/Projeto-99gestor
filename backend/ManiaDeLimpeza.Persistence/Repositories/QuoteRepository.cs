@@ -95,6 +95,7 @@ namespace ManiaDeLimpeza.Persistence.Repositories
         {
             return await _context.Quotes
                    .Include(c => c.QuoteItems)
+                   .Include(q => q.Customer)
                    .FirstOrDefaultAsync(c => c.Id == id);
         }
     }
