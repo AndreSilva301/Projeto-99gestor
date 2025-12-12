@@ -38,15 +38,28 @@ const Login = () => {
     // Implement login logic
     var response = await authService.login(formData);
     if(response.success){
-      navigate('/portal/', { 
-        state: { 
-          message: 'Bem-vindo ao 99Gestor!' 
-        }
-      });
-    }else{
-      setSuccessMessage(response.errors.join(", ") || 'Erro ao fazer login. Tente novamente.');
-    }
-  };
+      localStorage.setItem('user', JSON.stringify({
+      id: response.data.id,
+      name: response.data.name,
+      email: response.data.email,
+      role: response.data.role,
+      companyId: response.data.companyId,
+      avatar: response.data.avatar
+    }));
+
+    // Navega para o portal
+    navigate('/portal/', {
+      state: {
+        message: 'Bem-vindo ao 99Gestor!'
+      }
+    });
+
+  } else {
+    setSuccessMessage(
+      response.errors?.join(", ") || 'Erro ao fazer login. Tente novamente.'
+    );
+  }
+};
 
   return (
     <div className="login-page">

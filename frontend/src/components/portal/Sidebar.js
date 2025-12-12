@@ -14,6 +14,13 @@ const Sidebar = ({ isOpen, onClose, userRole = 'Administrator' }) => {
     return userData ? JSON.parse(userData) : null;
   };
 
+  const authUser = getUserData() || {};
+
+  // Dados reais do usuário
+  const displayName = authUser.name || authUser.fullName || user.name || 'Usuário';
+  const displayRole = authUser.roleName || authUser.role || user.role || 'Administrador';
+  const displayEmail = authUser.email || '';
+
   const isAdminOrSystemAdmin = () => {
     const userData = getUserData();
     if (!userData) return false;
@@ -104,8 +111,13 @@ const Sidebar = ({ isOpen, onClose, userRole = 'Administrator' }) => {
           <div className="portal-sidebar-user-avatar">
             <Icon name="person-circle" size={24} />
           </div>
-          <div className="portal-sidebar-user-name">{user.name}</div>
-          <div className="portal-sidebar-user-role">{user.role}</div>
+
+          <div className="portal-sidebar-user-name">{displayName}</div>
+          <div className="portal-sidebar-user-role">{displayRole}</div>
+
+          {displayEmail && (
+            <div className="portal-sidebar-user-email">{displayEmail}</div>
+          )}
         </div>
 
         {/* Navigation */}

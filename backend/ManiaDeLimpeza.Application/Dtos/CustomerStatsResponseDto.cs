@@ -3,7 +3,7 @@ namespace ManiaDeLimpeza.Application.Dtos
     /// <summary>
     /// DTO for customer statistics
     /// </summary>
-    public class CustomerStatsDto
+    public class CustomerStatsResponseDto
     {
         /// <summary>
         /// Total number of customers (excluding deleted)
