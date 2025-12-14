@@ -7,17 +7,28 @@ namespace ManiaDeLimpeza.Api.Extensions
     {
         public static IServiceCollection AddConfiguredCors(this IServiceCollection services, IConfiguration configuration)
         {
-            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+            var allowedOrigins = configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() ?? Array.Empty<string>();
 
             services.AddCors(options =>
             {
                 options.AddPolicy("DefaultCorsPolicy", builder =>
                 {
-                    builder
-                        .WithOrigins(allowedOrigins ?? Array.Empty<string>())
-                        .AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowCredentials();
+                    // Check if wildcard is configured (for development)
+                    if (allowedOrigins.Contains("*"))
+                    {
+                        builder
+                            .AllowAnyOrigin()
+                            .AllowAnyHeader()
+                            .AllowAnyMethod();
+                    }
+                    else
+                    {
+                        builder
+                            .WithOrigins(allowedOrigins)
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                    }
                 });
             });
 
