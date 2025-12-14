@@ -1,4 +1,7 @@
-﻿namespace ManiaDeLimpeza.Api.Extensions
+﻿using ManiaDeLimpeza.Persistence;
+using Microsoft.EntityFrameworkCore;
+
+namespace ManiaDeLimpeza.Api.Extensions
 {
     public static class ServiceCollectionExtensions
     {
@@ -17,6 +20,16 @@
                         .AllowCredentials();
                 });
             });
+
+            return services;
+        }
+
+        public static IServiceCollection AddConfiguredHealthChecks(this IServiceCollection services)
+        {
+            services.AddHealthChecks()
+                .AddDbContextCheck<ApplicationDbContext>(
+                    name: "database",
+                    tags: new[] { "db", "sql", "sqlserver" });
 
             return services;
         }
