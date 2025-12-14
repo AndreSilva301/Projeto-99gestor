@@ -69,8 +69,15 @@ public class Program
                     }
                 });
         });
+        
         builder.Services.AddDbContext<ApplicationDbContext>(options =>
             options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+        // Configure Health Checks
+        builder.Services.AddHealthChecks()
+            .AddDbContextCheck<ApplicationDbContext>(
+                name: "database",
+                tags: new[] { "db", "sql", "sqlserver" });
 
         builder.Services.Configure<ResetPasswordOptions>(
             builder.Configuration.GetSection(ResetPasswordOptions.SECTION));
@@ -102,6 +109,10 @@ public class Program
         app.UseAuthentication();
         app.UseMiddleware<UserFetchMiddleware>();
         app.UseAuthorization();
+        
+        // Map Health Checks endpoint
+        app.MapHealthChecks("/health");
+        
         app.MapControllers();
         app.Run();
     }
