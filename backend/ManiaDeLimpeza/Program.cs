@@ -107,10 +107,18 @@ public class Program
         app.UseMiddleware<UserFetchMiddleware>();
         app.UseAuthorization();
         
+        // Serve static files from wwwroot (React app)
+        app.UseDefaultFiles();
+        app.UseStaticFiles();
+        
         // Map Health Checks endpoint
         app.MapConfiguredHealthChecks();
         
         app.MapControllers();
+        
+        // Fallback to index.html for client-side routing (React Router)
+        app.MapFallbackToFile("index.html");
+        
         app.Run();
     }
 }

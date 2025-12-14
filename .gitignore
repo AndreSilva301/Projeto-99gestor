@@ -484,3 +484,4 @@ $RECYCLE.BIN/
 *.swp
 /backend/coverage/report
 /backend/ManiaDeLimpeza/appsettings.Development.json
+/backend/ManiaDeLimpeza/wwwroot
