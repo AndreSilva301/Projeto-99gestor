@@ -22,7 +22,7 @@ public class ContactService : IContactService, IScopedDependency
             Nome: {dto.Name}
             Email: {dto.Email}
             Telefone: {dto.Phone}
-            Interesse: {dto.Interest.ToString()}
+            Interesse: {dto.Interest}
 
             Mensagem:
             {dto.Message}
