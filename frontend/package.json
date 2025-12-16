@@ -20,7 +20,8 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "build:dev": "cross-env REACT_APP_API_BASE_URL=http://welberreis-001-site1.site4future.com/api react-scripts build",
+    "build:dev": "cross-env REACT_APP_API_BASE_URL=http://api-dev.99gestor.com.br/api react-scripts build",
+    "build:prod": "cross-env REACT_APP_API_BASE_URL=https://www.99gestor.com.br/api react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },

@@ -485,3 +485,4 @@ $RECYCLE.BIN/
 /backend/coverage/report
 /backend/ManiaDeLimpeza/appsettings.Development.json
 /backend/ManiaDeLimpeza/wwwroot
+/backend/ManiaDeLimpeza/appsettings.Production.json
