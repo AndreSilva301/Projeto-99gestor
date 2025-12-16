@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Contact.css';
+import { httpClient } from '../../services/httpClient';
 
 const Contact = () => {
   const [formData, setFormData] = useState({
@@ -17,11 +18,25 @@ const Contact = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // TODO: Implement form submission
-    console.log('Form submitted:', formData);
-    alert('Mensagem enviada! Entraremos em contato em breve.');
+
+    const payload = {
+      name: formData.name,
+      email: formData.email,
+      phone: formData.phone,
+      interest: formData.service, // 🔥 MAPEIA para o que o back-end espera
+      message: formData.message
+    };
+
+    try {
+      const response = await httpClient.post("/contact", payload);
+      alert(response.message);
+
+    } catch (error) {
+      console.error("Erro ao enviar:", error);
+      alert("Falha ao enviar o formulário. Tente novamente.");
+    }
   };
 
   return (

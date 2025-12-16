@@ -1,22 +1,26 @@
 // Mock API service for portal data
 export const mockApiService = {
   // User data
-  getCurrentUser: () => ({
-    id: 1,
-    name: 'Welber Reis',
-    email: 'welber@example.com',
-    role: 'Administrator',
-    companyId: 1,
-    avatar: null
-  }),
+ getCurrentUser: () => {
+  const storedUser = JSON.parse(localStorage.getItem('user'));
 
-  // Company data
-  getCompany: () => ({
-    id: 1,
-    name: '99Gestor',
-    cnpj: '12.345.678/0001-90',
-    createdDate: '2024-01-15T10:00:00Z'
-  }),
+  return {
+    id: storedUser?.id || 1,
+    name: storedUser?.name || 'Usuário',
+    email: storedUser?.email || '',
+    role: storedUser?.role || 'Administrator',
+    companyId: storedUser?.companyId || 1,
+    avatar: storedUser?.avatar || null
+  };
+}, 
+
+// Company data
+getCompany: () => ({
+  id: 1,
+  name: '99Gestor',
+  cnpj: '12.345.678/0001-90',
+  createdDate: '2024-01-15T10:00:00Z'
+}),
 
   // Dashboard statistics
   getDashboardStats: () => ({
