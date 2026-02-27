@@ -212,13 +212,6 @@ ManiaDeLimpeza/
 
 ---
 
-## 👨‍💻 Author
-
-**Welber Reis**
-- GitHub: [@welber91](https://github.com/welber91)
-
----
-
 ## 🙏 Acknowledgments
 
 Built with modern development practices focusing on:
