@@ -102,7 +102,7 @@ getCompany: () => ({
       id: 1,
       type: 'quote_created',
       description: 'New quote created for Maria Silva',
-      user: 'Welber Reis',
+      user: 'teste1',
       timestamp: '2024-10-02T10:15:00Z',
       icon: 'file-text'
     },
@@ -110,7 +110,7 @@ getCompany: () => ({
       id: 2,
       type: 'customer_added',
       description: 'New customer João Santos added',
-      user: 'Welber Reis',
+      user: 'teste2',
       timestamp: '2024-10-01T16:45:00Z',
       icon: 'user-plus'
     },
@@ -126,7 +126,7 @@ getCompany: () => ({
       id: 4,
       type: 'employee_added',
       description: 'New employee Carlos Silva added',
-      user: 'Welber Reis',
+      user: 'teste3',
       timestamp: '2024-09-30T09:30:00Z',
       icon: 'user-plus'
     }

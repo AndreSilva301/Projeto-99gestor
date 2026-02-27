@@ -33,12 +33,13 @@ const Login = () => {
     });
   };
 
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     // Implement login logic
     var response = await authService.login(formData);
     if(response.success){
-      localStorage.setItem('user', JSON.stringify({
+    localStorage.setItem('user', JSON.stringify({
       id: response.data.id,
       name: response.data.name,
       email: response.data.email,
